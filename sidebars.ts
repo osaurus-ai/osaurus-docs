@@ -66,6 +66,16 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "identity",
+          label: "Identity",
+        },
+        {
+          type: "doc",
+          id: "relay",
+          label: "Relay",
+        },
+        {
+          type: "doc",
           id: "voice",
           label: "Voice Input",
         },

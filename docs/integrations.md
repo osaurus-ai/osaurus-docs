@@ -397,11 +397,38 @@ export async function POST(request) {
 }
 ```
 
+## Authentication with Access Keys
+
+By default, Osaurus does not require authentication for local requests. When exposing your server to external clients — especially via [Relay](/relay) — you should use access keys to protect API endpoints.
+
+Access keys use the `osk-v1` format and are created through the [Identity](/identity) system. Pass them as a Bearer token:
+
+```bash
+curl http://127.0.0.1:1337/v1/chat/completions \
+  -H "Authorization: Bearer osk-v1.<payload>.<signature>" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "llama-3.2-3b-instruct-4bit", "messages": [{"role":"user","content":"Hello!"}]}'
+```
+
+With the OpenAI SDK, pass the access key as the `api_key`:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://127.0.0.1:1337/v1",
+    api_key="osk-v1.<payload>.<signature>"
+)
+```
+
+Access keys can be scoped to a specific agent or your entire identity. See [Identity — Access Keys](/identity#access-keys) for details on creating, scoping, and revoking keys.
+
 ## Integration Checklist
 
 - [ ] **Choose integration method** — MCP, OpenAI SDK, or direct API
 - [ ] **Configure base URL** — `http://127.0.0.1:1337` (or custom port)
 - [ ] **Set model name** — Use lowercase with hyphens
+- [ ] **Set up authentication** — Create an [access key](/identity#access-keys) if exposing endpoints externally
 - [ ] **Handle streaming** — Enable for better UX
 - [ ] **Install tools** — If using MCP, install needed plugins
 - [ ] **Test error handling** — Handle connection and model errors

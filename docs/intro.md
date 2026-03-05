@@ -56,6 +56,8 @@ Osaurus is native AI infrastructure for macOS—**local-first, privacy-respectin
 - **Connect to any provider** — Use OpenAI, Anthropic, Ollama, or OpenRouter when you need cloud capabilities. Switch freely.
 - **Chat from anywhere** — Press ⌘; to open a beautiful chat overlay. No browser needed.
 - **Extend with tools** — Give AI access to your filesystem, browser, git repos, and more through native plugins.
+- **Own your identity** — Every participant gets a cryptographic address. Actions are signed and verifiable without a central authority.
+- **Access from anywhere** — Expose agents to the public internet via secure tunnels. No port forwarding needed.
 - **Build an ecosystem** — Skills, agents, schedules, watchers, and tools that work together—discovered, installed, and composed based on what you need.
 
 Built for Apple Silicon. 10MB. Pure Swift. Instant startup.
@@ -108,6 +110,12 @@ Execute complex, multi-step tasks autonomously. Organize files, conduct deep res
 
 [Learn more about Work Mode →](/work-mode)
 
+### Identity
+
+Every participant in Osaurus — you, your agents, and your devices — gets a cryptographic address. Authority flows from your master key down to each agent, forming a verifiable chain of trust. Create portable access keys for external tools and MCP clients, scope them per-agent, and revoke them at any time. No central authority needed.
+
+[Learn more about Identity →](/identity)
+
 ### Voice Input
 
 Speak naturally and watch your words appear in real-time. Powered by WhisperKit, all transcription happens on your device—completely private, works offline. Enable VAD Mode to activate your assistant hands-free with a wake phrase.
@@ -154,6 +162,12 @@ Osaurus is a full [Model Context Protocol](https://modelcontextprotocol.io/) ser
 ```
 
 [Learn more about MCP & tools →](/tools)
+
+### Relay
+
+Expose your local agents to the public internet via secure WebSocket tunnels through `agent.osaurus.ai`. Each agent gets a unique public URL based on its cryptographic address — no port forwarding, no ngrok, no configuration needed. Share agents with teammates, connect remote MCP clients, or receive webhooks to a locally running agent.
+
+[Learn more about Relay →](/relay)
 
 ### Native Tools
 
