@@ -66,6 +66,11 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "sandbox",
+          label: "Sandbox",
+        },
+        {
+          type: "doc",
           id: "identity",
           label: "Identity",
         },

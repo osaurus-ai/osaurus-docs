@@ -97,6 +97,16 @@ Enable or disable specific tools for each agent. This lets you create focused as
 
 Assign a custom theme that activates automatically when you switch to this agent. Each agent can have its own color scheme, creating a visual distinction between different assistants.
 
+### Sandbox
+
+Each agent can execute code in an isolated Linux VM powered by Apple's Containerization framework. Inside the sandbox, every agent gets its own Linux user (`agent-{name}`) and home directory at `/workspace/agents/{name}/`. This means agents can run arbitrary shell commands, install packages, and modify files without any risk to your Mac — and without interfering with each other.
+
+Enable `autonomous_exec` on an agent to give it access to write and execution tools inside the sandbox. Read-only sandbox tools are always available.
+
+:::info
+The Sandbox requires macOS 26 (Tahoe) or later. See the [Sandbox guide](/sandbox) for setup, configuration, and plugin authoring.
+:::
+
 ## Example Agents
 
 ### Code Assistant

@@ -15,8 +15,8 @@ Osaurus is available as a native macOS application for Apple Silicon. Choose you
 - **Apple Silicon** (M1, M2, M3, or newer)
 - **2-20GB** free space per model
 
-:::info Apple Foundation Models
-Apple Intelligence features require macOS 26 (Tahoe) or later with Apple Intelligence enabled in System Settings.
+:::info macOS 26 Features
+Apple Foundation Models and the [Sandbox](/sandbox) (agent code execution in an isolated Linux VM) require macOS 26 (Tahoe) or later.
 :::
 
 ## Homebrew Installation

@@ -9,6 +9,18 @@ sidebar_position: 5
 
 Osaurus provides OpenAI-compatible, Anthropic-compatible, Ollama-compatible, and MCP APIs for seamless integration with existing tools and AI agents.
 
+## Compatible APIs
+
+Drop-in endpoints for existing tools and SDKs:
+
+| API       | Endpoint                                    |
+| --------- | ------------------------------------------- |
+| OpenAI    | http://127.0.0.1:1337/v1/chat/completions   |
+| Anthropic | http://127.0.0.1:1337/anthropic/v1/messages |
+| Ollama    | http://127.0.0.1:1337/api/chat              |
+
+All prefixes supported (`/v1`, `/api`, `/v1/api`). Full function calling with streaming tool call deltas.
+
 ## Base URL
 
 ```
@@ -16,12 +28,6 @@ http://127.0.0.1:1337
 ```
 
 Override the port with the `OSU_PORT` environment variable.
-
-All endpoints support common API prefixes for compatibility:
-
-- `/v1/endpoint` — OpenAI style
-- `/api/endpoint` — Generic style
-- `/v1/api/endpoint` — Combined style
 
 ## Endpoints Overview
 
@@ -35,7 +41,7 @@ All endpoints support common API prefixes for compatibility:
 | `/v1/tags` | GET | List available models (Ollama) |
 | `/v1/chat/completions` | POST | Chat completion (OpenAI) |
 | `/v1/responses` | POST | Responses (Open Responses) |
-| `/messages` | POST | Chat completion (Anthropic) |
+| `/anthropic/v1/messages` | POST | Chat completion (Anthropic) |
 | `/api/chat` | POST | Chat completion (Ollama) |
 
 ### Memory Endpoints
@@ -353,9 +359,9 @@ curl http://127.0.0.1:1337/v1/responses \
 }
 ```
 
-### POST /messages
+### POST /anthropic/v1/messages
 
-Create a chat completion using Anthropic format. This endpoint is compatible with the Anthropic Claude API.
+Create a chat completion using Anthropic format. This endpoint is compatible with the Anthropic Claude API. Also available at `/messages` for backwards compatibility.
 
 **Request Body:**
 
@@ -443,7 +449,7 @@ data: {"type":"message_stop"}
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url="http://127.0.0.1:1337",
+    base_url="http://127.0.0.1:1337/anthropic",
     api_key="osaurus"  # Any value works
 )
 
@@ -461,7 +467,7 @@ print(message.content[0].text)
 **Example with cURL:**
 
 ```bash
-curl http://127.0.0.1:1337/messages \
+curl http://127.0.0.1:1337/anthropic/v1/messages \
   -H "Content-Type: application/json" \
   -H "x-api-key: osaurus" \
   -d '{

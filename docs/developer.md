@@ -78,33 +78,26 @@ osaurus/
 ## Architecture Overview
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│   SwiftUI App   │────▶│   Menu Bar UI   │
-└────────┬────────┘     └─────────────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│ ServerController│────▶│  SwiftNIO HTTP  │
-└────────┬────────┘     └────────┬────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│  Model Manager  │     │   API Handler   │
-└────────┬────────┘     └────────┬────────┘
-         │                       │
-         └───────┬───────────────┘
-                 ▼
-┌─────────────────────────────────────────┐
-│           MLX Service                    │
-│  (Inference, Token Streaming)           │
-└─────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────┐
-│          Plugin Manager                  │
-│  (Tool Loading, MCP Protocol)           │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                   The Harness                       │
+├──────────┬──────────┬───────────┬───────────────────┤
+│ Agents   │ Memory   │ Work Mode │ Automation        │
+├──────────┴──────────┴───────────┴───────────────────┤
+│              MCP Server + Client                    │
+├──────────┬──────────┬───────────┬───────────────────┤
+│ MLX      │ OpenAI   │ Anthropic │ Ollama / Others   │
+│ Runtime  │ API      │ API       │                   │
+├──────────┴──────────┴───────────┴───────────────────┤
+│      Plugin System (v1 / v2 ABI) · Native Plugins   │
+├──────────┬──────────┬───────────┬───────────────────┤
+│ Identity │ Relay    │ Tools     │ Skills            │
+├──────────┴──────────┴───────────┴───────────────────┤
+│  Sandbox VM (Alpine · Apple Containerization)       │
+│  vsock bridge · VirtioFS · per-agent isolation      │
+└─────────────────────────────────────────────────────┘
 ```
+
+Most features are accessible through the Management window (`⌘⇧M`).
 
 ## Contributing
 
@@ -150,7 +143,7 @@ Osaurus has a powerful plugin system for extending AI agent capabilities. Plugin
 
 ```bash
 # Scaffold a new Swift plugin
-osaurus tools create MyPlugin --language swift
+osaurus tools create MyPlugin --swift
 cd MyPlugin
 
 # Build
@@ -158,6 +151,9 @@ swift build -c release
 
 # Install locally
 osaurus tools install .
+
+# Or use dev mode for hot reload
+osaurus tools dev com.example.myplugin
 ```
 
 ### Plugin Architecture

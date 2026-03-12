@@ -1,18 +1,18 @@
 ---
 title: Voice Input
 sidebar_label: Voice Input
-description: Speech-to-text powered by WhisperKit — fully local, private, on-device transcription
+description: Speech-to-text powered by FluidAudio on Apple's Neural Engine — fully local, private, on-device transcription
 sidebar_position: 12
 ---
 
 # Voice Input
 
-Sometimes typing isn't convenient—you're cooking, exercising, or just want to think out loud. Osaurus includes fully local speech-to-text powered by [WhisperKit](https://github.com/argmaxinc/WhisperKit). Speak naturally, see your words appear in real-time, and know that nothing leaves your Mac.
+Sometimes typing isn't convenient — you're cooking, exercising, or just want to think out loud. Osaurus includes fully local speech-to-text powered by FluidAudio on Apple's Neural Engine. Speak naturally, see your words appear in real-time, and know that nothing leaves your Mac.
 
 ## Features
 
 - **Real-time transcription** — See your words as you speak
-- **Multiple Whisper models** — From Tiny (75 MB) to Large V3 (3 GB)
+- **Multiple transcription models** — From Tiny (75 MB) to Large V3 (3 GB)
 - **Microphone or system audio** — Transcribe your voice or computer audio
 - **Configurable sensitivity** — Adjust for quiet or noisy environments
 - **Auto-send with confirmation** — Hands-free message sending
@@ -39,7 +39,7 @@ If you accidentally denied permission:
 2. Find Osaurus in the list
 3. Toggle the switch to enable
 
-### 3. Download a Whisper Model
+### 3. Download a Transcription Model
 
 Choose and download a transcription model:
 
@@ -51,7 +51,7 @@ Choose and download a transcription model:
 | **Medium**   | 1.5 GB | Slower   | Very Good | Higher accuracy needs           |
 | **Large V3** | 3 GB   | Slowest  | Best      | Maximum accuracy, complex audio |
 
-Click **Download** next to your chosen model. The model downloads to `~/.osaurus/whisper-models`.
+Click **Download** next to your chosen model. The model downloads to `~/.osaurus/voice-models`.
 
 :::tip Recommended
 Start with **Small** for a good balance of speed and accuracy. Upgrade to **Large V3** if you need better transcription for accented speech or technical vocabulary.
@@ -259,7 +259,7 @@ The overlay stays out of your way while giving you clear feedback.
 
 ### High CPU Usage
 
-Whisper transcription is computationally intensive:
+Transcription is computationally intensive:
 
 1. **Use a smaller model** — Tiny or Base for lower resource usage
 2. **Close unnecessary apps** — Free up system resources
@@ -270,7 +270,7 @@ Whisper transcription is computationally intensive:
 1. Check your internet connection
 2. Verify disk space (Large V3 needs 3 GB)
 3. Try a smaller model first
-4. Check `~/.osaurus/whisper-models` for partial downloads and delete them
+4. Check `~/.osaurus/voice-models` for partial downloads and delete them
 
 ### Transcription Mode Not Working
 

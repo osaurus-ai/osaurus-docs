@@ -7,7 +7,7 @@ sidebar_position: 7
 
 # Tools & Plugins
 
-Osaurus includes a powerful plugin system for extending AI agent capabilities. Tools are exposed via the Model Context Protocol (MCP), allowing any MCP-compatible client to use them.
+Osaurus includes a powerful plugin system with 20+ native plugins for extending AI agent capabilities. Tools are exposed via the Model Context Protocol (MCP), allowing any MCP-compatible client to use them. Osaurus is both a full MCP server and client — aggregate tools from remote MCP servers alongside your locally installed plugins.
 
 ## Why Native Tools?
 
@@ -26,14 +26,21 @@ For AI agents executing dozens of tool calls per session, these differences comp
 
 These tools are maintained by the Osaurus team and available from the central registry:
 
-| Plugin ID            | Description                  | Tools                                                                                                                                                          |
-| -------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `osaurus.filesystem` | File system operations       | `read_file`, `write_file`, `list_directory`, `create_directory`, `delete_file`, `move_file`, `search_files`, `get_file_info`                                   |
-| `osaurus.browser`    | Headless WebKit browser      | `browser_navigate`, `browser_get_content`, `browser_get_html`, `browser_execute_script`, `browser_click`, `browser_type`, `browser_screenshot`, `browser_wait` |
-| `osaurus.git`        | Git repository utilities     | `git_status`, `git_log`, `git_diff`, `git_branch`                                                                                                              |
-| `osaurus.search`     | Web search via DuckDuckGo    | `search`, `search_news`, `search_images`                                                                                                                       |
-| `osaurus.fetch`      | HTTP client for web requests | `fetch`, `fetch_json`, `fetch_html`, `download`                                                                                                                |
-| `osaurus.time`       | Time and date utilities      | `current_time`, `format_date`                                                                                                                                  |
+| Plugin ID            | Description                      | Tools                                                                                                                                                          |
+| -------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `osaurus.filesystem` | File system operations           | `read_file`, `write_file`, `list_directory`, `create_directory`, `delete_file`, `move_file`, `search_files`, `get_file_info`                                   |
+| `osaurus.browser`    | Headless WebKit browser          | `browser_navigate`, `browser_get_content`, `browser_get_html`, `browser_execute_script`, `browser_click`, `browser_type`, `browser_screenshot`, `browser_wait` |
+| `osaurus.git`        | Git repository utilities         | `git_status`, `git_log`, `git_diff`, `git_branch`                                                                                                              |
+| `osaurus.search`     | Web search via DuckDuckGo        | `search`, `search_news`, `search_images`                                                                                                                       |
+| `osaurus.fetch`      | HTTP client for web requests     | `fetch`, `fetch_json`, `fetch_html`, `download`                                                                                                                |
+| `osaurus.time`       | Time and date utilities          | `current_time`, `format_date`                                                                                                                                  |
+| `osaurus.mail`       | Apple Mail integration           | `mail_send`, `mail_search`, `mail_read`                                                                                                                        |
+| `osaurus.calendar`   | Calendar events                  | `calendar_list`, `calendar_create`, `calendar_search`                                                                                                          |
+| `osaurus.vision`     | Image analysis and OCR           | `vision_describe`, `vision_ocr`                                                                                                                                |
+| `osaurus.macos-use`  | macOS UI automation              | `macos_click`, `macos_type`, `macos_screenshot`, `macos_get_windows`                                                                                           |
+| `osaurus.xlsx`       | Excel spreadsheet operations     | `xlsx_read`, `xlsx_write`, `xlsx_create`                                                                                                                       |
+| `osaurus.pptx`       | PowerPoint presentation tools    | `pptx_read`, `pptx_create`                                                                                                                                     |
+| `osaurus.music`      | Apple Music control              | `music_play`, `music_pause`, `music_search`, `music_now_playing`                                                                                               |
 
 ## Installing Tools
 
@@ -55,6 +62,9 @@ osaurus tools search browser
 
 # Uninstall a tool
 osaurus tools uninstall osaurus.time
+
+# Dev mode with hot reload
+osaurus tools dev com.acme.my-plugin
 ```
 
 Tools are installed to:
@@ -257,6 +267,17 @@ Remote tools are also available to MCP clients like Cursor and Claude Desktop th
 - **Set appropriate timeouts** — Remote tools may have higher latency than local ones
 - **Monitor connection health** — Check the Management window for provider status
 
+## Plugin ABIs
+
+Plugins support two ABI versions:
+
+| ABI | Capabilities |
+| --- | ------------ |
+| **v1** | Tools only — define tool schemas and handle invocations |
+| **v2** | Full host API — register HTTP routes, serve web apps, persist data in SQLite, dispatch agent tasks, and call inference through any model |
+
+v2 plugins have access to the full Osaurus runtime, enabling rich integrations that go beyond simple tool calls.
+
 ## Creating Your Own Tools
 
 Want to build a tool? See the [Plugin Authoring Guide](/plugin-authoring) for complete instructions.
@@ -265,12 +286,15 @@ Quick start:
 
 ```bash
 # Scaffold a new Swift plugin
-osaurus tools create MyPlugin --language swift
+osaurus tools create MyPlugin --swift
 
 # Build and install locally
 cd MyPlugin
 swift build -c release
 osaurus tools install .
+
+# Dev mode with hot reload
+osaurus tools dev com.example.myplugin
 ```
 
 ## Central Registry

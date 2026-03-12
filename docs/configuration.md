@@ -112,15 +112,39 @@ Installed plugins are stored at:
 
 This location is not configurable.
 
-## Whisper Models Storage
+## Voice Models Storage
 
-Voice input models (WhisperKit) are stored at:
+Voice input models (FluidAudio) are stored at:
 
 ```
-~/.osaurus/whisper-models
+~/.osaurus/voice-models
 ```
 
 This location is not configurable. Models range from 75 MB (Tiny) to 3 GB (Large V3). See the [Voice Input](/voice) guide for model options.
+
+## Sandbox Configuration
+
+The [Sandbox](/sandbox) runs agent code in an isolated Linux VM. Configure it via the Management window → **Sandbox** → **Container** tab, or edit the config file directly:
+
+**Config file:** `~/.osaurus/config/sandbox.json`
+
+```json
+{
+  "autoStart": true,
+  "cpus": 2,
+  "memoryGB": 2,
+  "network": "outbound"
+}
+```
+
+| Setting | Range | Default | Description |
+|---------|-------|---------|-------------|
+| `autoStart` | true / false | true | Start the container when Osaurus launches |
+| `cpus` | 1–8 | 2 | Virtual CPU cores allocated to the VM |
+| `memoryGB` | 1–8 | 2 | RAM in GB allocated to the VM |
+| `network` | outbound / none | outbound | NAT networking for outbound internet access |
+
+Changes require a container restart to take effect. The Sandbox requires macOS 26 (Tahoe) or later.
 
 ## API Path Prefixes
 

@@ -33,11 +33,13 @@ Each model displays:
 
 ### Managing Storage
 
-Models are stored in:
+Models are stored at:
 
 ```
-~/Library/Containers/ai.dinoki.osaurus/Data/Library/Application Support/models/
+~/MLXModels
 ```
+
+Override this location with the `OSU_MODELS_DIR` environment variable.
 
 To remove models:
 
@@ -87,6 +89,34 @@ Features:
 - No download required
 - Optimized for Apple Silicon
 - Privacy-focused design
+
+### Liquid Foundation Models
+
+Osaurus supports Liquid AI's LFM family — on-device models built on a non-transformer architecture optimized for edge deployment. Fast decode, low memory footprint, and strong tool calling out of the box.
+
+Features:
+
+- Non-transformer architecture tuned for edge inference
+- Fast token generation on Apple Silicon
+- Low memory footprint compared to equivalent-quality transformers
+- Strong tool calling performance
+
+### Cloud Providers
+
+The harness is model-agnostic. Connect to cloud providers when you need more power — your agents, memory, and tools stay intact regardless of which provider you use.
+
+| Provider | Description |
+| -------- | ----------- |
+| **OpenAI** | GPT-4o, GPT-4, and other OpenAI models |
+| **Anthropic** | Claude family of models |
+| **Gemini** | Google's Gemini models |
+| **xAI / Grok** | xAI's Grok models |
+| **Venice AI** | Privacy-focused, uncensored inference with no data retention |
+| **OpenRouter** | Unified access to multiple model providers |
+| **Ollama** | Local and remote Ollama instances |
+| **LM Studio** | Local model serving via LM Studio |
+
+Context and memory persist across all providers. Switch freely without losing what the AI has learned about you.
 
 ## Model Naming Convention
 

@@ -14,7 +14,7 @@ This guide explains how to build external plugins for Osaurus. Plugins are nativ
 ### 1. Scaffold a Plugin
 
 ```bash
-osaurus tools create MyPlugin --language swift
+osaurus tools create MyPlugin --swift
 cd MyPlugin
 ```
 
@@ -258,7 +258,7 @@ func osaurusPluginEntry() -> UnsafeMutableRawPointer {
 
 ## Rust Implementation
 
-For Rust plugins, create a `cdylib`:
+Scaffold a Rust plugin with `osaurus tools create MyPlugin --rust`, or create a `cdylib` manually:
 
 ```rust
 use std::ffi::{CStr, CString};
@@ -321,6 +321,47 @@ pub extern "C" fn plugin_free_string(s: *mut c_char) {
     }
 }
 ```
+
+## v2 Plugin ABI
+
+The v2 ABI extends the plugin system with full host API access. While v1 plugins are limited to tool definitions and invocations, v2 plugins can interact with the entire Osaurus runtime.
+
+### v2 Capabilities
+
+| Capability | Description |
+| ---------- | ----------- |
+| **HTTP Routes** | Register custom HTTP endpoints on the Osaurus server |
+| **Web Apps** | Serve embedded web applications through the server |
+| **SQLite Storage** | Persist structured data in a per-plugin SQLite database |
+| **Agent Dispatch** | Programmatically dispatch tasks to other agents |
+| **Inference** | Call chat completions through any configured model provider |
+| **Events** | Emit and subscribe to cross-plugin events |
+
+### Choosing an ABI Version
+
+- Use **v1** for simple tools that respond to invocations — file utilities, API wrappers, data transformers
+- Use **v2** when your plugin needs persistent state, background processing, web UIs, or cross-agent communication
+
+Specify the ABI version in your manifest:
+
+```json
+{
+  "plugin_id": "com.example.mytool",
+  "version": "1.0.0",
+  "abi": "v2",
+  "capabilities": { ... }
+}
+```
+
+### Hot Reload Development
+
+Use `osaurus tools dev` for rapid iteration during plugin development:
+
+```bash
+osaurus tools dev com.example.myplugin
+```
+
+This watches your plugin directory for changes and automatically reloads the plugin when files are modified — no manual reinstall required.
 
 ## Publishing to the Registry
 

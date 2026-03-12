@@ -267,8 +267,8 @@ osaurus tools search filesystem
 Scaffold a new plugin project.
 
 ```bash
-osaurus tools create MyPlugin --language swift
-osaurus tools create MyPlugin --language rust
+osaurus tools create MyPlugin --swift
+osaurus tools create MyPlugin --rust
 ```
 
 Creates a directory with:
@@ -276,6 +276,16 @@ Creates a directory with:
 - `Package.swift` or `Cargo.toml`
 - `manifest.json`
 - Source file template
+
+#### tools dev
+
+Run a plugin in development mode with hot reload.
+
+```bash
+osaurus tools dev com.acme.my-plugin
+```
+
+Watches the plugin directory for changes and automatically reloads the plugin when files are modified. Useful for rapid iteration during plugin development.
 
 #### tools package
 
@@ -340,12 +350,15 @@ osaurus serve
 
 ```bash
 # Create a new plugin
-osaurus tools create MyTool --language swift
+osaurus tools create MyTool --swift
 cd MyTool
 
 # Build and test
 swift build -c release
 osaurus tools install .
+
+# Or use dev mode for hot reload
+osaurus tools dev com.example.mytool
 
 # Check it's installed
 osaurus tools list
