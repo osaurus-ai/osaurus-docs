@@ -2,7 +2,6 @@
 title: Work Mode
 sidebar_label: Work Mode
 description: Execute complex, multi-step tasks autonomously with built-in issue tracking and planning
-sidebar_position: 13
 ---
 
 # Work Mode

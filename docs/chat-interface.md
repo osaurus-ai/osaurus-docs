@@ -2,7 +2,6 @@
 title: Chat Interface
 sidebar_label: Chat Interface
 description: Access AI from anywhere on your Mac with the Osaurus chat overlay
-sidebar_position: 10
 ---
 
 # Chat Interface

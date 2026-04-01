@@ -2,7 +2,6 @@
 title: Watchers
 sidebar_label: Watchers
 description: Monitor folders for file system changes and automatically trigger AI tasks
-sidebar_position: 12
 ---
 
 # Watchers

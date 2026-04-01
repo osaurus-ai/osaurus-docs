@@ -2,7 +2,6 @@
 title: Identity
 sidebar_label: Identity
 description: Cryptographic identity for humans, agents, and devices — address-based authentication with verifiable signatures and no central authority
-sidebar_position: 11
 ---
 
 # Identity

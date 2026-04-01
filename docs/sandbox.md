@@ -2,7 +2,6 @@
 title: Sandbox
 sidebar_label: Sandbox
 description: Run agent code in an isolated Linux virtual machine — safely, locally, and with full dev environment capabilities
-sidebar_position: 14
 ---
 
 # Sandbox

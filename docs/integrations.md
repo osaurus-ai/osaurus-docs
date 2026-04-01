@@ -2,7 +2,6 @@
 title: Integrations
 sidebar_label: Integrations
 description: Connect Osaurus with MCP clients, IDEs, and your favorite tools
-sidebar_position: 11
 ---
 
 # Integration Guide

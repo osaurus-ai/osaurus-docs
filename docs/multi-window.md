@@ -2,7 +2,6 @@
 title: Multi-Window Chat
 sidebar_label: Multi-Window
 description: Work with multiple independent chat windows, each with its own agent and session
-sidebar_position: 13
 ---
 
 # Multi-Window Chat

@@ -2,7 +2,6 @@
 title: Shared Configuration
 sidebar_label: Shared Configuration
 description: How native apps discover and connect to a running Osaurus instance via a shared JSON file.
-sidebar_position: 8
 ---
 
 This guide explains how other native apps can discover and connect to the locally running Osaurus server, using a small JSON file Osaurus publishes to a well-known location.

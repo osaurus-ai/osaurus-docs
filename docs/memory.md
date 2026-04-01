@@ -2,7 +2,6 @@
 title: Memory
 sidebar_label: Memory
 description: Persistent memory that learns from your conversations and provides personalized context to every AI interaction
-sidebar_position: 11
 ---
 
 # Memory

@@ -2,7 +2,6 @@
 title: Relay
 sidebar_label: Relay
 description: Expose your local agents to the public internet via secure WebSocket tunnels — no port forwarding, no configuration
-sidebar_position: 11
 ---
 
 # Relay

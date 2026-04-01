@@ -2,7 +2,6 @@
 title: Agents
 sidebar_label: Agents
 description: Create custom AI assistant personalities with unique behaviors, capabilities, and styles
-sidebar_position: 11
 ---
 
 # Agents

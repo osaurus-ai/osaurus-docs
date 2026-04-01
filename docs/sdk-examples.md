@@ -2,7 +2,6 @@
 title: SDK Examples
 sidebar_label: SDK Examples
 description: Complete code examples for using Osaurus with various programming languages and SDKs
-sidebar_position: 6
 ---
 
 # SDK Examples

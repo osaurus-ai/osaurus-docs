@@ -2,7 +2,6 @@
 title: Building from Source
 sidebar_label: Building from Source
 description: Build Osaurus from source, contribute to the project, and understand the architecture
-sidebar_position: 20
 ---
 
 # Building from Source

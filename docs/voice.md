@@ -2,7 +2,6 @@
 title: Voice Input
 sidebar_label: Voice Input
 description: Speech-to-text powered by FluidAudio on Apple's Neural Engine — fully local, private, on-device transcription
-sidebar_position: 12
 ---
 
 # Voice Input

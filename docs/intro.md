@@ -2,7 +2,6 @@
 title: Overview
 sidebar_label: Overview
 description: The native macOS harness for AI agents — any model, persistent memory, autonomous execution, cryptographic identity. Built in Swift. Fully offline. Open source.
-sidebar_position: 1
 slug: /
 hide_title: true
 ---

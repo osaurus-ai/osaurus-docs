@@ -2,7 +2,6 @@
 title: Skills
 sidebar_label: Skills
 description: Extend your AI with reusable capabilities imported from GitHub or local files
-sidebar_position: 12
 ---
 
 # Skills

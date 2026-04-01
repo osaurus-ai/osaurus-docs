@@ -2,7 +2,6 @@
 title: Quick Start
 sidebar_label: Quick Start
 description: Get up and running with Osaurus in minutes
-sidebar_position: 3
 ---
 
 # Quick Start

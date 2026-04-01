@@ -2,7 +2,6 @@
 title: Plugin Authoring
 sidebar_label: Plugin Authoring
 description: Build native Swift and Rust plugins for Osaurus using the Generic C ABI
-sidebar_position: 12
 ---
 
 # Plugin Authoring Guide

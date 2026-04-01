@@ -2,7 +2,6 @@
 title: Keyboard Shortcuts
 sidebar_label: Keyboard Shortcuts
 description: Complete reference for Osaurus keyboard shortcuts
-sidebar_position: 14
 ---
 
 # Keyboard Shortcuts

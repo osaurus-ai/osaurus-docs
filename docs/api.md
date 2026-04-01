@@ -2,7 +2,6 @@
 title: API Reference
 sidebar_label: API
 description: Complete API documentation for Osaurus endpoints
-sidebar_position: 5
 ---
 
 # API Reference

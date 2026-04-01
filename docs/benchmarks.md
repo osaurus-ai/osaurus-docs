@@ -2,7 +2,6 @@
 title: Benchmarks
 sidebar_label: Benchmarks
 description: Performance and memory quality benchmarks comparing Osaurus with other local LLM servers
-sidebar_position: 10
 ---
 
 # Performance Benchmarks

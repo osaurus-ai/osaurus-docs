@@ -2,7 +2,6 @@
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
 description: Native Swift and Rust MCP tools for Osaurus - browser automation, filesystem, git, search, and more
-sidebar_position: 7
 ---
 
 # Tools & Plugins

@@ -2,7 +2,6 @@
 title: Model Management
 sidebar_label: Models
 description: Complete guide to managing, downloading, and using models in Osaurus
-sidebar_position: 4
 ---
 
 # Model Management

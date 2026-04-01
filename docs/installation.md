@@ -2,7 +2,6 @@
 title: Installation
 sidebar_label: Installation
 description: Install Osaurus via Homebrew or download the latest signed build from GitHub Releases.
-sidebar_position: 2
 ---
 
 # Installation

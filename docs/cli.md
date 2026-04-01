@@ -2,7 +2,6 @@
 title: CLI Reference
 sidebar_label: CLI
 description: Complete command-line interface documentation for Osaurus
-sidebar_position: 8
 ---
 
 # CLI Reference

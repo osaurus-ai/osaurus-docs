@@ -2,7 +2,6 @@
 title: Schedules
 sidebar_label: Schedules
 description: Automate recurring AI tasks with timed execution
-sidebar_position: 13
 ---
 
 # Schedules
