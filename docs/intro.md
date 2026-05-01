@@ -10,19 +10,14 @@ hide_title: true
 # Osaurus
 
 <p align="center">
-  <img width="120" height="120" alt="Osaurus" src="/img/osaurus.svg" />
+  <img width="96" height="96" alt="Osaurus" src="/img/osaurus-logo-blue.svg" />
 </p>
 
 <p align="center">
   <strong>Own your AI.</strong>
 </p>
 
-<p align="center" class="badges">
-  <a href="https://github.com/osaurus-ai/osaurus"><img src="https://img.shields.io/github/stars/osaurus-ai/osaurus?style=flat-square&color=000000" alt="Stars" /></a>
-  <a href="https://github.com/osaurus-ai/osaurus/releases"><img src="https://img.shields.io/github/v/release/osaurus-ai/osaurus?sort=semver&style=flat-square&color=000000" alt="Release" /></a>
-  <a href="https://github.com/osaurus-ai/osaurus/releases"><img src="https://img.shields.io/github/downloads/osaurus-ai/osaurus/total?style=flat-square&color=000000" alt="Downloads" /></a>
-  <a href="https://github.com/osaurus-ai/osaurus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/osaurus-ai/osaurus?style=flat-square&color=000000" alt="License" /></a>
-</p>
+<GitHubStats />
 
 ---
 

@@ -7,7 +7,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "Osaurus Docs",
   tagline: "Native Apple Silicon local LLM server",
-  favicon: "img/osaurus.svg",
+  favicon: "img/osaurus-squirqle.svg",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -68,7 +68,7 @@ const config: Config = {
 
   stylesheets: [
     {
-      href: "https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap",
+      href: "https://use.typekit.net/ijx2vmq.css",
       type: "text/css",
     },
   ],
@@ -76,11 +76,7 @@ const config: Config = {
   headTags: [
     {
       tagName: "meta",
-      attributes: { name: "theme-color", content: "#ffffff" },
-    },
-    {
-      tagName: "meta",
-      attributes: { name: "theme-color", content: "#ffffff" },
+      attributes: { name: "theme-color", content: "#ffffea" },
     },
     {
       tagName: "meta",
@@ -193,10 +189,10 @@ const config: Config = {
     ],
     navbar: {
       hideOnScroll: false,
-      title: "Osaurus",
+      title: "",
       logo: {
-        alt: "Osaurus Logo",
-        src: "img/osaurus.svg",
+        alt: "Osaurus",
+        src: "img/osaurus-wordmark-blue.svg",
       },
       items: [
         {
