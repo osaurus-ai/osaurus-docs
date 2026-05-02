@@ -1,245 +1,265 @@
 ---
-title: Model Management
+title: Models
 sidebar_label: Models
-description: Complete guide to managing, downloading, and using models in Osaurus
-sidebar_position: 4
+description: Local MLX models, Apple Foundation Models, Liquid Foundation Models, and cloud providers — all behind the same API.
+sidebar_position: 6
 ---
 
-# Model Management
+# Models
 
-Osaurus supports a wide variety of MLX-optimized models and Apple Foundation Models. This guide covers model management and configuration.
+Osaurus is model-agnostic. Run a 2B local Gemma on the train, switch to GPT-4o at the office, hand off to Apple's on-device Foundation model on the weekend — your agents, memory, and tools stay intact across all of them.
 
-## Model Manager
+## What you can run
 
-Access the Model Manager through the Osaurus menu bar icon.
+| Source | Where it runs | macOS | Setup |
+|---|---|---|---|
+| **MLX (local)** | On your Mac, Apple Silicon | 15.5+ | Download once via Model Manager |
+| **Apple Foundation** | On your Mac, Apple Neural Engine | 26+ | Zero — model name is just `foundation` |
+| **Liquid Foundation** | On your Mac | 15.5+ | Download via Model Manager |
+| **Cloud providers** | Their servers | 15.5+ | API key in **Management → Providers** |
 
-### Downloading Models
+## Local: MLX
 
-1. Click the Osaurus menu bar icon
-2. Select **Model Manager**
-3. Browse or search for models
-4. Click **Download** on your chosen model
-5. Monitor progress in the download queue
+MLX is Apple's array framework with first-class GPU support via unified memory. Local models on Osaurus run through MLX with optimizations for Apple Silicon.
 
-### Model Information
+### Downloading
 
-Each model displays:
+1. **Management window** (`⌘ ⇧ M`) → **Models**
+2. Browse or search the catalog
+3. Click **Download** on a model
+4. Watch progress in the queue
 
-- **Name** — Model identifier
-- **Size** — Download and disk size
-- **Quantization** — Bit precision (4-bit, 8-bit)
-- **Parameters** — Model size in billions
-- **Download Status** — Current state
+Each entry shows name, parameter count, quantization (4-bit / 8-bit / JANGTQ / mxfp4), and total disk size.
 
-### Managing Storage
-
-Models are stored at:
+### Where models live
 
 ```
-~/MLXModels
+~/MLXModels/
+├── gemma-4-e2b-it-4bit/
+├── qwen3.6-35b-a3b-jangtq2/
+└── ...
 ```
 
-Override this location with the `OSU_MODELS_DIR` environment variable.
+Override with `OSU_MODELS_DIR=/Volumes/External/MLXModels`.
 
-To remove models:
+To remove a model: **Models → Downloaded → Delete**.
 
-1. Open Model Manager
-2. Find the downloaded model
-3. Click **Delete**
-4. Confirm removal
+### Curated lineup on Hugging Face
 
-## Model Types
+Osaurus maintains its own [optimized model library on Hugging Face](https://huggingface.co/OsaurusAI). Downloads from the in-app Model Manager pull from this library by default. Highlights:
 
-### MLX Models
+#### Small / fast — start here
 
-MLX models are optimized specifically for Apple Silicon. Osaurus supports a wide range of model architectures:
+| API name | Params | Size | Notes |
+|---|---|---|---|
+| `gemma-4-e2b-it-4bit` | 2B | ~1.5 GB | **Recommended first model.** Tool calling out of the box. |
+| `gemma-4-e2b-it-8bit` | 2B | ~2.5 GB | Same model, higher quality |
+| `gemma-4-e4b-it-4bit` | 4B | ~2.6 GB | Step up in capability |
+| `gemma-4-e4b-it-8bit` | 4B | ~4.2 GB | |
+| `laguna-xs.2-jangtq` | 3B | ~1.6 GB | OsaurusAI's tiny JANGTQ-quantized model |
 
-**Supported Architectures:**
+#### Mid-range
 
-- **Llama** — Meta's Llama 3.2, Llama 3.1, and earlier versions
-- **Qwen** — Alibaba's Qwen 2.5 series
-- **Gemma** — Google's Gemma and Gemma 2 models
-- **Mistral** — Mistral AI's instruction-tuned models
-- **DeepSeek** — DeepSeek Coder and general models
-- **Phi** — Microsoft's Phi series
+| API name | Params | Active | Size | Notes |
+|---|---|---|---|---|
+| `gemma-4-26b-a4b-it-4bit` | 26B MoE | 4B | ~13 GB | Solid coding + reasoning |
+| `gemma-4-26b-a4b-it-jang_4m` | 26B MoE | 4B | smaller | OsaurusAI JANGTQ variant |
+| `gemma-4-31b-it-jang_4m` | 31B | dense | | |
+| `qwen3.5-35b-a3b-jang_2s` | 35B MoE | 3B | smallest | |
+| `qwen3.5-35b-a3b-jang_4k` | 35B MoE | 3B | | |
+| `qwen3.6-27b-jang_4m` | 27B | dense | | |
 
-**Quantization Options:**
+#### Vision-capable (image input + text output)
 
-- **4-bit Quantization** — Best speed/quality trade-off
-- **8-bit Quantization** — Higher quality, more memory
-- **16-bit** — Maximum quality, significant memory usage
+| API name | Params | Active | Size | Notes |
+|---|---|---|---|---|
+| `mistral-medium-3.5-128b-jangtq` | 128B | dense | | Mistral's flagship vision model |
+| `mistral-medium-3.5-128b-mxfp4` | 128B | dense | | mxfp4 variant |
+| `nemotron-3-nano-omni-30b-a3b-jangtq2` | 30B MoE | 3B | | NVIDIA Nemotron Omni |
+| `nemotron-3-nano-omni-30b-a3b-jangtq4` | 30B MoE | 6B | | |
+| `holo3-35b-a3b-jangtq2` | 35B MoE | 3B | | Holo3 vision model |
+| `qwen3.6-35b-a3b-jangtq2` | 35B MoE | 3B | | Qwen vision |
 
-### Apple Foundation Models
+#### Large frontier-class
 
-Available on supported macOS versions:
+| API name | Params | Active | Notes |
+|---|---|---|---|
+| `qwen3.5-122b-a10b-jang_2s` | 122B MoE | 10B | Largest available |
+| `qwen3.5-122b-a10b-jang_4k` | 122B MoE | 10B | |
+| `minimax-m2.7-jangtq` | 15B | dense | |
+| `minimax-m2.7-jangtq4` | 29B | dense | |
+| `deepseek-v4-flash-jangtq` | 21B | dense | |
+
+For the canonical, always-up-to-date list, see [Osaurus-AI on Hugging Face](https://huggingface.co/OsaurusAI).
+
+### About the quantizations
+
+Model file names include the quantization scheme. Knowing what each one means helps you pick:
+
+| Suffix | What it is |
+|---|---|
+| `4bit` / `8bit` | Standard MLX integer quantization |
+| `mxfp4` | Apple's MX FP4 — block floating-point format with native MLX support; great quality at 4-bit footprint |
+| `JANGTQ` / `JANGTQ2` / `JANGTQ4` | OsaurusAI's curated quant family, MLX-tuned for Apple Silicon. Better quality-to-size ratio than off-the-shelf 4-bit |
+| `JANG_2L`, `JANG_4M`, `JANG_2S`, `JANG_4K` | OsaurusAI's variant codes (different bit widths × calibration recipes). Pick by size + reported quality on the model card |
+
+Rule of thumb if you don't want to think about it: for a model with multiple variants, try the one ending in `JANGTQ4` first (best quality for the size), then drop to `JANGTQ2` or `JANG_2S` if you need less RAM.
+
+### Tool calling
+
+Tool calling works across every family above. Osaurus's tool-call parser handles JSON, Qwen XML, Mistral, GLM-4, LFM2, Kimi K2, Gemma 3/4, and MiniMax M2 dialects automatically — your agents don't care which model produced the call.
+
+### Memory rule of thumb
+
+Apple Silicon shares VRAM with system memory. Approximate RAM per model:
+
+- **4-bit**: ~0.6 GB per billion parameters
+- **8-bit**: ~1.2 GB per billion parameters
+- **MoE models**: only the active-parameter weights are touched per token, so a 35B/3B-active MoE behaves closer to a 3B model in steady-state memory
+
+So `gemma-4-e2b-it-4bit` (2B, 4-bit) needs ~1.5 GB; `qwen3.6-35b-a3b-jangtq2` (35B/3B-active) effectively needs RAM in the 3B-class plus expert weights swap-in.
+
+Pick a quantization that leaves room for the rest of your work and your Core Model.
+
+### Eviction policy
+
+Configure how local models are cached in **Settings → Local Inference → Model Management**:
+
+| Policy | Behavior |
+|---|---|
+| **Strict (One Model)** | Only one local model loaded at a time (default). Switching unloads the previous one. |
+| **Flexible (Multi Model)** | Multiple models loaded concurrently. **Required if your Core Model is local and different from your chat model** — otherwise the two will fight over the slot. |
+
+Models are loaded on demand when a chat window opens (with prefix caching warm-up) and unloaded when no chat references them. [Inference Runtime →](/inference-runtime)
+
+## Apple Foundation Models
+
+On macOS 26 (Tahoe) or later, you can use Apple's on-device system model with **zero configuration** and **zero downloads**.
 
 ```bash
-# Use with model ID "foundation"
-curl -X POST http://127.0.0.1:1337/v1/chat/completions \
+curl http://127.0.0.1:1337/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "foundation",
-    "messages": [{"role": "user", "content": "Hello"}]
+    "messages": [{"role":"user","content":"Hello!"}]
   }'
 ```
 
-Features:
+The model name is literally `foundation`. Tool calling, streaming, and the standard generation parameters all work — Osaurus translates between OpenAI/Anthropic semantics and Apple's native interface automatically. It's also the recommended **Core Model** for memory and capability auto-selection on macOS 26+.
 
-- System-integrated model
-- No download required
-- Optimized for Apple Silicon
-- Privacy-focused design
+[Apple Intelligence guide →](/models/apple-intelligence)
 
-### Liquid Foundation Models
+## Liquid Foundation Models
 
-Osaurus supports Liquid AI's LFM family — on-device models built on a non-transformer architecture optimized for edge deployment. Fast decode, low memory footprint, and strong tool calling out of the box.
+[Liquid AI's LFM](https://www.liquid.ai/models) family is built on a non-transformer architecture optimized for edge deployment. Highlights:
 
-Features:
-
-- Non-transformer architecture tuned for edge inference
 - Fast token generation on Apple Silicon
 - Low memory footprint compared to equivalent-quality transformers
-- Strong tool calling performance
+- Strong tool calling out of the box
 
-### Cloud Providers
+Download LFM models the same way as any other MLX model — they appear in the Model Manager catalog.
 
-The harness is model-agnostic. Connect to cloud providers when you need more power — your agents, memory, and tools stay intact regardless of which provider you use.
+## Cloud providers
 
-| Provider | Description |
-| -------- | ----------- |
-| **OpenAI** | GPT-4o, GPT-4, and other OpenAI models |
-| **Anthropic** | Claude family of models |
-| **Gemini** | Google's Gemini models |
-| **xAI / Grok** | xAI's Grok models |
-| **Venice AI** | Privacy-focused, uncensored inference with no data retention |
-| **OpenRouter** | Unified access to multiple model providers |
-| **Ollama** | Local and remote Ollama instances |
-| **LM Studio** | Local model serving via LM Studio |
+Connect to cloud providers when you need more power. Each provider's models appear alongside local models in the model picker; switching is one click.
 
-Context and memory persist across all providers. Switch freely without losing what the AI has learned about you.
+| Provider | Notes |
+|---|---|
+| **OpenAI** | GPT-4o, o-series, etc. via OpenAI Chat Completions |
+| **Anthropic** | Claude family via Anthropic Messages |
+| **Gemini** | Google Gemini |
+| **xAI / Grok** | xAI's Grok via OpenAI-compatible endpoint |
+| **Venice AI** | Privacy-focused, uncensored, no data retention |
+| **OpenRouter** | One key, many providers (`openai/gpt-4o`, `anthropic/claude-3.5-sonnet`, …) |
+| **Ollama** | Local or remote Ollama servers |
+| **LM Studio** | LM Studio's local server |
 
-## Model Naming Convention
+Add a provider via **Management → Providers → Add Provider**. API keys are stored in the macOS Keychain. [Remote Providers →](/remote-providers)
 
-Osaurus uses consistent model naming:
+Memory and agent context persist across providers — switching from your local Gemma to Claude 4 or GPT-4o doesn't lose your agent's memory.
 
+## Model naming
+
+API model names are the model's display name in lowercase with hyphens for spaces:
+
+| Display name | API name |
+|---|---|
+| `Gemma 4 E2B it 4bit` | `gemma-4-e2b-it-4bit` |
+| `Qwen3.6 35B A3B JANGTQ2` | `qwen3.6-35b-a3b-jangtq2` |
+| `Mistral Medium 3.5 128B JANGTQ` | `mistral-medium-3.5-128b-jangtq` |
+
+List models from any client:
+
+```bash
+curl http://127.0.0.1:1337/v1/models
 ```
-{model-family}-{version}-{size}-{variant}-{quantization}
-```
 
-Examples:
+## Per-request settings
 
-- `llama-3.2-3b-instruct-4bit`
-- `mistral-7b-instruct-v0.2-4bit`
-- `deepseek-coder-7b-instruct-4bit`
+Most behavior is per-request via the API. Common parameters:
 
-## Performance Characteristics
-
-### Memory Requirements
-
-| Model Size | 4-bit   | 8-bit   | 16-bit   |
-| ---------- | ------- | ------- | -------- |
-| 2-3B       | 2-3GB   | 4-6GB   | 8-12GB   |
-| 7-8B       | 4-5GB   | 8-10GB  | 16-20GB  |
-| 13B        | 8-10GB  | 16-20GB | 32-40GB  |
-| 30B+       | 20-25GB | 40-50GB | 80-100GB |
-
-### Speed Benchmarks
-
-Typical tokens per second on M2:
-
-| Model | 4-bit | 8-bit |
-| ----- | ----- | ----- |
-| 3B    | 40-60 | 30-45 |
-| 7B    | 20-35 | 15-25 |
-| 13B   | 12-20 | 8-15  |
-
-## Model Configuration
-
-### Context Length
-
-Default context lengths by model family:
-
-- **Llama 3.2** — 4096 tokens
-- **Mistral** — 8192 tokens
-- **Qwen 2.5** — 32768 tokens
-- **DeepSeek** — 4096 tokens
-
-### Temperature Settings
-
-Recommended temperature ranges:
-
-- **Creative Writing** — 0.7-1.0
-- **Code Generation** — 0.1-0.3
-- **General Chat** — 0.5-0.7
-- **Factual Responses** — 0.0-0.3
-
-### System Prompts
-
-Configure default system prompts in Settings:
-
-```python
+```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
-  "messages": [
-    {
-      "role": "system",
-      "content": "You are a helpful, concise assistant."
-    },
-    {
-      "role": "user",
-      "content": "Explain quantum computing"
-    }
-  ]
+  "model": "gemma-4-e2b-it-4bit",
+  "messages": [{ "role": "user", "content": "Hello" }],
+  "temperature": 0.7,
+  "max_tokens": 1000,
+  "top_p": 0.9,
+  "stream": true
 }
 ```
 
-## Advanced Configuration
+Recommended temperature ranges:
 
-There are no global model aliasing or preloading options at this time. Control behavior per request via the OpenAI-compatible API.
+| Use case | Temperature |
+|---|---|
+| Code, deterministic tasks | 0.0–0.3 |
+| Factual responses | 0.0–0.3 |
+| General chat | 0.5–0.7 |
+| Creative writing | 0.7–1.0 |
+
+[Full API reference →](/api)
+
+## Context length and KV cache
+
+Each model has its own architectural context limit. Osaurus does **not** expose a global KV cache cap — vmlx-swift-lm picks model-aware defaults per release, including per-layer sliding windows for models like Gemma-4 (1024-position windows).
+
+Multi-turn KV cache reuse is automatic and content-addressed — repeated prefixes (system prompt, tools, prior turns) are matched without any client opt-in. [Inference Runtime details →](/inference-runtime)
 
 ## Troubleshooting
 
-### Model Not Found
+### "Model not found"
 
-1. Verify model is downloaded in Model Manager
-2. Check exact model name:
-   ```bash
-   curl http://127.0.0.1:1337/v1/models
-   ```
-3. Ensure correct spelling and format
+- Check it's downloaded: **Management → Models → Downloaded**
+- List API model names: `curl http://127.0.0.1:1337/v1/models`
+- Match the API name exactly (lowercase, hyphens)
 
-### Slow Performance
+### Slow generation
 
-1. Check Activity Monitor for memory pressure
-2. Try smaller or more quantized models
-3. Close unnecessary applications
-4. Reduce context length in requests
+- Try a smaller / more aggressively-quantized variant (e.g. `JANGTQ2` instead of `JANGTQ4`)
+- Close memory-hungry apps
+- Reduce `max_tokens`
+- Watch Activity Monitor for memory pressure
+- Bump batch size: `defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8` (default 4, clamped to [1, 32])
 
-### Download Issues
+### Download fails
 
-1. Check internet connection
-2. Verify available disk space
-3. Try pausing and resuming download
-4. Check Model Manager logs
+- Check internet connection and disk space
+- Pause and resume; partial files are kept
+- Try a different mirror via the model card's "Source" link
 
-### Memory Errors
+### Out of memory
 
-1. Monitor RAM usage during inference
-2. Switch to more quantized versions
-3. Reduce max_tokens in requests
-4. Consider smaller models
-
-## Model Updates
-
-Osaurus periodically updates available models:
-
-1. New models appear automatically in Model Manager
-2. Updated versions are marked with badges
-3. Old versions remain usable until deleted
-4. Check GitHub releases for model announcements
+- Switch to a more aggressive quantization (`JANGTQ2`, `JANG_2S`, or 4-bit instead of 8-bit)
+- Reduce `max_tokens`
+- Consider a smaller model (drop from MoE-large to `gemma-4-e2b-it-4bit`)
+- Switch to **Strict (One Model)** eviction policy if you have multiple loaded
 
 ---
 
-<p align="center">
-  For model help, join our <a href="https://discord.gg/dinoki">Discord community</a> or check the <a href="/benchmarks">benchmarks page</a>.
-</p>
+**Related:**
+
+- [Apple Intelligence](/models/apple-intelligence) — using `foundation` on macOS 26+
+- [Remote Providers](/remote-providers) — connecting cloud providers
+- [Inference Runtime](/inference-runtime) — how MLX inference works under the hood
+- [OsaurusAI on Hugging Face](https://huggingface.co/OsaurusAI) — the canonical model catalog

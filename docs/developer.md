@@ -1,13 +1,12 @@
 ---
 title: Building from Source
 sidebar_label: Building from Source
-description: Build Osaurus from source, contribute to the project, and understand the architecture
-sidebar_position: 20
+description: Build Osaurus from source, contribute to the project, and understand the architecture.
 ---
 
 # Building from Source
 
-This guide covers everything you need to build Osaurus from source, contribute to the project, and understand its architecture.
+Everything you need to build Osaurus from source, contribute, and understand the architecture.
 
 ## Why Contribute to Osaurus?
 
@@ -45,28 +44,44 @@ open osaurus.xcworkspace
 # Press ⌘R or Product → Run
 ```
 
-### Project Structure
+### Git hooks (lefthook)
+
+Install [lefthook](https://github.com/evilmartians/lefthook) so the codebase stays consistently formatted:
+
+```bash
+brew install lefthook
+lefthook install
+```
+
+This installs a `pre-push` hook that runs `swift-format` over the `Packages/` directory before each push.
+
+### Project structure
 
 ```
 osaurus/
-├── App/                    # Main application
-│   ├── Core/              # App lifecycle
-│   ├── Controllers/       # Business logic
-│   ├── Models/            # Data models
-│   ├── Networking/        # HTTP layer
-│   ├── Services/          # Core services
-│   ├── Views/             # SwiftUI views
-│   └── CLI/               # Command-line interface
-│
-├── Packages/               # Swift packages
-│   ├── OsaurusCore/       # Shared core library
-│   │   └── Tools/
-│   │       └── PluginABI/ # C ABI for plugins
-│   └── ...
-│
-├── osaurus.xcworkspace     # Xcode workspace
-└── Makefile               # Build automation
+├── App/                          # macOS app target (SwiftUI entry point, assets, entitlements)
+├── Packages/
+│   ├── OsaurusCore/              # Core library — all app logic
+│   │   ├── Models/               # Data types, DTOs, configuration stores
+│   │   ├── Services/             # Business logic (actors and stateless types)
+│   │   ├── Managers/             # UI-facing state holders (@MainActor, observable)
+│   │   ├── Views/                # SwiftUI views, organized by feature
+│   │   ├── Networking/           # HTTP server, routing, relay
+│   │   ├── Storage/              # SQLite databases
+│   │   ├── Identity/             # Cryptographic identity and access keys
+│   │   ├── Tools/                # MCP tools, plugin ABI, tool registry
+│   │   ├── Folder/               # Working-folder context, file ops, batch tool
+│   │   ├── Utils/                # Cross-cutting utilities
+│   │   └── Tests/                # Unit and integration tests
+│   ├── OsaurusCLI/               # CLI (osaurus command)
+│   └── OsaurusRepository/        # Plugin registry and installation
+├── docs/                         # Feature guides and documentation
+├── scripts/                      # Build, release, and benchmark scripts
+├── sandbox/                      # Sandbox VM Dockerfile
+└── assets/                       # DMG packaging assets
 ```
+
+See [`CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CONTRIBUTING.md) for the architecture guide and layer definitions.
 
 ### Running in Development
 
@@ -75,14 +90,14 @@ osaurus/
 3. Press ⌘R to build and run
 4. View logs in Xcode's console
 
-## Architecture Overview
+## Architecture overview
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   The Harness                       │
-├──────────┬──────────┬───────────┬───────────────────┤
-│ Agents   │ Memory   │ Work Mode │ Automation        │
-├──────────┴──────────┴───────────┴───────────────────┤
+├──────────┬──────────┬────────────┬──────────────────┤
+│ Agents   │ Memory   │ Agent Loop │ Automation       │
+├──────────┴──────────┴────────────┴──────────────────┤
 │              MCP Server + Client                    │
 ├──────────┬──────────┬───────────┬───────────────────┤
 │ MLX      │ OpenAI   │ Anthropic │ Ollama / Others   │
@@ -90,14 +105,14 @@ osaurus/
 ├──────────┴──────────┴───────────┴───────────────────┤
 │      Plugin System (v1 / v2 ABI) · Native Plugins   │
 ├──────────┬──────────┬───────────┬───────────────────┤
-│ Identity │ Relay    │ Tools     │ Skills            │
+│ Identity │ Relay    │ Tools     │ Skills · Methods  │
 ├──────────┴──────────┴───────────┴───────────────────┤
 │  Sandbox VM (Alpine · Apple Containerization)       │
 │  vsock bridge · VirtioFS · per-agent isolation      │
 └─────────────────────────────────────────────────────┘
 ```
 
-Most features are accessible through the Management window (`⌘⇧M`).
+Most features are accessible through the Management window (`⌘ ⇧ M`).
 
 ## Contributing
 
@@ -208,7 +223,7 @@ def test_chat_completion():
     response = requests.post(
         "http://localhost:1337/v1/chat/completions",
         json={
-            "model": "llama-3.2-3b-instruct-4bit",
+            "model": "gemma-4-e2b-it-4bit",
             "messages": [{"role": "user", "content": "Hello"}]
         }
     )
@@ -300,71 +315,11 @@ Logger.shared.level = .trace
 #endif
 ```
 
-## Developer Tools
+## Developer tools
 
-Osaurus includes built-in developer tools for debugging and monitoring your AI applications. Access them via the Management window (⌘⇧M).
+Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
 
-### Insights
-
-The Insights panel provides real-time monitoring of all API activity:
-
-**Request Monitoring:**
-
-- View all incoming API requests as they happen
-- See full request and response payloads
-- Filter by HTTP method (GET/POST)
-- Filter by source (Chat UI vs HTTP API)
-
-**Performance Stats:**
-
-- Success rate percentage
-- Average latency per request
-- Error count and types
-- Request volume over time
-
-**Inference Metrics:**
-
-- Token count (prompt + completion)
-- Generation speed (tokens/second)
-- Model used for each request
-- Time to first token
-
-### Server Explorer
-
-The Server Explorer provides an interactive API reference:
-
-**Live Status:**
-
-- Real-time server health indicators
-- Current port and configuration
-- Active model information
-- Memory and resource usage
-
-**Endpoint Browser:**
-
-- Browse all available API endpoints
-- View endpoint documentation inline
-- See parameter schemas and types
-
-**Interactive Testing:**
-
-- Edit request payloads directly
-- Send test requests with one click
-- View formatted JSON responses
-- Copy requests as cURL commands
-
-### Using Developer Tools
-
-1. Open the Management window with **⌘⇧M**
-2. Select **Insights** for request monitoring
-3. Select **Server** for endpoint exploration
-
-These tools are invaluable for:
-
-- Debugging integration issues
-- Optimizing prompt performance
-- Understanding API behavior
-- Testing new tool implementations
+[Full Developer Tools guide →](/developer-tools)
 
 ## Resources
 
@@ -381,9 +336,10 @@ These tools are invaluable for:
 
 ### Community
 
-- [Discord](https://discord.gg/dinoki) — Get help and discuss
+- [Discord](https://discord.gg/osaurus) — Get help and discuss
 - [GitHub Issues](https://github.com/osaurus-ai/osaurus/issues) — Report bugs
 - [GitHub Discussions](https://github.com/osaurus-ai/osaurus/discussions) — Ideas and questions
+- [Community Calls](https://lu.ma/osaurus) — Bi-weekly, open to everyone
 
 ### Related Projects
 
@@ -405,6 +361,11 @@ See [SECURITY.md](https://github.com/osaurus-ai/osaurus/blob/main/SECURITY.md) f
 
 ---
 
-<p align="center">
-  To contribute, start with <a href="https://github.com/osaurus-ai/osaurus/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">good first issues</a> on GitHub.
-</p>
+**Related:**
+
+- [Plugin Authoring](/plugin-authoring) — extend Osaurus from outside the codebase
+- [Tool Contract](/tool-contract) — the envelope every tool returns
+- [Inference Runtime](/inference-runtime) — what `OsaurusCore/Services/ModelRuntime` does
+- [Identity Cryptography](/identity-internals) — the spec for the `Identity/` subtree
+
+To contribute, start with [good first issues](https://github.com/osaurus-ai/osaurus/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) on GitHub.

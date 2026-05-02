@@ -1,13 +1,19 @@
 ---
 title: Integrations
 sidebar_label: Integrations
-description: Connect Osaurus with MCP clients, IDEs, and your favorite tools
-sidebar_position: 11
+description: Wire Osaurus into Cursor, Claude Desktop, Continue.dev, LangChain, LlamaIndex, native macOS apps, and any OpenAI/Anthropic SDK.
 ---
 
-# Integration Guide
+# Integrations
 
-Osaurus provides multiple integration paths: Remote Providers for cloud AI, MCP Server for AI agents, OpenAI-compatible APIs for existing tools, and Ollama-compatible APIs for additional flexibility.
+Osaurus offers four integration surfaces:
+
+- **MCP server** — connect any MCP client (Cursor, Claude Desktop, custom) to your Osaurus tools
+- **Remote inference providers** — connect Osaurus *to* OpenAI, Anthropic, etc., so your scripts hit one endpoint
+- **OpenAI/Anthropic/Ollama-compatible APIs** — drop-in for any SDK
+- **Shared configuration** — for native macOS apps to discover the local Osaurus instance
+
+For LAN, Relay, and any non-loopback caller, authenticate with an [`osk-v1` access key](/identity#access-keys) — the snippets below show the pattern.
 
 ## MCP Server
 
@@ -161,7 +167,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
@@ -172,7 +178,7 @@ print(response.choices[0].message.content)
 
 ```python
 stream = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[{"role": "user", "content": "Tell me a story"}],
     stream=True
 )
@@ -193,7 +199,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "llama-3.2-3b-instruct-4bit",
+  model: "gemma-4-e2b-it-4bit",
   messages: [{ role: "user", content: "Hello!" }],
 });
 
@@ -209,7 +215,7 @@ from langchain_core.messages import HumanMessage
 llm = ChatOpenAI(
     base_url="http://127.0.0.1:1337/v1",
     api_key="osaurus",
-    model="llama-3.2-3b-instruct-4bit"
+    model="gemma-4-e2b-it-4bit"
 )
 
 response = llm.invoke([HumanMessage(content="Hello!")])
@@ -240,7 +246,7 @@ from llama_index.core import Settings
 Settings.llm = OpenAI(
     api_base="http://127.0.0.1:1337/v1",
     api_key="osaurus",
-    model="llama-3.2-3b-instruct-4bit"
+    model="gemma-4-e2b-it-4bit"
 )
 ```
 
@@ -256,7 +262,7 @@ Add to `~/.continue/config.json`:
     {
       "title": "Osaurus Local",
       "provider": "openai",
-      "model": "llama-3.2-3b-instruct-4bit",
+      "model": "gemma-4-e2b-it-4bit",
       "apiBase": "http://127.0.0.1:1337/v1",
       "apiKey": "osaurus"
     }
@@ -271,29 +277,26 @@ In Cursor settings, add a custom OpenAI-compatible model:
 1. Open Settings → Models
 2. Add OpenAI-compatible endpoint
 3. Base URL: `http://127.0.0.1:1337/v1`
-4. Model: `llama-3.2-3b-instruct-4bit`
+4. Model: `gemma-4-e2b-it-4bit`
 5. API Key: `osaurus`
 
 ## Native App Integration
 
 ### Swift/macOS
 
-Use the shared configuration to discover running Osaurus instances:
+Talk to a running Osaurus from any native app over the standard HTTP API:
 
 ```swift
 import Foundation
 
-// Discover Osaurus
-let instance = try OsaurusDiscoveryService.discoverLatestRunningInstance()
-
-// Make API request
-let url = instance.url.appendingPathComponent("v1/chat/completions")
+let url = URL(string: "http://127.0.0.1:1337/v1/chat/completions")!
 var request = URLRequest(url: url)
 request.httpMethod = "POST"
 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+// For LAN/Relay, also set: Authorization: Bearer osk-v1.<your-access-key>
 
 let body: [String: Any] = [
-    "model": "llama-3.2-3b-instruct-4bit",
+    "model": "gemma-4-e2b-it-4bit",
     "messages": [["role": "user", "content": "Hello!"]]
 ]
 request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -301,22 +304,20 @@ request.httpBody = try JSONSerialization.data(withJSONObject: body)
 let (data, _) = try await URLSession.shared.data(for: request)
 ```
 
-See the [Shared Configuration](/shared-configuration) guide for the complete discovery implementation.
+For non-loopback callers, mint an [`osk-v1` access key](/identity#access-keys) from **Identity → Access Keys** and pass it as a Bearer token.
 
 ### Electron
 
 ```javascript
 // main/index.js
-const { discoverLatestRunningInstance } = require("./osaurus-discovery");
-
 ipcMain.handle("osaurus:chat", async (event, message) => {
-  const instance = await discoverLatestRunningInstance();
+  const instance = { url: "http://127.0.0.1:1337" };
 
   const response = await fetch(`${instance.url}/v1/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "llama-3.2-3b-instruct-4bit",
+      model: "gemma-4-e2b-it-4bit",
       messages: [{ role: "user", content: message }],
     }),
   });
@@ -335,7 +336,7 @@ import OllamaKit
 let client = OllamaKit(baseURL: URL(string: "http://127.0.0.1:1337")!)
 
 let response = try await client.chat(
-    model: "llama-3.2-3b-instruct-4bit",
+    model: "gemma-4-e2b-it-4bit",
     messages: [.user("Hello!")]
 )
 ```
@@ -348,7 +349,7 @@ import requests
 response = requests.post(
     "http://127.0.0.1:1337/api/chat",
     json={
-        "model": "llama-3.2-3b-instruct-4bit",
+        "model": "gemma-4-e2b-it-4bit",
         "messages": [{"role": "user", "content": "Hello!"}],
         "stream": False
     }
@@ -367,7 +368,7 @@ async function chat(message) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "llama-3.2-3b-instruct-4bit",
+      model: "gemma-4-e2b-it-4bit",
       messages: [{ role: "user", content: message }],
     }),
   });
@@ -388,7 +389,7 @@ export async function POST(request) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "llama-3.2-3b-instruct-4bit",
+      model: "gemma-4-e2b-it-4bit",
       messages: [{ role: "user", content: message }],
     }),
   });
@@ -407,7 +408,7 @@ Access keys use the `osk-v1` format and are created through the [Identity](/iden
 curl http://127.0.0.1:1337/v1/chat/completions \
   -H "Authorization: Bearer osk-v1.<payload>.<signature>" \
   -H "Content-Type: application/json" \
-  -d '{"model": "llama-3.2-3b-instruct-4bit", "messages": [{"role":"user","content":"Hello!"}]}'
+  -d '{"model": "gemma-4-e2b-it-4bit", "messages": [{"role":"user","content":"Hello!"}]}'
 ```
 
 With the OpenAI SDK, pass the access key as the `api_key`:
@@ -461,6 +462,10 @@ Access keys can be scoped to a specific agent or your entire identity. See [Iden
 
 ---
 
-<p align="center">
-  For integration help, check our <a href="/sdk-examples">SDK Examples</a> or join <a href="https://discord.gg/dinoki">Discord</a>.
-</p>
+**Related:**
+
+- [HTTP API](/api) — endpoint reference
+- [SDK Examples](/sdk-examples) — runnable snippets
+- [Remote Providers](/remote-providers) — connecting Osaurus to OpenAI/Anthropic/etc.
+- [Remote MCP Providers](/remote-mcp-providers) — connecting Osaurus to remote MCP servers
+- [Identity & Access](/identity) — access keys and pairing

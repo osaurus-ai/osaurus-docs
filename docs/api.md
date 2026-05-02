@@ -1,13 +1,12 @@
 ---
-title: API Reference
-sidebar_label: API
-description: Complete API documentation for Osaurus endpoints
-sidebar_position: 5
+title: HTTP API
+sidebar_label: HTTP API
+description: OpenAI, Anthropic, Open Responses, Ollama, MCP, and Memory endpoints. Drop-in compatible at the same port.
 ---
 
-# API Reference
+# HTTP API
 
-Osaurus provides OpenAI-compatible, Anthropic-compatible, Ollama-compatible, and MCP APIs for seamless integration with existing tools and AI agents.
+Osaurus serves four well-known chat APIs side-by-side at the same port — OpenAI, Anthropic, Open Responses, Ollama — plus MCP server endpoints, the Memory API, and a few Osaurus-specific paths. Pick whichever your SDK already speaks.
 
 ## Compatible APIs
 
@@ -49,7 +48,13 @@ Override the port with the `OSU_PORT` environment variable.
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
 | `/memory/ingest` | POST | Bulk-ingest conversation turns for memory extraction |
-| `/agents` | GET | List agents with memory entry counts |
+| `/agents` | GET | List agents with pinned-fact counts |
+
+### Server-side agent loop
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/agents/{id}/run` | POST | Server-side autonomous tool loop (executes tools, manages iteration budget, streams hints) |
 
 ### MCP Endpoints
 
@@ -58,6 +63,12 @@ Override the port with the `OSU_PORT` environment variable.
 | `/mcp/health` | GET | MCP server health |
 | `/mcp/tools` | GET | List available tools |
 | `/mcp/call` | POST | Execute a tool |
+
+### Identity / pairing
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/pair` | POST | Bonjour pairing handshake (mints an `osk-v1` access key after user approval) |
 
 ## Core Endpoints
 
@@ -95,7 +106,7 @@ List all available models in OpenAI format.
   "object": "list",
   "data": [
     {
-      "id": "llama-3.2-3b-instruct-4bit",
+      "id": "gemma-4-e2b-it-4bit",
       "object": "model",
       "created": 1234567890,
       "owned_by": "osaurus"
@@ -120,7 +131,7 @@ List all available models in Ollama format. Also available at `/api/tags`.
 {
   "models": [
     {
-      "name": "llama-3.2-3b-instruct-4bit",
+      "name": "gemma-4-e2b-it-4bit",
       "size": 2147483648,
       "digest": "sha256:abcd1234...",
       "modified_at": "2024-03-15T10:30:45Z"
@@ -133,11 +144,17 @@ List all available models in Ollama format. Also available at `/api/tags`.
 
 Create a chat completion using OpenAI format.
 
+:::info Tool calling semantics
+`/v1/chat/completions` follows **strict OpenAI semantics**: when the model emits `tool_calls`, the response (or final SSE chunk) returns those calls and the **client is expected to execute them and POST the results back** in the next request. Osaurus deliberately does **not** auto-execute tools on this endpoint, so it can serve as a drop-in backend for harnesses that already manage their own tool loop.
+
+If you want server-side autonomous tool loops, use `POST /agents/{id}/run` instead — it executes tools, manages the iteration budget (max 30), and streams hint frames. To expose Osaurus tools to a remote MCP harness, use `/mcp/tools` + `/mcp/call`.
+:::
+
 **Request Body:**
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "messages": [
     {
       "role": "system",
@@ -168,6 +185,7 @@ Create a chat completion using OpenAI format.
 | `stream` | boolean | No | Enable SSE streaming (default: false) |
 | `tools` | array | No | Function/tool definitions |
 | `tool_choice` | string/object | No | Tool selection strategy |
+| `session_id` | string | No | Reuse the same conversation's KV cache across turns (per `(model, session_id)`) |
 
 **Response (Non-streaming):**
 
@@ -176,7 +194,7 @@ Create a chat completion using OpenAI format.
   "id": "chatcmpl-123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "choices": [
     {
       "index": 0,
@@ -209,6 +227,27 @@ data: {"id":"chatcmpl-123","object":"chat.completion.chunk","choices":[{"index":
 data: [DONE]
 ```
 
+#### Prefix caching and `prefix_hash`
+
+KV cache reuse across requests is **automatic and content-addressed** — vmlx-swift-lm's `CacheCoordinator` matches shared prefix tokens (system prompt, tools, prior turns) without any client-side cache key.
+
+For visibility, every response carries a `prefix_hash` field — a stable hash of the system prompt + tool names that produced this generation. Clients can use it to detect when the system prefix changed across requests:
+
+```json
+{ "prefix_hash": "a1b2c3d4e5f67890..." }
+```
+
+`prefix_hash` is informational only. Keep `session_id` stable per conversation so chat history and preflight bookkeeping group correctly; cache reuse itself does not depend on it.
+
+### POST /agents/&#123;id&#125;/run
+
+Server-side autonomous tool loop. Use this when you want Osaurus to execute tools on your behalf, manage the iteration budget, stream tool-execution hints, and only return when the model is done. (This is the path the in-app chat UI uses.)
+
+- Each pending `tool_call` is executed against the registered `ToolRegistry` (sandbox, folder, MCP, plugin tools — everything the agent has access to)
+- Independent tool calls within a single model turn run **in parallel**
+- The loop is capped at 30 iterations; if the budget is exhausted while still requesting tools, a notice is appended to the stream
+- Honors client-supplied `tools` (merged with the agent's always-loaded set) and `tool_choice`
+
 ### POST /api/chat
 
 Create a chat completion using Ollama format.
@@ -217,7 +256,7 @@ Create a chat completion using Ollama format.
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "messages": [
     {
       "role": "user",
@@ -237,7 +276,7 @@ Create a chat completion using Ollama format.
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "created_at": "2024-03-15T10:30:45Z",
   "message": {
     "role": "assistant",
@@ -257,7 +296,7 @@ Create a response using the Open Responses format. This endpoint provides multi-
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "input": "What is the capital of France?",
   "instructions": "You are a helpful assistant.",
   "max_output_tokens": 1000,
@@ -286,7 +325,7 @@ Create a response using the Open Responses format. This endpoint provides multi-
   "id": "resp_123",
   "object": "response",
   "created_at": 1234567890,
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "output": [
     {
       "type": "message",
@@ -313,7 +352,7 @@ When `stream: true`, responses are sent as Server-Sent Events:
 
 ```
 event: response.created
-data: {"type":"response.created","response":{"id":"resp_123","object":"response","model":"llama-3.2-3b-instruct-4bit"}}
+data: {"type":"response.created","response":{"id":"resp_123","object":"response","model":"gemma-4-e2b-it-4bit"}}
 
 event: response.output_item.added
 data: {"type":"response.output_item.added","output_index":0,"item":{"type":"message","role":"assistant"}}
@@ -340,7 +379,7 @@ data: {"type":"response.completed","response":{"id":"resp_123","status":"complet
 curl http://127.0.0.1:1337/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
+    "model": "gemma-4-e2b-it-4bit",
     "input": "What is the capital of France?"
   }'
 ```
@@ -349,7 +388,7 @@ curl http://127.0.0.1:1337/v1/responses \
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "input": [
     {"role": "user", "content": "What is the capital of France?"},
     {"role": "assistant", "content": "The capital of France is Paris."},
@@ -367,7 +406,7 @@ Create a chat completion using Anthropic format. This endpoint is compatible wit
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "max_tokens": 1024,
   "messages": [
     {
@@ -407,7 +446,7 @@ Create a chat completion using Anthropic format. This endpoint is compatible wit
       "text": "I'm doing well, thank you! How can I help you today?"
     }
   ],
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "stop_reason": "end_turn",
   "usage": {
     "input_tokens": 25,
@@ -422,7 +461,7 @@ When `stream: true`, responses are sent as Server-Sent Events:
 
 ```
 event: message_start
-data: {"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","content":[],"model":"llama-3.2-3b-instruct-4bit"}}
+data: {"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","content":[],"model":"gemma-4-e2b-it-4bit"}}
 
 event: content_block_start
 data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
@@ -454,7 +493,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     max_tokens=1024,
     messages=[
         {"role": "user", "content": "Hello!"}
@@ -471,7 +510,7 @@ curl http://127.0.0.1:1337/anthropic/v1/messages \
   -H "Content-Type: application/json" \
   -H "x-api-key: osaurus" \
   -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
+    "model": "gemma-4-e2b-it-4bit",
     "max_tokens": 1024,
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
@@ -574,13 +613,13 @@ Execute an MCP tool.
 
 ## Memory API
 
-Osaurus exposes its [memory system](/memory) through the HTTP API, enabling any OpenAI-compatible client to benefit from persistent, personalized context.
+Osaurus exposes its [memory system](/memory) through the HTTP API, so any OpenAI-compatible client can benefit from persistent, on-device personalization.
 
 ### Memory Context Injection — `X-Osaurus-Agent-Id`
 
-Add the `X-Osaurus-Agent-Id` header to any `POST /v1/chat/completions` request. Osaurus will automatically assemble relevant memory (user profile, working memory, conversation summaries, knowledge graph) and prepend it to the system prompt before the request reaches the model.
+Add the `X-Osaurus-Agent-Id` header to any `POST /v1/chat/completions` request. Osaurus runs the relevance gate against the latest user message, picks at most one memory section (identity, pinned facts, episodes, or transcript), and prepends it — together with always-on identity overrides — to the user message.
 
-The header value is an arbitrary string that identifies the agent or user session whose memory should be retrieved. When the header is absent or empty, the request is processed normally without memory injection.
+The header value is an arbitrary string identifying the agent whose memory should be retrieved. When the header is absent or empty, the request is processed normally without memory injection.
 
 ```python
 from openai import OpenAI
@@ -599,7 +638,7 @@ response = client.chat.completions.create(
 
 ### POST /memory/ingest
 
-Bulk-ingest conversation turns so the memory system can learn from them. Useful for seeding memory from existing chat logs, migrating from another system, or running benchmarks.
+Bulk-ingest conversation turns so the memory system can learn from them. Useful for seeding memory from existing chat logs, migrating from another system, or running benchmarks. Distillation flushes immediately at the end of the batch — you do not have to wait for the writer's debounce.
 
 **Request Body:**
 
@@ -620,9 +659,11 @@ Bulk-ingest conversation turns so the memory system can learn from them. Useful 
 | --------- | ---- | -------- | ----------- |
 | `agent_id` | string | Yes | Identifier for the agent whose memory is being populated |
 | `conversation_id` | string | Yes | Identifier for the conversation session |
-| `turns` | array | Yes | Array of turn objects, each with `user` and `assistant` fields |
+| `turns` | array | Yes | Array of turn objects, each with `user` and `assistant` string fields |
+| `session_date` | string | No | Optional ISO 8601 date for the whole batch |
+| `skip_extraction` | bool | No | When `true`, only insert transcript rows; skip distillation |
 
-Memory extraction runs asynchronously in the background — ingested turns are processed without blocking the API response.
+Distillation produces an episode and (when warranted) a small set of pinned facts. Response: `{"status":"ok","turns_ingested":N}`.
 
 **Example with cURL:**
 
@@ -641,13 +682,35 @@ curl http://127.0.0.1:1337/memory/ingest \
 
 ### GET /agents
 
-Returns all configured agents with their memory entry counts. Use this to discover valid agent IDs for the `X-Osaurus-Agent-Id` header.
+Returns all configured agents with their pinned-fact counts. Use this to discover valid agent IDs for the `X-Osaurus-Agent-Id` header.
 
 **Example with cURL:**
 
 ```bash
 curl http://127.0.0.1:1337/agents
 ```
+
+**Response:**
+
+```json
+{
+  "agents": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Osaurus",
+      "description": "Default assistant",
+      "default_model": null,
+      "supports_vision": false,
+      "is_built_in": true,
+      "memory_entry_count": 42,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+`supports_vision` reflects whether the agent's effective model is a VLM, so clients can show or hide image-attach UI without round-tripping the model registry.
 
 ## Function Calling
 
@@ -657,7 +720,7 @@ Osaurus supports OpenAI-style function calling for structured interactions.
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "messages": [
     {"role": "user", "content": "What's the weather in San Francisco?"}
   ],
@@ -723,14 +786,55 @@ Osaurus supports OpenAI-style function calling for structured interactions.
 
 ## Authentication
 
-Osaurus does not require authentication by default. When using SDK clients, pass any value for the API key:
+For local clients (loopback connections to `127.0.0.1`), Osaurus accepts requests without authentication. Most SDKs require *some* API key string — pass anything:
 
 ```python
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
-    api_key="osaurus"  # Any value works
+    api_key="osaurus"
 )
 ```
+
+For LAN, Relay, or any non-loopback caller, send an [`osk-v1` access key](/identity#access-keys) as a Bearer token:
+
+```bash
+curl http://your-mac.local:1337/v1/chat/completions \
+  -H "Authorization: Bearer osk-v1.eyJpc3M…" \
+  -H "Content-Type: application/json" \
+  -d '{...}'
+```
+
+Or as the OpenAI SDK's `api_key`:
+
+```python
+client = OpenAI(
+    base_url="http://your-mac.local:1337/v1",
+    api_key="osk-v1.eyJpc3M..."
+)
+```
+
+Anthropic SDK uses `x-api-key` instead of `Authorization`:
+
+```python
+client = anthropic.Anthropic(
+    base_url="http://your-mac.local:1337/anthropic",
+    api_key="osk-v1.eyJpc3M..."
+)
+```
+
+Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Identity & Access →](/identity)
+
+### Pre-auth body-size limits
+
+Osaurus rejects oversized request bodies *before* the auth gate runs, so an unauthenticated caller can't exhaust host memory.
+
+| Endpoint | Limit |
+|---|---|
+| `POST /pair` | 64 KiB |
+| Other public HTTP routes | 32 MiB |
+| Sandbox host bridge | 8 MiB |
+
+Both servers enforce the cap with a `Content-Length` pre-check at request head and a streaming guard at body chunks, so chunked clients and clients that lie about their declared length both hit `413 Payload Too Large`.
 
 ## Error Handling
 
@@ -774,7 +878,7 @@ from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="osaurus")
 
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 print(response.choices[0].message.content)
@@ -786,7 +890,7 @@ print(response.choices[0].message.content)
 curl http://127.0.0.1:1337/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
+    "model": "gemma-4-e2b-it-4bit",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
@@ -804,6 +908,11 @@ curl -X POST http://127.0.0.1:1337/mcp/call \
 
 ---
 
-<p align="center">
-  For more examples, see the <a href="/sdk-examples">SDK Examples</a> or <a href="/integrations">Integration Guide</a>.
-</p>
+**Related:**
+
+- [SDK Examples](/sdk-examples) — Python, JS, Anthropic SDK, Open Responses
+- [Integrations](/integrations) — wiring Osaurus into Cursor, Claude Desktop, etc.
+- [Tool Contract](/tool-contract) — envelope shape for every tool
+- [Memory](/memory) — what `X-Osaurus-Agent-Id` does under the hood
+- [Identity & Access](/identity) — minting and revoking `osk-v1` keys
+- [Inference Runtime](/inference-runtime) — KV cache, batching, model leases

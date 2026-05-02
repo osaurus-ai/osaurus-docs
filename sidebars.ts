@@ -25,19 +25,29 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: "doc",
+      id: "security",
+      label: "Security & Privacy",
+    },
+    {
       type: "category",
-      label: "Using Osaurus",
+      label: "For Everyone",
       collapsed: false,
       items: [
         {
           type: "doc",
-          id: "chat-interface",
-          label: "Chat Interface",
+          id: "chat",
+          label: "Chat",
         },
         {
           type: "doc",
           id: "agents",
           label: "Agents",
+        },
+        {
+          type: "doc",
+          id: "models",
+          label: "Models",
         },
         {
           type: "doc",
@@ -47,7 +57,17 @@ const sidebars: SidebarsConfig = {
         {
           type: "doc",
           id: "skills",
-          label: "Skills",
+          label: "Skills & Methods",
+        },
+        {
+          type: "doc",
+          id: "agent-loop",
+          label: "Working Folders & Sandbox",
+        },
+        {
+          type: "doc",
+          id: "voice",
+          label: "Voice Input",
         },
         {
           type: "doc",
@@ -61,126 +81,145 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "work-mode",
-          label: "Work Mode",
-        },
-        {
-          type: "doc",
-          id: "sandbox",
-          label: "Sandbox",
+          id: "themes",
+          label: "Themes",
         },
         {
           type: "doc",
           id: "identity",
-          label: "Identity",
+          label: "Identity & Access",
         },
         {
           type: "doc",
           id: "relay",
           label: "Relay",
         },
-        {
-          type: "doc",
-          id: "voice",
-          label: "Voice Input",
-        },
-        {
-          type: "doc",
-          id: "multi-window",
-          label: "Multi-Window",
-        },
-        {
-          type: "doc",
-          id: "keyboard-shortcuts",
-          label: "Keyboard Shortcuts",
-        },
       ],
     },
     {
       type: "category",
-      label: "Developer Guide",
+      label: "For Developers",
       collapsed: true,
       items: [
         {
-          type: "doc",
-          id: "cli",
-          label: "CLI Reference",
-        },
-        {
-          type: "doc",
-          id: "api",
+          type: "category",
           label: "API Reference",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "api",
+              label: "HTTP API",
+            },
+            {
+              type: "doc",
+              id: "sdk-examples",
+              label: "SDK Examples",
+            },
+            {
+              type: "doc",
+              id: "cli",
+              label: "CLI",
+            },
+            {
+              type: "doc",
+              id: "integrations",
+              label: "Integrations",
+            },
+          ],
         },
         {
-          type: "doc",
-          id: "sdk-examples",
-          label: "SDK Examples",
-        },
-        {
-          type: "doc",
-          id: "integrations",
-          label: "Integrations",
-        },
-      ],
-    },
-    {
-      type: "category",
-      label: "MCP & Tools",
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          id: "tools",
+          type: "category",
           label: "Tools & Plugins",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "tools",
+              label: "Tools & Plugins",
+            },
+            {
+              type: "doc",
+              id: "plugin-authoring",
+              label: "Plugin Authoring",
+            },
+            {
+              type: "doc",
+              id: "tool-contract",
+              label: "Tool Contract",
+            },
+            {
+              type: "doc",
+              id: "sandbox",
+              label: "Sandbox Internals",
+            },
+          ],
         },
         {
-          type: "doc",
-          id: "plugin-authoring",
-          label: "Plugin Authoring",
-        },
-      ],
-    },
-    {
-      type: "category",
-      label: "Configuration",
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          id: "configuration",
-          label: "Basic Configuration",
-        },
-        {
-          type: "doc",
-          id: "shared-configuration",
-          label: "Shared Configuration",
+          type: "category",
+          label: "Providers",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "remote-providers",
+              label: "Remote Providers",
+            },
+            {
+              type: "doc",
+              id: "remote-mcp-providers",
+              label: "Remote MCP Providers",
+            },
+          ],
         },
         {
-          type: "doc",
-          id: "models",
-          label: "Model Management",
+          type: "category",
+          label: "Configuration",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "configuration",
+              label: "Server Settings",
+            },
+            {
+              type: "doc",
+              id: "storage",
+              label: "Storage & Encryption",
+            },
+            {
+              type: "doc",
+              id: "models/apple-intelligence",
+              label: "Apple Intelligence",
+            },
+          ],
         },
         {
-          type: "doc",
-          id: "models/apple-intelligence",
-          label: "Apple Intelligence",
-        },
-      ],
-    },
-    {
-      type: "category",
-      label: "Resources",
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          id: "benchmarks",
-          label: "Benchmarks",
-        },
-        {
-          type: "doc",
-          id: "developer",
-          label: "Building from Source",
+          type: "category",
+          label: "Internals",
+          collapsed: true,
+          items: [
+            {
+              type: "doc",
+              id: "identity-internals",
+              label: "Identity Cryptography",
+            },
+            {
+              type: "doc",
+              id: "inference-runtime",
+              label: "Inference Runtime",
+            },
+            {
+              type: "doc",
+              id: "developer-tools",
+              label: "Developer Tools",
+            },
+            {
+              type: "doc",
+              id: "developer",
+              label: "Building from Source",
+            },
+          ],
         },
       ],
     },

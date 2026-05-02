@@ -1,11 +1,10 @@
 ---
-title: CLI Reference
+title: CLI
 sidebar_label: CLI
-description: Complete command-line interface documentation for Osaurus
-sidebar_position: 8
+description: Complete command-line interface for the Osaurus server, models, MCP, and plugins.
 ---
 
-# CLI Reference
+# CLI
 
 The Osaurus CLI provides command-line control over your local LLM server, MCP tools, and model management.
 
@@ -22,7 +21,7 @@ osaurus ui
 osaurus status
 
 # Interactive chat
-osaurus run llama-3.2-3b-instruct-4bit
+osaurus run gemma-4-e2b-it-4bit
 ```
 
 ## Installation
@@ -126,11 +125,11 @@ osaurus list
 ```
 Available Models
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-llama-3.2-3b-instruct-4bit    2.1 GB
-mistral-7b-instruct-v0.2-4bit  4.2 GB
-deepseek-coder-7b-4bit         4.0 GB
+gemma-4-e2b-it-4bit            1.5 GB
+gemma-4-26b-a4b-it-jang_4m     8.2 GB
+qwen3.6-35b-a3b-jangtq2        8.7 GB
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 10.3 GB
+Total: 18.4 GB
 ```
 
 ### osaurus show
@@ -144,20 +143,20 @@ osaurus show <model>
 **Example:**
 
 ```bash
-osaurus show llama-3.2-3b-instruct-4bit
+osaurus show gemma-4-e2b-it-4bit
 ```
 
 **Example output:**
 
 ```
-Model: llama-3.2-3b-instruct-4bit
+Model: gemma-4-e2b-it-4bit
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Architecture:   LlamaForCausalLM
-Parameters:     3.2B
+Architecture:   Gemma4ForCausalLM
+Parameters:     2B
 Quantization:   4-bit
 Context Length: 131072
-Size:           2.1 GB
-Path:           ~/MLXModels/llama-3.2-3b-instruct-4bit
+Size:           1.5 GB
+Path:           ~/MLXModels/gemma-4-e2b-it-4bit
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -174,7 +173,7 @@ osaurus run <model>
 **Example:**
 
 ```bash
-osaurus run llama-3.2-3b-instruct-4bit
+osaurus run gemma-4-e2b-it-4bit
 ```
 
 Starts an interactive REPL where you can chat with the model. Type `/exit` or press Ctrl+C to quit.
@@ -330,7 +329,7 @@ osaurus serve --port 8080
 curl http://127.0.0.1:8080/v1/models | jq
 
 # Interactive chat for testing
-osaurus run llama-3.2-3b-instruct-4bit
+osaurus run gemma-4-e2b-it-4bit
 ```
 
 ### MCP Client Integration
@@ -447,6 +446,8 @@ sudo osaurus serve  # Not recommended
 
 ---
 
-<p align="center">
-  For CLI help, check our <a href="https://discord.gg/dinoki">Discord community</a> or file an issue on <a href="https://github.com/osaurus-ai/osaurus/issues">GitHub</a>.
-</p>
+**Related:**
+
+- [HTTP API](/api) — endpoints exposed by `osaurus serve`
+- [Tools & Plugins](/tools) — what `osaurus tools install/dev/create` work with
+- [Plugin Authoring](/plugin-authoring) — what to put in your scaffolded plugin

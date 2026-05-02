@@ -1,8 +1,8 @@
 ---
 title: Relay
 sidebar_label: Relay
-description: Expose your local agents to the public internet via secure WebSocket tunnels — no port forwarding, no configuration
-sidebar_position: 11
+description: Expose your local agents to the public internet via secure WebSocket tunnels through agent.osaurus.ai — no port forwarding, no ngrok, no configuration.
+sidebar_position: 15
 ---
 
 # Relay
@@ -96,6 +96,8 @@ Relay is a transport layer. It does not weaken authentication:
 
 ---
 
-<p align="center">
-  Relay requires <a href="/identity">Identity</a> to be set up. For details on creating and managing access keys, see the <a href="/identity#access-keys">Access Keys</a> documentation.
-</p>
+**Related:**
+
+- [Identity & Access](/identity) — set up and manage the access keys that protect a relayed agent
+- [Identity Cryptography](/identity-internals) — how `osk-v1` keys and signatures work
+- [Integrations](/integrations) — using a relay URL from MCP clients

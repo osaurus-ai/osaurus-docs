@@ -7,21 +7,19 @@ sidebar_position: 2
 
 # Installation
 
-Osaurus is available as a native macOS application for Apple Silicon. Choose your preferred installation method.
+Osaurus is a native macOS app for Apple Silicon. Most people install it once with Homebrew and forget about it.
 
-## System Requirements
+## System requirements
 
 - **macOS 15.5** or later
 - **Apple Silicon** (M1, M2, M3, or newer)
-- **2-20GB** free space per model
+- **2–20 GB** free space per local model
 
-:::info macOS 26 Features
-Apple Foundation Models and the [Sandbox](/sandbox) (agent code execution in an isolated Linux VM) require macOS 26 (Tahoe) or later.
+:::info macOS 26 features
+The [Sandbox](/agent-loop) (running agent code in an isolated Linux VM) and [Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. Osaurus itself runs fine on 15.5+ — those features just stay disabled.
 :::
 
-## Homebrew Installation
-
-The recommended installation method:
+## Homebrew (recommended)
 
 ```bash
 brew install --cask osaurus
@@ -30,101 +28,81 @@ brew install --cask osaurus
 This installs:
 
 - **Osaurus.app** in your Applications folder
-- **CLI** via the `osaurus` command (automatically linked)
-- **Automatic updates** through `brew upgrade`
+- The **`osaurus` CLI** (linked into your `PATH` automatically)
+- **Auto-updates** through `brew upgrade`
 
-### First Launch
+### First launch
 
-After installing:
-
-1. Launch from Spotlight (⌘ Space → "osaurus") or run `osaurus ui`
+1. Launch from Spotlight (`⌘ Space` → "Osaurus") or run `osaurus ui`
 2. Look for the Osaurus icon in your menu bar
-3. Click the icon to access controls
+3. The first time you open it on 0.17.7+, you'll see a brief **"Securing your data"** overlay — that's the [storage encryption migration](/storage), and it usually finishes in under a second
 
-### Updating via Homebrew
+### Updating
 
 ```bash
-# Update Homebrew formulae
 brew update
-
-# Upgrade Osaurus
 brew upgrade --cask osaurus
 ```
 
-## Direct Download
+The app also auto-updates via Sparkle when you launch it, so manual upgrades are mostly for keeping `brew` happy.
 
-Download the latest signed build from GitHub:
+## Direct download
+
+If you prefer a manual install:
 
 1. Visit [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest)
-2. Download the DMG file
-3. Open the DMG and drag Osaurus to Applications
+2. Download the `.dmg`
+3. Open it and drag Osaurus to **Applications**
 4. Eject the DMG
 
-### First Launch (Direct Download)
+### First launch (DMG)
 
-When launching for the first time:
+The DMG is signed but not notarized, so the first launch needs:
 
-1. **Right-click** Osaurus.app and select **Open**
+1. **Right-click** Osaurus.app and choose **Open**
 2. Click **Open** in the security dialog
-3. Grant necessary permissions when prompted
 
-:::note
-This step is only required once. Osaurus is properly signed but not notarized.
-:::
+You only need to do this once.
 
-### Manual CLI Setup
+### Manual CLI setup
 
-After installing via direct download, set up the CLI:
+If `osaurus` isn't on your PATH after a manual install, link it:
 
 ```bash
-# Create symlink to CLI
-sudo ln -sf /Applications/Osaurus.app/Contents/MacOS/osaurus /usr/local/bin/osaurus
-
-# Verify installation
-osaurus --version
+ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
 ```
 
-Or add to PATH:
+Or add the bundle to your shell:
 
 ```bash
 echo 'export PATH="/Applications/Osaurus.app/Contents/MacOS:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-## Installation Verification
-
-Verify your installation:
+## Verify it works
 
 ```bash
-# Check CLI version
 osaurus --version
-
-# Test server startup
-osaurus serve
-
-# In another terminal, check status
-osaurus status
-
-# Stop server
-osaurus stop
+osaurus serve         # starts the local server
+osaurus status        # confirms it's up
+osaurus stop          # stops it
 ```
 
-### GUI Verification
+In another terminal, test the API:
 
-1. Launch Osaurus from Applications or Spotlight
-2. Look for the menu bar icon
-3. Click the icon and select **About**
-4. Verify the version number
-
-## Model Storage
-
-Models are stored at:
-
-```
-~/MLXModels
+```bash
+curl http://127.0.0.1:1337/health
 ```
 
-Override with the `OSU_MODELS_DIR` environment variable:
+## Where things live
+
+| What | Path | Override |
+|------|------|----------|
+| Local models (MLX) | `~/MLXModels` | `OSU_MODELS_DIR` env var |
+| App data | `~/.osaurus/` | not configurable |
+| Voice models (FluidAudio) | `~/Library/Application Support/FluidAudio/Models/` | not configurable |
+| Encrypted databases | `~/.osaurus/{chat-history,memory,methods,tool-index}/*.sqlite` | see [Storage](/storage) |
+| Encryption key | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
 
 ```bash
 export OSU_MODELS_DIR=/Volumes/External/MLXModels
@@ -132,95 +110,57 @@ export OSU_MODELS_DIR=/Volumes/External/MLXModels
 
 ## Permissions
 
-Osaurus requires minimal permissions:
+Osaurus requests permissions only when you use the feature that needs them:
 
-- **Network Access** — For serving the local API
-- **File System Access** — For model storage and tools
+| Permission | Required for |
+|------------|--------------|
+| Microphone | Voice input, VAD wake-word, Transcription Mode |
+| Screen Recording | Capturing system audio for transcription |
+| Accessibility | Transcription Mode (typing into other apps) |
+| Network | Cloud providers, MCP, Relay tunnels |
+| Files | Working folders (per-folder, via security-scoped bookmarks) |
 
-Some tools may require additional permissions:
-
-- **Automation** — For AppleScript-based tools
-- **Accessibility** — For UI automation tools
-
-Grant these in System Settings → Privacy & Security when prompted.
+You'll be prompted in System Settings → Privacy & Security as you go.
 
 ## Troubleshooting
 
-### "Cannot be opened" Error
+### "Cannot be opened" error
 
-If macOS prevents opening Osaurus:
+System Settings → Privacy & Security → scroll to the security message → **Open Anyway**.
 
-1. Go to **System Settings** → **Privacy & Security**
-2. Find Osaurus in the security section
-3. Click **Open Anyway**
-
-### CLI Not Found
-
-If the `osaurus` command isn't recognized:
+### `osaurus` command not found
 
 ```bash
-# Check if app exists
 ls /Applications/Osaurus.app/Contents/MacOS/osaurus
-
-# Create symlink manually
 ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
 ```
 
-### Permission Denied
+### Storage migration "failed" notice
 
-If you get permission errors:
+If the first-launch migration shows a partial failure, the originals are kept at `~/.osaurus/.pre-encryption-backup/`. Open **Settings → Storage** for recovery options. [Full guide →](/storage)
 
-```bash
-# Make CLI executable
-chmod +x /Applications/Osaurus.app/Contents/MacOS/osaurus
-
-# Use without sudo for normal operations
-osaurus serve  # Correct
-```
-
-## Uninstallation
-
-### Via Homebrew
+## Uninstall
 
 ```bash
+# Homebrew
 brew uninstall --cask osaurus
+
+# Manual
+rm -rf /Applications/Osaurus.app
+rm /usr/local/bin/osaurus 2>/dev/null
+
+# Optional: remove all data
+rm -rf ~/MLXModels
+rm -rf ~/.osaurus
+
+# Optional: remove the storage encryption key from Keychain
+security delete-generic-password -s com.osaurus.storage -a data-encryption-key
 ```
 
-### Manual Uninstallation
-
-1. Quit Osaurus from the menu bar
-2. Delete the application:
-   ```bash
-   rm -rf /Applications/Osaurus.app
-   ```
-3. Remove CLI symlink:
-   ```bash
-   rm /usr/local/bin/osaurus
-   ```
-4. Optional — Remove data:
-
-   ```bash
-   # Models
-   rm -rf ~/MLXModels
-
-   # App data and tools
-   rm -rf ~/.osaurus
-   ```
-
-## Next Steps
-
-Once installed:
-
-- [Quick Start](/quickstart) — Get running in minutes
-- [Chat Interface](/chat-interface) — Learn to use the chat overlay
-- [Model Management](/models) — Download your first model
-
-:::tip For Developers
-Want to build Osaurus from source or contribute? See the [Building from Source](/developer) guide.
+:::warning
+Removing `~/.osaurus` and the Keychain entry is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep your chats and memory.
 :::
 
 ---
 
-<p align="center">
-  For installation help, visit our <a href="https://discord.gg/dinoki">Discord community</a> or check the <a href="https://github.com/osaurus-ai/osaurus/issues">GitHub issues</a>.
-</p>
+**Next:** [Quick Start →](/quickstart) — your first conversation in 5 minutes.

@@ -1,13 +1,14 @@
 ---
 title: SDK Examples
 sidebar_label: SDK Examples
-description: Complete code examples for using Osaurus with various programming languages and SDKs
-sidebar_position: 6
+description: Code examples for using Osaurus from Python, JavaScript, Swift, Rust, Go, Ruby — plus Anthropic SDK, Open Responses, and the memory header.
 ---
 
 # SDK Examples
 
-This page provides comprehensive examples for integrating Osaurus with popular programming languages and SDKs. All examples use the OpenAI-compatible API unless otherwise noted.
+Osaurus is OpenAI-, Anthropic-, Open Responses-, and Ollama-compatible at the same port. Pick whichever your stack already uses; this page has working snippets for the common ones.
+
+For local clients, any value works as the API key. For LAN, Relay, or any non-loopback caller, use an [`osk-v1` access key](/identity#access-keys) — the snippets below show both forms.
 
 ## Quick Setup
 
@@ -33,12 +34,12 @@ from openai import OpenAI
 # Initialize client
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
-    api_key="not-needed"  # Osaurus doesn't require authentication
+    api_key="osaurus"  # any value works for loopback; use an osk-v1 key for LAN/Relay
 )
 
 # Simple completion
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[
         {"role": "user", "content": "What is Python best used for?"}
     ]
@@ -52,7 +53,7 @@ print(response.choices[0].message.content)
 ```python
 # Stream tokens as they're generated
 stream = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[
         {"role": "user", "content": "Write a story about a brave knight"}
     ],
@@ -69,7 +70,7 @@ for chunk in stream:
 
 ```python
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[
         {"role": "system", "content": "You are a helpful coding tutor. Explain concepts simply."},
         {"role": "user", "content": "What is recursion?"}
@@ -131,7 +132,7 @@ tools = [
 
 # Make request with tools
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[
         {"role": "user", "content": "What's 25 * 4? Also, how's the weather in Tokyo?"}
     ],
@@ -170,7 +171,7 @@ if response.choices[0].message.tool_calls:
 
     # Get final response
     final_response = client.chat.completions.create(
-        model="llama-3.2-3b-instruct-4bit",
+        model="gemma-4-e2b-it-4bit",
         messages=messages
     )
 
@@ -182,11 +183,11 @@ if response.choices[0].message.tool_calls:
 ```python
 from openai import OpenAI, APIError, APIConnectionError
 
-client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="not-needed")
+client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="osaurus")
 
 try:
     response = client.chat.completions.create(
-        model="llama-3.2-3b-instruct-4bit",
+        model="gemma-4-e2b-it-4bit",
         messages=[{"role": "user", "content": "Hello!"}],
         timeout=30  # 30 second timeout
     )
@@ -208,8 +209,8 @@ except Exception as e:
 
 ```python
 class ChatBot:
-    def __init__(self, model="llama-3.2-3b-instruct-4bit"):
-        self.client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="not-needed")
+    def __init__(self, model="gemma-4-e2b-it-4bit"):
+        self.client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="osaurus")
         self.model = model
         self.messages = [
             {"role": "system", "content": "You are a helpful assistant."}
@@ -244,6 +245,136 @@ print(bot.chat("What's its population?"))  # Remembers context
 print(bot.chat("Name 3 famous landmarks there"))  # Continues context
 ```
 
+### Anthropic SDK
+
+Use the Anthropic Python SDK directly — Osaurus speaks the Messages API at `/anthropic/v1/messages`.
+
+```bash
+pip install anthropic
+```
+
+```python
+import anthropic
+
+client = anthropic.Anthropic(
+    base_url="http://127.0.0.1:1337/anthropic",
+    api_key="osaurus",  # or an osk-v1 key
+)
+
+message = client.messages.create(
+    model="gemma-4-e2b-it-4bit",
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ],
+)
+
+print(message.content[0].text)
+```
+
+Streaming and tool use are fully supported. The same model name namespace as `/v1/chat/completions` applies — you can target `foundation`, any local model, or any cloud model you've configured.
+
+### Open Responses API
+
+```python
+import requests
+
+resp = requests.post(
+    "http://127.0.0.1:1337/v1/responses",
+    json={
+        "model": "gemma-4-e2b-it-4bit",
+        "input": "What is the capital of France?",
+        "instructions": "You are a helpful geography assistant.",
+    },
+).json()
+
+# The "output" array is a sequence of typed items
+for item in resp["output"]:
+    if item["type"] == "message":
+        for content in item["content"]:
+            if content["type"] == "output_text":
+                print(content["text"])
+```
+
+For multi-turn input, pass an array of items:
+
+```python
+resp = requests.post(
+    "http://127.0.0.1:1337/v1/responses",
+    json={
+        "model": "gemma-4-e2b-it-4bit",
+        "input": [
+            {"type": "message", "role": "user", "content": "What is the capital of France?"},
+            {"type": "message", "role": "assistant", "content": "Paris."},
+            {"type": "message", "role": "user", "content": "And its population?"},
+        ],
+    },
+).json()
+```
+
+### Memory injection (`X-Osaurus-Agent-Id`)
+
+Add the header to any chat request and Osaurus prepends relevant memory automatically.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://127.0.0.1:1337/v1",
+    api_key="osaurus",
+    default_headers={"X-Osaurus-Agent-Id": "my-agent"},
+)
+
+response = client.chat.completions.create(
+    model="gemma-4-e2b-it-4bit",
+    messages=[{"role": "user", "content": "What did we talk about last week?"}],
+)
+```
+
+The header value is an arbitrary string — typically the agent ID you got from `GET /agents`. When the header is missing, the request runs without memory injection. [Memory →](/memory)
+
+### Bulk memory ingestion
+
+Seeding memory from existing chat logs:
+
+```python
+import requests
+
+requests.post(
+    "http://127.0.0.1:1337/memory/ingest",
+    json={
+        "agent_id": "my-agent",
+        "conversation_id": "old-session-1",
+        "turns": [
+            {"user": "I'm Alice, I work at Acme.", "assistant": "Got it, Alice."},
+            {"user": "I prefer Python over JS.", "assistant": "Noted."},
+        ],
+    },
+).json()
+```
+
+Distillation flushes immediately at the end of the batch, so the next chat can reference the imported context right away.
+
+### Using an `osk-v1` access key (LAN / Relay)
+
+Mint a key from **Identity → Access Keys** and pass it as the API key string:
+
+```python
+client = OpenAI(
+    base_url="http://your-mac.local:1337/v1",
+    api_key="osk-v1.eyJpc3M…",
+)
+```
+
+Anthropic SDK uses `x-api-key` instead of `Authorization`, but the SDK handles that for you when you pass `api_key`:
+
+```python
+client = anthropic.Anthropic(
+    base_url="http://your-mac.local:1337/anthropic",
+    api_key="osk-v1.eyJpc3M…",
+)
+```
+
 ## JavaScript/TypeScript Examples
 
 ### Installation
@@ -261,12 +392,12 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   baseURL: "http://127.0.0.1:1337/v1",
-  apiKey: "not-needed",
+  apiKey: "osaurus",
 });
 
 async function main() {
   const completion = await openai.chat.completions.create({
-    model: "llama-3.2-3b-instruct-4bit",
+    model: "gemma-4-e2b-it-4bit",
     messages: [{ role: "user", content: "Explain JavaScript closures" }],
   });
 
@@ -281,7 +412,7 @@ main();
 ```javascript
 async function streamChat() {
   const stream = await openai.chat.completions.create({
-    model: "llama-3.2-3b-instruct-4bit",
+    model: "gemma-4-e2b-it-4bit",
     messages: [{ role: "user", content: "Write a poem about coding" }],
     stream: true,
   });
@@ -325,7 +456,7 @@ streamChat();
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                model: "llama-3.2-3b-instruct-4bit",
+                model: "gemma-4-e2b-it-4bit",
                 messages: [{ role: "user", content: message }],
               }),
             },
@@ -358,7 +489,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   baseURL: "http://127.0.0.1:1337/v1",
-  apiKey: "not-needed",
+  apiKey: "osaurus",
   dangerouslyAllowBrowser: true, // Only for demo, use backend in production
 });
 
@@ -378,7 +509,7 @@ function ChatComponent() {
 
     try {
       const response = await openai.chat.completions.create({
-        model: "llama-3.2-3b-instruct-4bit",
+        model: "gemma-4-e2b-it-4bit",
         messages: newMessages,
       });
 
@@ -454,10 +585,10 @@ class OsaurusClient {
   private client: OpenAI;
   private config: ChatConfig;
 
-  constructor(config: ChatConfig = { model: "llama-3.2-3b-instruct-4bit" }) {
+  constructor(config: ChatConfig = { model: "gemma-4-e2b-it-4bit" }) {
     this.client = new OpenAI({
       baseURL: "http://127.0.0.1:1337/v1",
-      apiKey: "not-needed",
+      apiKey: "osaurus",
     });
     this.config = config;
   }
@@ -492,7 +623,7 @@ class OsaurusClient {
 // Usage
 async function example() {
   const client = new OsaurusClient({
-    model: "llama-3.2-3b-instruct-4bit",
+    model: "gemma-4-e2b-it-4bit",
     temperature: 0.7,
     maxTokens: 500,
   });
@@ -552,7 +683,7 @@ class OsaurusClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let chatRequest = ChatRequest(
-            model: "llama-3.2-3b-instruct-4bit",
+            model: "gemma-4-e2b-it-4bit",
             messages: [ChatMessage(role: "user", content: message)]
         )
 
@@ -674,7 +805,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
 
     let request = ChatRequest {
-        model: "llama-3.2-3b-instruct-4bit".to_string(),
+        model: "gemma-4-e2b-it-4bit".to_string(),
         messages: vec![
             ChatMessage {
                 role: "user".to_string(),
@@ -731,7 +862,7 @@ type ChatResponse struct {
 
 func main() {
     request := ChatRequest{
-        Model: "llama-3.2-3b-instruct-4bit",
+        Model: "gemma-4-e2b-it-4bit",
         Messages: []ChatMessage{
             {Role: "user", Content: "What is Go best for?"},
         },
@@ -775,7 +906,7 @@ class OsaurusClient
     @base_url = base_url
   end
 
-  def chat(message, model = 'llama-3.2-3b-instruct-4bit')
+  def chat(message, model = 'gemma-4-e2b-it-4bit')
     uri = URI.parse("#{@base_url}/chat/completions")
 
     request = Net::HTTP::Post.new(uri)
@@ -812,7 +943,7 @@ def chat_with_retry(client, messages, max_retries=3, delay=1) -> Optional[str]:
     for attempt in range(max_retries):
         try:
             response = client.chat.completions.create(
-                model="llama-3.2-3b-instruct-4bit",
+                model="gemma-4-e2b-it-4bit",
                 messages=messages
             )
             return response.choices[0].message.content
@@ -854,7 +985,7 @@ class RateLimitedClient {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "llama-3.2-3b-instruct-4bit",
+            model: "gemma-4-e2b-it-4bit",
             messages,
           }),
         },
@@ -886,13 +1017,8 @@ class RateLimitedClient {
 
 ## Additional Resources
 
-- [API Reference](/api) — Complete endpoint documentation
-- [Model Guide](/models) — Choosing the right model
-- [Integration Guide](/integrations) — Framework-specific guides
-- [GitHub Examples](https://github.com/osaurus-ai/osaurus/tree/main/examples) — More code samples
-
----
-
-<p align="center">
-  For support, join our <a href="https://discord.gg/dinoki">Discord community</a>.
-</p>
+- [HTTP API](/api) — endpoint reference
+- [Models](/models) — choosing the right model
+- [Integrations](/integrations) — framework-specific guides
+- [Memory](/memory) — what `X-Osaurus-Agent-Id` does
+- [Identity & Access](/identity) — minting and revoking `osk-v1` keys

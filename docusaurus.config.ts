@@ -64,6 +64,19 @@ const config: Config = {
         mode: "auto",
       },
     ],
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        redirects: [
+          { from: "/work-mode", to: "/agent-loop" },
+          { from: "/chat-interface", to: "/chat" },
+          { from: "/multi-window", to: "/chat" },
+          { from: "/keyboard-shortcuts", to: "/chat" },
+          { from: "/shared-configuration", to: "/integrations" },
+          { from: "/benchmarks", to: "/inference-runtime" },
+        ],
+      },
+    ],
   ],
 
   stylesheets: [

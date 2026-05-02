@@ -1,13 +1,14 @@
 ---
 title: Plugin Authoring
 sidebar_label: Plugin Authoring
-description: Build native Swift and Rust plugins for Osaurus using the Generic C ABI
-sidebar_position: 12
+description: Build native Swift and Rust plugins for Osaurus using the Generic C ABI. Tools, HTTP routes, SQLite storage, config UI, web apps.
 ---
 
-# Plugin Authoring Guide
+# Plugin Authoring
 
-This guide explains how to build external plugins for Osaurus. Plugins are native binaries (`.dylib`) distributed with a `manifest.json`, providing tools that AI agents can call via MCP.
+This guide covers building external plugins for Osaurus. Plugins are native binaries (`.dylib`) distributed with a `manifest.json`, providing tools that AI agents call via MCP.
+
+For sandbox plugins (JSON recipes that run inside the Linux VM, no compilation), see [Sandbox Internals → Plugin recipes](/sandbox#plugin-recipes).
 
 ## Quick Start (Swift)
 
@@ -328,14 +329,34 @@ The v2 ABI extends the plugin system with full host API access. While v1 plugins
 
 ### v2 Capabilities
 
-| Capability | Description |
-| ---------- | ----------- |
-| **HTTP Routes** | Register custom HTTP endpoints on the Osaurus server |
-| **Web Apps** | Serve embedded web applications through the server |
-| **SQLite Storage** | Persist structured data in a per-plugin SQLite database |
-| **Agent Dispatch** | Programmatically dispatch tasks to other agents |
-| **Inference** | Call chat completions through any configured model provider |
-| **Events** | Emit and subscribe to cross-plugin events |
+| Capability | Manifest key | Description |
+|---|---|---|
+| Tools | `capabilities.tools` | AI-callable functions (also v1) |
+| HTTP Routes | `capabilities.routes` | Register custom HTTP endpoints on the Osaurus server (OAuth, webhooks, APIs) |
+| Web Apps | `capabilities.web` | Serve embedded static frontends with context injection |
+| Config UI | `capabilities.config` | Native settings UI rendered in the Management window with validation |
+| SQLite Storage | host API | Per-plugin sandboxed SQLite database via `PluginHostAPI` |
+| Agent Dispatch | host API | Programmatically dispatch tasks to other agents |
+| Inference | host API | Call chat completions through any configured model provider |
+| Events | host API | Emit and subscribe to cross-plugin events |
+| Docs | `docs` | README, changelog, external links rendered in the plugin detail view |
+
+### Conversation grouping (`external_session_key`)
+
+When your plugin dispatches an agent task (e.g. for an inbound Telegram message, Slack DM, GitHub webhook), pass `external_session_key` so subsequent dispatches with the same key **reattach to the same chat session** instead of creating a new row each time.
+
+```json
+{
+  "agent_id": "...",
+  "task": "Reply to: Hi!",
+  "external_session_key": "telegram:chat:12345",
+  "source_plugin_id": "com.example.telegram"
+}
+```
+
+The key is an arbitrary string scoped per-plugin. Use it for any external thread that should grow into a single auditable session row (Telegram chat ID, GitHub issue number, Slack thread TS).
+
+The dispatch task ID and the persisted session ID are intentionally the same UUID, so HTTP pollers, plugins, and the chat sidebar deep-link to the same row.
 
 ### Choosing an ABI Version
 
@@ -503,10 +524,11 @@ The [osaurus-emacs](https://github.com/osaurus-ai/osaurus-emacs) plugin is a rea
 
 1. **Keep tools focused** — One tool should do one thing well
 2. **Validate inputs** — Check parameters before execution
-3. **Return structured errors** — Use `{"error": "message"}` format
-4. **Document parameters** — Clear descriptions help AI use tools correctly
-5. **Handle cleanup** — Free resources in `destroy()` and handle signals
-6. **Test locally** — Use `osaurus tools install .` during development
+3. **Return Tool Contract envelopes** — Use the `success`/`failure` shape from [Tool Contract](/tool-contract) so chat UI rendering and the agent's self-correction work right
+4. **Document parameters** — Clear descriptions help the auto-selection RAG search find your tool
+5. **Set `additionalProperties: false`** on every tool's parameter schema (the schema validator enforces this and rejects unknown args with a friendly `invalid_args` envelope)
+6. **Handle cleanup** — Free resources in `destroy()` and handle signals
+7. **Test with `osaurus tools dev`** — Hot reload makes iteration fast
 
 ## Troubleshooting
 
@@ -530,6 +552,9 @@ The [osaurus-emacs](https://github.com/osaurus-ai/osaurus-emacs) plugin is a rea
 
 ---
 
-<p align="center">
-  For plugin development help, join our <a href="https://discord.gg/dinoki">Discord community</a> or check the <a href="https://github.com/osaurus-ai/osaurus-tools">tools registry</a>.
-</p>
+**Related:**
+
+- [Tools & Plugins](/tools) — using existing tools
+- [Tool Contract](/tool-contract) — envelope shape every tool returns
+- [Sandbox Internals](/sandbox#plugin-recipes) — JSON-recipe plugins for the Linux VM
+- [Tools Registry](https://github.com/osaurus-ai/osaurus-tools) — submit yours via PR

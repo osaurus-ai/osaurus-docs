@@ -1,324 +1,148 @@
 ---
-title: Identity
-sidebar_label: Identity
-description: Cryptographic identity for humans, agents, and devices — address-based authentication with verifiable signatures and no central authority
-sidebar_position: 11
+title: Identity & Access
+sidebar_label: Identity & Access
+description: Cryptographic identity for you and your agents. Issue access keys for outside tools, scope them per-agent, revoke them anytime — no central server.
+sidebar_position: 14
 ---
 
-# Identity
+# Identity & Access
 
-Every participant in Osaurus — human, agent, and device — gets a cryptographic address. All actions are signed and verifiable, enabling trust without a central authority at runtime.
+Every participant in Osaurus — you, each of your agents, and each device you pair — gets a **cryptographic address**. Authority flows from your master key down to each agent. Agents can prove who they are without a server. Compromised keys can be revoked at any level, anytime.
 
-Authority flows from a human-controlled root key down to agents, and from agents to devices, forming a verifiable chain of trust. Agents can prove their identity offline, and compromised keys can be revoked at any level without replacing the entire identity tree.
+:::tip Trust at a glance
+Identity is one piece of how Osaurus protects your data. The full picture — encryption at rest, sandboxed execution, what we don't have access to — lives on [Security & Privacy](/security).
+:::
 
-## Getting Started
+This page is the everyday, plain-language view. For the full crypto spec (secp256k1, App Attest, the `osk-v1` format, signing rules), see [Identity Cryptography](/identity-internals).
 
-1. Open the Management window (**⌘⇧M**) → **Identity**
-2. On first launch, Osaurus generates your **master key** — a secp256k1 keypair stored in iCloud Keychain, protected by biometric authentication (Face ID / Touch ID)
-3. A one-time **recovery code** is displayed — save it somewhere safe, it is shown only once
-4. Each agent you create automatically gets a deterministic **agent address** derived from your master key
+## What "address" means here
 
-## Address Hierarchy
+Think of it like an Ethereum-style address — a checksummed hex string like `0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18`. It identifies the entity. The matching private key signs requests. Anyone holding the address can verify the signature; nobody can fake it.
 
-The identity system has three tiers, each serving a distinct role:
+There are three kinds:
 
-```
-Master Address (Human)
-├── Agent Address (index 0)
-├── Agent Address (index 1)
-├── Agent Address (index 2)
-│   ...
-└── Device ID (per physical device)
-```
+| Kind | Owner | Where the key lives |
+|---|---|---|
+| **Master** | You (the human) | iCloud Keychain, gated by Face/Touch ID |
+| **Agent** | Each of your agents | Never stored — derived on demand from the master key |
+| **Device** | Each Mac you pair | Hardware-bound via Apple's Secure Enclave (App Attest) |
 
-### Master Address
+You only ever see the master key flow during initial setup. The rest is automatic.
 
-The human's root identity. All authority in the system flows from this address.
+## First-time setup
 
-| Property | Detail |
-| -------- | ------ |
-| **Curve** | secp256k1 |
-| **Storage** | iCloud Keychain (syncs across Apple devices) |
-| **Access** | Requires biometric authentication (Face ID / Touch ID) |
-| **Format** | Checksummed hex address (EIP-55 style), e.g. `0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18` |
+The first time you open Osaurus on a new Mac:
 
-The master key is a 32-byte random secret generated via `SecRandomCopyBytes`. It is stored once in the Keychain and never exported.
+1. Osaurus generates a 32-byte master key with the system's secure random source
+2. The key is saved to your iCloud Keychain (so it can sync to your other Apple devices), gated by biometric authentication
+3. A one-time **recovery code** (`OSAURUS-XXXX-XXXX-XXXX-XXXX`) is shown — **save this somewhere safe**, you will only see it once
 
-### Agent Addresses
-
-Each agent gets a deterministic child key derived from the master key. Agents can sign messages on their own behalf, but their authority always traces back to the master address.
-
-| Property | Detail |
-| -------- | ------ |
-| **Derivation** | HMAC-SHA512 with domain separation |
-| **Storage** | Never stored — re-derived on demand from the master key |
-| **Association** | Each agent's `agentIndex` and `agentAddress` are persisted on the Agent model |
-
-Agent addresses enable per-agent scoping: an access key signed by an agent can only authorize actions for that specific agent, not the entire identity.
-
-### Device ID
-
-A hardware-bound identity that proves which physical device is making a request.
-
-| Property | Detail |
-| -------- | ------ |
-| **Hardware** | Apple App Attest (Secure Enclave P-256 key) |
-| **Format** | 8-character hex string derived from the attestation key ID |
-| **Fallback** | Software-generated random ID when App Attest is unavailable (development builds) |
-
-The device ID adds a second authentication factor: even if someone obtains a valid identity signature, they cannot forge the device assertion without physical access to the Secure Enclave.
-
----
+Each agent you create automatically gets a deterministic agent address derived from your master key. You don't see this happen — agents just have an address.
 
 ## Access Keys
 
-Access keys (`osk-v1`) are portable, long-lived tokens for external authentication. They allow tools, MCP clients, and remote agents to authenticate against Osaurus without biometric access to the device.
+When you want an outside tool — Cursor, Claude Desktop, an MCP client, a teammate's Mac — to talk to your Osaurus, you mint an **access key**.
 
-### Creating an Access Key
-
-1. Open the Management window (**⌘⇧M**) → **Identity**
-2. Select **Create Access Key**
-3. Choose the scope:
-   - **Master-scoped** — grants access to all agents
-   - **Agent-scoped** — grants access to a specific agent only
-4. Set an expiration and optional label
-5. The full key string is displayed once — copy and store it securely
-
-:::warning
-The full access key is shown only once at creation time. It is never stored or retrievable after dismissal.
-:::
-
-### Format
+Access keys are portable, long-lived tokens. Format: `osk-v1.<payload>.<signature>`. They look like:
 
 ```
-osk-v1.<base64url-encoded-payload>.<hex-encoded-signature>
+osk-v1.eyJpc3MiOiIweDc0...g.4f8a9b...
 ```
 
-Three parts separated by `.`:
+### Creating an access key
 
-1. **Prefix** — `osk-v1` (identifies the token format and version)
-2. **Payload** — Base64url-encoded canonical JSON
-3. **Signature** — Hex-encoded 65-byte secp256k1 recoverable signature
+1. Open the Management window (`⌘ ⇧ M`) → **Identity**
+2. Click **Create Access Key**
+3. Pick:
+   - **Scope** — Master (works for any of your agents) or a specific agent
+   - **Label** — A human-readable name like "Cursor on work laptop"
+   - **Expiration** — 30 days, 90 days, 1 year, or never
+4. The full key string is shown **once** — copy it now
+5. Click **Done**
 
-### Scoping
+You'll see the key's metadata in the list (label, scope, last used, expires). The full key never appears again.
 
-| Scope | Signed By | Grants Access To |
-| ----- | --------- | ---------------- |
-| **Master-scoped** | Master key | All agents |
-| **Agent-scoped** | Agent key | That specific agent only |
+### Using an access key
 
-### Expiration Options
-
-| Option | Duration |
-| ------ | -------- |
-| `30d` | 30 days |
-| `90d` | 90 days |
-| `1y` | 1 year |
-| `never` | No expiration |
-
-### Using an Access Key
-
-Pass the access key in the `Authorization` header when making API requests:
+Most clients accept it as a Bearer token:
 
 ```bash
-curl http://127.0.0.1:1337/v1/chat/completions \
-  -H "Authorization: Bearer osk-v1.<payload>.<signature>" \
+curl http://your-mac.local:1337/v1/chat/completions \
+  -H "Authorization: Bearer osk-v1.…" \
   -H "Content-Type: application/json" \
-  -d '{"model": "llama-3.2-3b-instruct-4bit", "messages": [{"role":"user","content":"Hello!"}]}'
+  -d '{"model":"foundation","messages":[{"role":"user","content":"hi"}]}'
 ```
 
-### Revoking Access Keys
+For MCP clients, paste it into the auth field of their config UI. [Integrations →](/integrations)
 
-Access keys can be revoked through two mechanisms:
+### Revoking
 
-- **Individual revocation** — revoke a specific key by its nonce. Go to **Identity** → select the key → **Revoke**.
-- **Bulk revocation** — revoke all keys from an address with counter values at or below a threshold. Useful when a key may have been compromised and you want to invalidate everything issued before a certain point.
+Revoke a single key, or every key issued by the same address up to a counter threshold:
 
----
+1. **Identity → Access Keys**
+2. Click the key → **Revoke**
+3. The revocation is recorded — the next request using that key gets `401 Unauthorized`
 
-## Whitelist
+For bulk revocation (e.g. you suspect every key issued before today is compromised), click **Revoke all keys before this one**.
 
-The whitelist controls which addresses are authorized to issue access keys.
+## Pairing another device
 
-### Master-Level Whitelist
+The Osaurus iOS / Mac connector apps use Bonjour to find your Osaurus and pair securely:
 
-Addresses in the master whitelist can issue keys for any agent. Add trusted external addresses here.
+1. On the **Osaurus host**, ensure the server is running and reachable on the LAN (`osaurus serve --expose` or the Settings toggle)
+2. On the **client device**, open the connector and tap **Connect**
+3. The connector signs a nonce with its own keypair
+4. Osaurus shows an **approval dialog** naming both the connector and the agent it wants to access
+5. Approve → Osaurus mints an **agent-scoped** `osk-v1` key (90-day expiration by default; opt in to "Remember permanently" for a non-expiring key)
+6. The client stores the key; subsequent requests are authenticated
 
-### Per-Agent Overrides
+Pairings approved before the per-agent scoping update are master-scoped, never-expiring keys. Settings → Identity labels them as **Legacy** — revoke and re-pair to get tighter scoping.
 
-Additional addresses can be authorized for specific agents only. These are additive — they extend the master whitelist, not replace it.
+## Whitelist (advanced)
 
-### Effective Whitelist
+The whitelist controls which addresses are *allowed* to issue keys for your Osaurus. By default it includes only your master address; you can add trusted external addresses (a teammate, a colleague's agent, a CI bot).
 
-The effective whitelist for a given agent is:
+- **Master whitelist** — entries here can issue keys for any agent
+- **Per-agent whitelist** — additional entries authorized only for a specific agent
 
-```
-effective = masterWhitelist ∪ agentWhitelist[agent] ∪ {agentAddress, masterAddress}
-```
-
-The agent's own address and the master address are always implicitly included.
-
----
+The agent's own address and the master address are always implicitly included. Manage from **Settings → Identity → Whitelist**.
 
 ## Recovery
 
-During initial identity setup, a one-time recovery code is generated:
+If you lose access to a Mac and need to migrate to a new one:
 
-```
-OSAURUS-XXXX-XXXX-XXXX-XXXX
-```
+- **iCloud Keychain sync** — If your master key was synced (the default), it appears on the new Mac automatically after iCloud Keychain restores
+- **Recovery code** — The one shown during setup. Use it during initial setup on the new Mac to restore the same identity
 
-Format: `OSAURUS-` prefix followed by 4 groups of 4 uppercase hex characters (8 random bytes = 64 bits of entropy).
+Without one of those, you'll generate a fresh identity. Your agents will get new addresses; existing access keys won't work.
 
-:::danger
-The recovery code is shown exactly once during setup and never stored on the device. Save it immediately in a secure location.
-:::
+## What's signed and verified
 
----
+Every authenticated API request to Osaurus carries a signed token (or an `osk-v1` access key). The server checks:
 
-## Technical Reference
+- The signature came from the address claimed in the payload
+- The address is in the active whitelist
+- The token isn't revoked or expired
+- The counter prevents replay
 
-### Key Derivation
+You don't see any of this — your apps and clients handle it. But it means every action in Osaurus is **verifiable** and **revocable** without a central server.
 
-#### Master Key
+## Pre-auth body limits
 
-```
-32 random bytes (SecRandomCopyBytes)
-    → secp256k1 private key
-    → uncompressed public key (drop 0x04 prefix)
-    → Keccak-256 hash
-    → last 20 bytes
-    → checksummed hex address (EIP-55)
-```
+To prevent unauthenticated clients from exhausting host memory, Osaurus rejects oversized request bodies *before* the auth gate:
 
-The master key is stored in iCloud Keychain with `kSecAttrAccessibleWhenUnlocked`. iCloud sync is attempted first; if unavailable, the key is stored device-only with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`.
+| Endpoint | Limit |
+|---|---|
+| `POST /pair` | 64 KiB |
+| Other public HTTP routes | 32 MiB |
+| Sandbox host bridge | 8 MiB |
 
-#### Agent Key
-
-```
-HMAC-SHA512(
-    key:  masterKey,                              // 32 bytes
-    data: "osaurus-agent-v1" || bigEndian(index)  // domain + 4-byte index
-)
-    → first 32 bytes of HMAC output
-    → same address derivation as master key
-```
-
-The domain prefix `osaurus-agent-v1` prevents cross-protocol key reuse. The big-endian index encoding ensures a canonical byte representation across platforms. Each unique index produces a completely independent keypair.
-
-Agent keys are never persisted. They are re-derived from the master key whenever a signature is needed, which requires biometric authentication to access the master key.
-
-#### Device Key
-
-- **Hardware path:** `DCAppAttestService.generateKey()` creates a P-256 key in the Secure Enclave. The key ID is hashed with SHA-256 and truncated to 4 bytes (8 hex characters) for the device ID.
-- **Software fallback:** 4 random bytes via `SecRandomCopyBytes`, stored in `UserDefaults` for stability across app launches.
-
-### Two-Layer Request Signing
-
-Every authenticated API request carries a two-layer signed token that binds each request to both a cryptographic identity and a physical device.
-
-#### Token Structure
-
-```
-header.payload.accountSignature.deviceAssertion
-```
-
-Four base64url-encoded segments joined by `.`:
-
-| Segment | Encoding | Content |
-| ------- | -------- | ------- |
-| Header | base64url(JSON) | Algorithm, type, version |
-| Payload | base64url(JSON) | Claims (see below) |
-| Identity Signature | hex | secp256k1 recoverable signature (65 bytes) |
-| Device Assertion | base64url | App Attest assertion (or empty for software fallback) |
-
-#### Header
-
-```json
-{
-  "alg": "es256k+apple-attest",
-  "typ": "osaurus-id",
-  "ver": 5
-}
-```
-
-#### Payload Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| `iss` | string | Issuer address (master or agent) |
-| `dev` | string | Device ID (8-char hex) |
-| `cnt` | uint64 | Monotonic counter (anti-replay) |
-| `iat` | int | Issued-at timestamp (Unix seconds) |
-| `exp` | int | Expiration timestamp (Unix seconds, typically iat + 60) |
-| `aud` | string | Audience (target service hostname) |
-| `act` | string | Action being authorized (e.g. `"GET /v1/models"`) |
-| `par` | string? | Parent address (for agent-issued tokens, the master address) |
-| `idx` | uint32? | Agent index (for agent-issued tokens) |
-
-#### Signing Process
-
-1. **Encode payload** as JSON
-2. **Layer 1 — Identity signature:** Domain-separated secp256k1 signing
-   - Envelope: `\x19Osaurus Signed Message:\n<length><payload>`
-   - Hash: Keccak-256 of the envelope
-   - Sign: secp256k1 with recovery (produces 65 bytes: r || s || v)
-3. **Layer 2 — Device assertion:** App Attest assertion over SHA-256 of the payload
-4. **Assemble:** `base64url(header).base64url(payload).hex(accountSig).base64url(deviceAssertion)`
-
-The domain prefix `Osaurus Signed Message` prevents signed payloads from being replayed in other protocols that use the same curve.
-
-### Access Key Validation
-
-When a request arrives with an `osk-v1` token:
-
-1. **Parse** the three segments (prefix, payload, signature)
-2. **Decode** the base64url payload into `AccessKeyPayload`
-3. **Recover** the signer address via `ecrecover` with `Osaurus Signed Access` domain prefix
-4. **Verify issuer** — recovered address must match `payload.iss`
-5. **Check audience** — `payload.aud` must match the agent or master address
-6. **Check whitelist** — `payload.iss` must be in the effective whitelist
-7. **Check revocation** — not individually revoked (address + nonce) and not bulk-revoked (counter threshold)
-8. **Check expiration** — `payload.exp` must be in the future (if set)
-
-### Access Key Payload Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| `aud` | OsaurusID | Audience address (who this key is for) |
-| `cnt` | uint64 | Counter value at creation time |
-| `exp` | int? | Expiration timestamp (null = never expires) |
-| `iat` | int | Issued-at timestamp |
-| `iss` | OsaurusID | Issuer address (who signed this key) |
-| `lbl` | string? | Human-readable label |
-| `nonce` | string | Unique identifier for revocation |
-
-Fields are sorted alphabetically for canonical JSON encoding, ensuring consistent signature verification.
-
-### Internal vs External Communication
-
-| Mode | Authentication | Use Case |
-| ---- | -------------- | -------- |
-| **Internal** | Two-layer token (identity signature + device assertion) | Agents within the same Osaurus instance |
-| **External** | `osk-v1` access key (identity signature only) | Tools, MCP clients, remote agents |
-
-Internal communication provides the strongest authentication — both the cryptographic identity and the physical device are verified. External communication via access keys trades the device assertion for portability, enabling use from any device or service.
-
-### Security Properties
-
-| Property | Mechanism |
-| -------- | --------- |
-| Master key never leaves Keychain | Stored with `kSecAttrAccessibleWhenUnlocked`, read requires `LAContext` biometric auth |
-| Agent keys never stored | Re-derived on demand via HMAC-SHA512 from master key |
-| Device keys hardware-bound | Secure Enclave P-256 via App Attest (`DCAppAttestService`) |
-| Anti-replay | Per-device monotonic counter (`cnt`); server rejects seen values |
-| Domain separation | `Osaurus Signed Message` and `Osaurus Signed Access` prefixes prevent cross-protocol signature reuse |
-| Recovery code single-use | Generated from `SecRandomCopyBytes`, shown once, never stored on device |
-| Canonical encoding | Access key payloads use sorted-key JSON for deterministic signature verification |
-| Memory safety | Master key bytes are zeroed after use |
+Oversized requests return `413 Payload Too Large`.
 
 ---
 
-<p align="center">
-  For integration details on using access keys with external tools, see the <a href="/integrations">Integration Guide</a>. For exposing agents publicly via secure tunnels, see <a href="/relay">Relay</a>.
-</p>
+**Related:**
+
+- [Identity Cryptography](/identity-internals) — the full secp256k1 / App Attest / osk-v1 spec
+- [Relay](/relay) — expose an agent to the internet using its identity
+- [Integrations](/integrations) — using access keys with Cursor, Claude Desktop, etc.

@@ -125,7 +125,7 @@ Foundation Models respect system prompts for consistent behavior:
 ```python
 from openai import OpenAI
 
-client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="not-needed")
+client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="osaurus")
 
 response = client.chat.completions.create(
     model="foundation",
@@ -170,7 +170,7 @@ def has_foundation_models():
 if has_foundation_models():
     model = "foundation"
 else:
-    model = "llama-3.2-3b-instruct-4bit"
+    model = "gemma-4-e2b-it-4bit"
 ```
 
 ### Graceful Fallback
@@ -189,10 +189,10 @@ async function getBestModel() {
     // Fall back to first available MLX model
     return (
       data.find((m) => m.id !== "foundation")?.id ||
-      "llama-3.2-3b-instruct-4bit"
+      "gemma-4-e2b-it-4bit"
     );
   } catch (error) {
-    return "llama-3.2-3b-instruct-4bit";
+    return "gemma-4-e2b-it-4bit";
   }
 }
 ```
@@ -281,15 +281,9 @@ async function getBestModel() {
 4. **Test on both** — Ensure your app works with and without Foundation Models
 5. **Monitor availability** — Models may be temporarily unavailable during system updates
 
-## Related Resources
+## Related
 
-- [Model Management](/models) — Learn about all supported models
-- [API Reference](/api) — Complete API documentation
-- [Configuration](/configuration) — Server settings
-- [Apple Intelligence Docs](https://developer.apple.com) — Official Apple documentation
-
----
-
-<p align="center">
-  For Apple Intelligence help, join our <a href="https://discord.gg/dinoki">Discord community</a>.
-</p>
+- [Models](/models) — all supported model types
+- [HTTP API](/api) — complete endpoint reference
+- [Inference Runtime](/inference-runtime) — how local + Foundation inference is wired
+- [Apple Intelligence Docs](https://developer.apple.com) — official Apple documentation

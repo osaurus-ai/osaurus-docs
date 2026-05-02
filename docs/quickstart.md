@@ -1,234 +1,131 @@
 ---
 title: Quick Start
 sidebar_label: Quick Start
-description: Get up and running with Osaurus in minutes
+description: What happens the first time you open Osaurus, the one setting that activates memory and auto-tools, and your first conversation.
 sidebar_position: 3
 ---
 
 # Quick Start
 
-You're five minutes away from running AI locally on your Mac. This guide walks you through installation, downloading your first model, and having your first conversation.
+This page walks you through what actually happens the first time you open Osaurus, then the one setting you'll want to flip after onboarding, then your first conversation.
 
-## Setup
-
-### Install Osaurus
-
-Install using Homebrew:
+## 1. Install
 
 ```bash
 brew install --cask osaurus
 ```
 
-Alternatively, [download directly](https://github.com/osaurus-ai/osaurus/releases/latest) from GitHub releases.
+Or grab the [latest DMG](https://github.com/osaurus-ai/osaurus/releases/latest). Full notes: [Installation](/installation).
 
-### Launch the Application
+## 2. First launch
 
-1. Open Osaurus from Spotlight (⌘ Space) or Applications
-2. Look for the Osaurus icon in your menu bar
-3. Click the icon to access the control panel
+Open Osaurus from Spotlight (`⌘ Space` → "Osaurus"). On 0.17.7+ you'll see a brief **"Securing your data"** overlay — that's the [storage encryption migration](/storage), it usually finishes in under a second.
 
-### Start the Server
+Then a wizard opens. There are five steps:
 
-1. Click **Start Server** in the menu
-2. Wait for the status to show **Running on port 1337**
-3. Your local LLM server is now active
+### Welcome
 
-### Download a Model
+The hero screen. Click **Get Started**.
 
-1. Select **Model Manager** from the menu bar
-2. Browse available models or use search
-3. Select a model that fits your system's memory (see [Model Management](/models) for details)
-4. Click **Download** and wait for completion
+### Create your agent
 
-### Test the API
+Pick a name and a starter template (you can change everything later). An agent is a saved configuration — system prompt, theme, default model, memory of its own. You can always come back and add more. [Agents →](/agents)
 
-Verify your installation with a simple request:
+If you want to skip and use the default Osaurus agent, click **Skip for now**.
 
-```bash
-curl -s http://127.0.0.1:1337/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
-    "messages": [{"role":"user","content":"Hello! Tell me a fun fact about dinosaurs."}],
-    "max_tokens": 100
-  }' | jq
-```
+### Configure your AI
 
-## Using the Chat Interface
+Pick how you want to run models:
 
-Osaurus includes an integrated chat interface for direct model interaction.
+| Option | Best for | Setup |
+|---|---|---|
+| **Apple Foundation** *(macOS 26+)* | Zero setup, fast on Apple Neural Engine | Built in |
+| **Local model (MLX)** | Privacy-first, runs offline | Download a model from the picker — `Gemma 4 E2B it 4bit` is the recommended starter (~1.5 GB) |
+| **Cloud provider** | Frontier-class models | Paste an API key for OpenAI, Anthropic, xAI, or OpenRouter |
 
-### Accessing Chat
+You can always add more later from **Management → Models** or **Management → Providers**.
 
-Press **⌘;** (Command + Semicolon) to open the chat overlay. Type your message and press Enter to send. Press **⌘;** again to close.
+### Set up identity
 
-### Chat Features
+Osaurus generates a cryptographic master key the first time it runs. The key lives in your iCloud Keychain, gated by Face ID / Touch ID. A one-time **recovery code** is shown — **write this down somewhere safe**, it's the only thing that can recover your identity if you lose access to your Mac.
 
-- **Markdown Rendering** — Formatted responses with syntax highlighting
-- **Copy Messages** — Click the copy icon on any message
-- **Stop Generation** — Interrupt streaming responses
-- **Model Selection** — Switch models using the dropdown
-- **System Prompts** — Configure in Settings → Chat
+This step is skippable but recommended — it unlocks Identity, access keys, and Relay later. [Identity & Access →](/identity)
 
-## Example Requests
+### How it works
 
-### Creative Writing
+A four-page carousel covers: the Agent Loop, the Sandbox, personalization (memory and skills), and privacy. After you finish, the chat overlay opens and you're ready to go.
 
-```bash
-curl -s http://127.0.0.1:1337/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
-    "messages": [{"role":"user","content":"Write a haiku about coding late at night"}]
-  }' | jq -r '.choices[0].message.content'
-```
+## 3. Set your Core Model
 
-### Code Generation
+This is the one knob that everyone misses. Open **Settings (`⌘ ,`) → General → Core Model** and pick a model.
 
-```bash
-curl -s http://127.0.0.1:1337/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
-    "messages": [{"role":"user","content":"Write a Python function to reverse a string without using built-in functions"}]
-  }' | jq -r '.choices[0].message.content'
-```
+### Why it matters
 
-### Streaming Responses
+The Core Model is a small, lightweight inference target Osaurus uses for **background work**:
 
-```bash
-curl -N http://127.0.0.1:1337/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama-3.2-3b-instruct-4bit",
-    "messages": [{"role":"user","content":"Explain quantum computing in simple terms"}],
-    "stream": true
-  }'
-```
+- **Memory distillation** — turns your conversations into compact pinned facts and episodes. **Without a Core Model set, distillation never runs and memory pauses.**
+- **Capability auto-selection** — picks the right tools, skills, and methods for each turn. Falls back to your chat model when Core Model is unset.
 
-## Apple Foundation Models
+### What to pick
 
-On macOS 26 Tahoe or later, access Apple's system models:
+| You have | Pick |
+|---|---|
+| macOS 26+ | `foundation` (Apple's on-device model — zero overhead) |
+| macOS 15.5+ with a small local model | The smallest fast model you've downloaded (e.g. `gemma-4-e2b-it-4bit`) |
+| Cloud-only setup | Any cheap, fast remote model (e.g. `anthropic/claude-haiku-4-5`) |
 
-```bash
-# Check availability
-curl -s http://127.0.0.1:1337/v1/models | jq '.data[] | select(.id=="foundation")'
+If `foundation` is available, that's the right answer 99% of the time. It's free, fast, and never leaves your Mac.
 
-# Use foundation model
-curl -s http://127.0.0.1:1337/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "foundation",
-    "messages": [{"role":"user","content":"What makes Apple Silicon special?"}]
-  }' | jq
-```
+:::tip
+Choosing **Use chat model (default)** in this picker leaves Core Model unset. That's fine for ad-hoc usage, but **memory will not distill**. Pick an explicit model if you want memory and auto-tools to work in the background.
+:::
 
-## Command Line Interface
+## 4. Try your first chat
 
-Control Osaurus from Terminal:
+Press **`⌘;`** from anywhere on your Mac. The chat overlay appears.
 
-```bash
-# Start server
-osaurus serve --port 1337
+Type something:
 
-# Enable LAN access
-osaurus serve --port 1337 --expose
+> *Hi! Tell me a fun fact about dinosaurs.*
 
-# Check status
-osaurus status
+Press Enter. You'll see the response stream in real-time. Press `⌘;` again to dismiss.
 
-# Stop server
-osaurus stop
+### Try the Agent Loop
 
-# Open UI
-osaurus ui
-```
+Every chat in Osaurus is an agent loop — the model can write a markdown todo list, call tools, and finish with a verified summary. To see it in action:
 
-## Python Integration
+1. Press `⌘;` to open chat
+2. Click the folder icon next to the input bar and pick a folder you don't mind it touching
+3. Ask: *"Summarize what's in this folder and add a `README.md` describing it."*
 
-Use the OpenAI SDK with Osaurus:
+The agent gets file/search/git tools scoped to that folder, writes a plan, executes it, and surfaces the new `README.md` as an artifact card.
 
-```python
-from openai import OpenAI
+On macOS 26+, toggle the **Sandbox** instead of picking a folder to give the agent shell access in an isolated Linux VM. [Working folders & Sandbox →](/agent-loop)
 
-# Configure for local server
-client = OpenAI(
-    base_url="http://127.0.0.1:1337/v1",
-    api_key="not-needed"
-)
+### Try voice
 
-# Make a request
-response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
-    messages=[
-        {"role": "user", "content": "Write a joke about programming"}
-    ]
-)
+Click the microphone in the input bar and speak. Real-time transcription happens entirely on-device via Apple's Neural Engine. Or set up the global Transcription Mode hotkey to dictate into any app on your Mac. [Voice Input →](/voice)
 
-print(response.choices[0].message.content)
-```
+## What's next
 
-## JavaScript Integration
+Now that you're set up:
 
-Access Osaurus from Node.js or browser environments:
+**For everyday use:**
 
-```javascript
-const response = await fetch("http://127.0.0.1:1337/v1/chat/completions", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    model: "llama-3.2-3b-instruct-4bit",
-    messages: [{ role: "user", content: "What's the weather like on Mars?" }],
-  }),
-});
+- [Chat](/chat) — overlay, multi-window, sessions, shortcuts
+- [Agents](/agents) — create specialized assistants for different tasks
+- [Memory](/memory) — what your AI remembers and how
+- [Skills & Methods](/skills) — reusable expertise, automatically loaded
+- [Voice Input](/voice) — dictate, wake-words, global transcription
+- [Themes](/themes) — make the chat overlay yours
 
-const data = await response.json();
-console.log(data.choices[0].message.content);
-```
+**For developers:**
 
-## Performance Optimization
-
-1. **Model Selection** — Start with 4-bit models for optimal speed
-2. **Resource Management** — Close unnecessary applications
-3. **Context Length** — Shorter prompts yield faster responses
-4. **Response Streaming** — Improves perceived performance
-5. **System Monitoring** — Use Osaurus's built-in monitor
-
-## Troubleshooting
-
-### Model Not Found
-
-- Verify download completion in Model Manager
-- Check exact model name: `curl http://127.0.0.1:1337/v1/models`
-- Ensure lowercase naming with hyphens
-
-### Slow Performance
-
-- Try smaller models (3B vs 7B)
-- Reduce `max_tokens` parameter
-- Free up system memory
-- Check Activity Monitor for resource usage
-
-### Connection Issues
-
-- Verify server status: `osaurus status`
-- Check port configuration (default: 1337)
-- Ensure firewall allows localhost connections
-
-## What's Next?
-
-Now that you're up and running, explore what Osaurus can do:
-
-**For Everyone:**
-
-- [Chat Interface](/chat-interface) — Master the chat overlay
-- [Agents](/agents) — Create custom AI assistants
-- [Voice Input](/voice) — Talk to your AI hands-free
-
-**For Developers:**
-
-- [API Reference](/api) — Complete endpoint documentation
+- [HTTP API](/api) — OpenAI / Anthropic / Open Responses / Ollama compatible
 - [SDK Examples](/sdk-examples) — Python, JavaScript, and more
-- [Tools & Plugins](/tools) — Extend AI with native tools
+- [CLI](/cli) — `osaurus` commands
+- [Tools & Plugins](/tools) — extending Osaurus
 
-**Need help?** Join our [Discord community](https://discord.gg/dinoki) or check [GitHub issues](https://github.com/osaurus-ai/osaurus/issues).
+**Care about privacy?** The whole story is on the [Security & Privacy](/security) page.
+
+**Need help?** Join the [Discord](https://discord.gg/osaurus) or open a [GitHub issue](https://github.com/osaurus-ai/osaurus/issues).

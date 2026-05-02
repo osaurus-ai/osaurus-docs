@@ -1,8 +1,8 @@
 ---
 title: Schedules
 sidebar_label: Schedules
-description: Automate recurring AI tasks with timed execution
-sidebar_position: 13
+description: Automate recurring AI tasks with timed execution.
+sidebar_position: 12
 ---
 
 # Schedules
@@ -85,14 +85,16 @@ Schedules run when Osaurus is active. If your Mac is asleep or Osaurus isn't run
 Assign an agent to handle the scheduled task:
 
 1. Select an agent from the dropdown
-2. The agent's system prompt and tool configuration apply to the scheduled run
+2. The agent's system prompt, default model, and theme apply to the scheduled run
 3. Different schedules can use different agents
+
+Tools and skills are auto-selected at run time via RAG search — pick the agent whose system prompt best fits the task; the right capabilities will be loaded automatically. [More on capability auto-selection →](/skills)
 
 **Example configurations:**
 
-- **Daily Journal** — Use a reflective, conversational agent
-- **Code Summary** — Use a technical agent with git tool access
-- **Research Digest** — Use a research-focused agent with web search
+- **Daily Journal** — A reflective, conversational agent
+- **Code Summary** — A technical agent (Git tools surface automatically when the prompt mentions a repo)
+- **Research Digest** — A research-focused agent (Search and Fetch tools surface automatically)
 
 ### Instructions
 
@@ -265,7 +267,7 @@ Schedules work seamlessly with [Agents](/agents):
 
 - **Review the instructions** — Ambiguous prompts lead to inconsistent results
 - **Check the agent** — Ensure the right agent is assigned
-- **Look at tool access** — The agent may need specific tools enabled
+- **Inspect what tools fired** — Open Insights (`⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific so the RAG search picks better
 
 ### Missed Schedules
 
@@ -275,8 +277,14 @@ If Osaurus wasn't running at the scheduled time:
 - Or waits until the next scheduled time
 - Use "Run Now" to trigger manually
 
+### Auditing scheduled runs
+
+Each scheduled run is persisted as a chat session tagged `source = schedule`, with a badge in the chat sidebar. Filter the sidebar by source to see all your scheduled runs in one place.
+
 ---
 
-<p align="center">
-  For creating custom AI assistants to use with schedules, see the <a href="/agents">Agents</a> guide.
-</p>
+**Related:**
+
+- [Agents](/agents) — pick which agent runs your schedules
+- [Watchers](/watchers) — event-based automation (complements Schedules)
+- [Skills & Methods](/skills) — capabilities are auto-selected per run

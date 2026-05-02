@@ -1,295 +1,237 @@
 ---
-title: Skills
-sidebar_label: Skills
-description: Extend your AI with reusable capabilities imported from GitHub or local files
-sidebar_position: 12
+title: Skills & Methods
+sidebar_label: Skills & Methods
+description: Reusable AI capabilities — Skills package expertise, Methods capture learned workflows. Both are auto-selected via RAG search.
+sidebar_position: 8
 ---
 
-# Skills
+# Skills & Methods
 
-Your AI assistant is only as capable as its context allows. Skills let you extend that context with specialized knowledge and behaviors—research methodologies, debugging frameworks, creative techniques, and more. Import skills from GitHub repositories or local files, and activate them when you need that expertise.
+Skills are reusable packages of instructions, context, and resources that give your AI specialized expertise — a research methodology, a debugging framework, a creative writing style.
 
-## What is a Skill?
+Methods are similar but learned. When an agent figures out an effective sequence of tool calls, it saves that workflow as a method. Future tasks find and reuse it.
 
-A skill is a reusable AI capability that provides specialized instructions, context, or methodology to your assistant. Unlike agents (which define personality and tool access), skills add domain expertise that can be combined with any agent.
+Both are **auto-selected via RAG search** before each message — no manual configuration needed.
 
-Each skill can include:
+## Quick start
 
-- **Instructions** — Detailed guidance for the AI on how to approach specific tasks
-- **Context** — Background knowledge or reference material
-- **Methodology** — Step-by-step frameworks for complex workflows
-- **Examples** — Sample outputs or patterns to follow
+Osaurus ships with 6 built-in skills:
 
-## Features
+| Skill | What it does |
+|---|---|
+| **Research Analyst** | Structured research with source evaluation and citation |
+| **Creative Brainstormer** | Ideation and creative problem solving |
+| **Study Tutor** | Educational guidance using the Socratic method |
+| **Productivity Coach** | Task management and productivity optimization |
+| **Content Summarizer** | Distill long content into concise summaries |
+| **Debug Assistant** | Systematic debugging methodology |
 
-- **Import from GitHub** — Browse skills from any repository with a `marketplace.json`
-- **Import from Files** — Load `.md`, `.json`, or `.zip` skill packages
-- **Built-in Skills** — 6 pre-installed skills ready to use
-- **Custom Skills** — Create and edit skills with the built-in editor
-- **Agent Skills Compatible** — Follows the open Agent Skills specification
-- **Smart Loading** — Only selected skills are loaded to save context space
+To get started:
 
-## Accessing Skills
+1. Open the Management window (`⌘ ⇧ M`) → **Skills**
+2. Built-in skills are enabled by default — toggle any off you don't want
+3. Start a new chat — relevant skills get loaded automatically when you ask the right kind of question
 
-Open the Management window with **⌘⇧M**, then navigate to the **Skills** tab.
+## How auto-selection works
 
-## Two-Phase Capability Selection
+Before every message, a **preflight RAG search** runs across all enabled skills, methods, and tools. It uses hybrid BM25 + vector matching to find the ones relevant to your query, then injects matching skill instructions and method bodies into the system prompt.
 
-:::tip Key Feature
-This is one of Osaurus's most important optimizations. It saves ~80% of context space compared to traditional approaches, giving you longer conversations and better AI reasoning.
-:::
+The search itself runs through your **Core Model** when configured (set in **Settings → General → Core Model**), and falls back to the active chat model when Core Model is unset. A small fast Core Model (`foundation` on macOS 26+, or `gemma-4-e2b-it-4bit`) keeps preflight cheap.
 
-Traditional AI assistants load all skill instructions and tool definitions upfront—often thousands of tokens before you even ask a question. Osaurus takes a smarter approach.
+You control how aggressively it searches:
 
-### How It Works
+| Mode | Methods | Tools | Skills | Best for |
+|---|---|---|---|---|
+| `off` | 0 | 0 | 0 | Disabling auto-selection |
+| `narrow` | 1 | 2 | 1 | Fastest responses, minimal context |
+| `balanced` (default) | 3 | 5 | 2 | Most cases — good coverage at moderate cost |
+| `wide` | 5 | 8 | 4 | Maximum coverage, larger prompts |
 
-**Phase 1: Lightweight Catalog**
+Set the mode in **Management → Settings → Capabilities**.
 
-When a conversation starts, the AI sees only a compact catalog of available skills and tools—names and brief descriptions. This catalog uses minimal context space.
+### Mid-conversation discovery
 
-**Phase 2: On-Demand Loading**
+The agent can also expand its kit while a chat is in progress via two always-on tools:
 
-When the AI determines it needs a specific skill or tool, only then are the full instructions loaded. The AI requests exactly what it needs, when it needs it.
+| Tool | What it does |
+|---|---|
+| `capabilities_search` | Search methods, tools, and skills across all indexes in parallel |
+| `capabilities_load` | Load a specific capability by ID into the active session |
 
-### Benefits
+Loading a method automatically loads its referenced tools and skills. So an agent that starts with research skills can pull in a "deploy to staging" method (and the tools that method uses) without you doing anything.
 
-| Approach           | Context Usage | Problem                                    |
-| ------------------ | ------------- | ------------------------------------------ |
-| **Traditional**    | ~5,000 tokens | All skills/tools loaded upfront            |
-| **Two-Phase**      | ~1,000 tokens | Only catalog + actively used capabilities  |
+## Skills
 
-This saves approximately **80% of context space** for both Skills and Tools, leaving more room for your actual conversation and the AI's reasoning.
+### Importing from GitHub
 
-### Why It Matters
+Any GitHub repo with a `.claude-plugin/marketplace.json` manifest works:
 
-- **Longer conversations** — More context available for chat history
-- **Better responses** — AI isn't overwhelmed by irrelevant instructions
-- **Faster performance** — Less data to process per request
-- **More capabilities** — Enable more skills without hitting context limits
+1. **Skills → Import → From GitHub**
+2. Enter the repo URL (`github.com/owner/repo` or just `owner/repo`)
+3. Browse the available skills, select what to import
+4. Click **Import Selected**
 
-The two-phase approach means you can have dozens of skills and tools available without paying the context cost until they're actually used.
+Osaurus follows the open [Agent Skills](https://agentskills.io/) specification, so anything that targets Claude Skills also works here.
 
-## Built-in Skills
+### Importing from files
 
-Osaurus includes six pre-installed skills to get you started:
+| Format | Description |
+|---|---|
+| `.md` / `SKILL.md` | Agent Skills format — Markdown with YAML frontmatter |
+| `.json` | Osaurus export format |
+| `.zip` | A complete package: `SKILL.md` + optional `references/` and `assets/` folders |
 
-| Skill                    | Description                                          |
-| ------------------------ | ---------------------------------------------------- |
-| **Research Analyst**     | Structured research with source evaluation           |
-| **Study Tutor**          | Educational guidance using the Socratic method       |
-| **Creative Brainstormer**| Ideation and creative problem solving                |
-| **Debug Assistant**      | Systematic debugging methodology                     |
-| **Code Reviewer**        | Thorough code review with best practices             |
-| **Technical Writer**     | Clear documentation and technical writing            |
+**Skills → Import → From File** → pick the file.
 
-These skills are ready to use immediately—just enable them in the Skills tab.
+### Creating your own
 
-## Importing Skills
+**Skills → Create Skill**:
 
-### From GitHub
+| Field | Description |
+|---|---|
+| **Name** | A clear, descriptive name |
+| **Description** | One-line summary (used by the RAG search — make it specific) |
+| **Category** | Optional grouping ("Development", "Writing") |
+| **Instructions** | The full guidance for the AI in Markdown |
+| **Version** / **Author** | Metadata |
 
-Import skills from any GitHub repository that includes a `marketplace.json` file:
+Tips for instructions:
 
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click **Import from GitHub**
-3. Enter the repository URL or browse available repositories
-4. Select the skills you want to import
-5. Click **Import**
+- Be specific about purpose and approach
+- Include examples of expected behavior
+- Define any frameworks or methodologies to follow
+- Specify output formats when relevant
 
-The `marketplace.json` file defines available skills in the repository:
+### Reference files
 
-```json
-{
-  "name": "My Skills Collection",
-  "skills": [
-    {
-      "id": "research-analyst",
-      "name": "Research Analyst",
-      "description": "Structured research methodology",
-      "file": "skills/research-analyst.md"
-    }
-  ]
-}
-```
+Add files that load into the AI's context whenever the skill is active. Useful for style guides, terminology, process docs, templates.
 
-### From Files
+1. Edit a skill
+2. Add files to its `references/` folder
+3. Text files (`.txt`, `.md`, etc.) are loaded into context (≤100 KB each)
 
-Import skills from local files on your Mac:
+### Editing, exporting, deleting
 
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click **Import from File**
-3. Select a skill file (`.md`, `.json`, or `.zip`)
-4. The skill is added to your library
+| Action | How |
+|---|---|
+| **Edit** | Click a skill → **Edit**. Built-in skills are read-only but viewable. |
+| **Export** | Right-click → **Export** → JSON, Markdown, or ZIP |
+| **Delete** | Right-click → **Delete** (custom skills only) |
+| **Disable** | Toggle the switch — disabled skills are excluded from RAG search |
 
-**Supported formats:**
-
-| Format   | Description                                      |
-| -------- | ------------------------------------------------ |
-| `.md`    | Markdown file with skill instructions            |
-| `.json`  | JSON file with structured skill definition       |
-| `.zip`   | Archive containing multiple skill files          |
-
-## Creating Custom Skills
-
-Build your own skills with the built-in editor:
-
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click **Create Skill**
-3. Fill in the skill details:
-   - **Name** — Display name for the skill
-   - **Description** — Brief explanation of what the skill does
-   - **Instructions** — The detailed content that guides the AI
-4. Click **Save**
-
-### Writing Effective Skills
-
-**Be specific and actionable:**
+### File format
 
 ```markdown
-When analyzing code for security vulnerabilities:
-1. Check for injection vulnerabilities (SQL, command, XSS)
-2. Review authentication and authorization logic
-3. Look for sensitive data exposure
-4. Evaluate error handling and logging
-5. Assess dependency security
+---
+name: Research Analyst
+description: Structured research with source evaluation
+category: Research
+version: 1.0.0
+author: Your Name
+---
+
+# Research Analyst
+
+You are a research analyst specializing in thorough, well-sourced research.
+
+## Methodology
+
+1. Understand the research question
+2. Identify reliable sources
+3. Evaluate source credibility
+4. Synthesize findings
+5. Present with citations
+
+## Output format
+
+Always include:
+- Executive summary
+- Key findings
+- Source citations
+- Confidence assessment
 ```
 
-**Include examples when helpful:**
+Skills are stored as directories at `~/.osaurus/skills/{skill-name}/SKILL.md`, with optional `references/` and `assets/` subfolders.
 
-```markdown
-When asked to explain a concept, use this format:
+## Methods
 
-## [Concept Name]
+Methods capture **learned procedures**. When an agent finishes a multi-step task, it can save the sequence of tool calls as a YAML workflow that future tasks can reuse.
 
-**What it is:** One-sentence definition.
+### What's in a method
 
-**Why it matters:** Real-world relevance.
+| Property | Description |
+|---|---|
+| `name` | Display name |
+| `description` | Brief description (used by RAG search) |
+| `triggerText` | Optional phrases that activate this method ("deploy to staging", "publish post") |
+| `body` | The YAML workflow — step-by-step tool calls with logic between them |
+| `toolsUsed` / `skillsUsed` | Auto-extracted from `body` so loading the method auto-loads its dependencies |
+| `tokenCount` | Estimated cost for context budgeting |
+| `version` | Bumped on every edit |
 
-**How it works:** Step-by-step explanation.
+### Scoring
 
-**Example:** Concrete illustration.
+Methods are scored using a recency-weighted success rate:
+
+```
+score = successRate × recencyWeight
+recencyWeight = 1.0 / (1.0 + daysSinceUsed / 30.0)
 ```
 
-**Define boundaries:**
+Each time a method is used, the system records a `MethodEvent` (`loaded`, `succeeded`, `failed`) and recalculates the score. High-quality, recently-used methods rank higher in search results — so the workflows that actually work float to the top automatically.
 
-```markdown
-You are a code reviewer focused on Python best practices.
+### Storage
 
-DO:
-- Suggest PEP 8 improvements
-- Identify potential bugs
-- Recommend performance optimizations
+Methods live in `~/.osaurus/methods/methods.sqlite` (encrypted with SQLCipher since 0.17.7).
 
-DON'T:
-- Rewrite entire functions unless asked
-- Suggest architectural changes for small reviews
-- Focus on stylistic preferences over correctness
-```
+### Browsing methods
 
-## Managing Skills
+There isn't a separate "Methods" tab — they live alongside skills in the same RAG index. To inspect what's been learned:
 
-### Enabling and Disabling Skills
+- **Management → Insights** shows when methods were loaded and whether they succeeded
+- The methods database is browsable via SQLite tools if you really need to dig in
 
-Toggle skills on or off to control what's loaded into context:
+## Skills, Methods, Tools — what's the difference?
 
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click the toggle next to any skill to enable or disable it
-3. Enabled skills are loaded when you start a conversation
+| | Skills | Methods | Tools |
+|---|---|---|---|
+| **Source** | You author them or import from a marketplace | Agents save them after successful runs | Built-in plugins, native plugins, MCP providers |
+| **Content** | Markdown instructions + reference files | YAML sequences of tool calls | Code (Swift, Rust, Python via MCP) |
+| **What they do** | Add domain knowledge / methodology | Replay a known-good workflow | Take action (read files, run commands, call APIs) |
+| **Loaded by** | RAG search (preflight + on-demand) | RAG search (preflight + on-demand) | RAG search; loading a method auto-loads its tools |
+| **Token cost** | The skill's instructions text | The method's YAML body | Just the tool's spec (description + parameters) |
 
-:::tip Context Management
-Only enable skills you're actively using. Each skill adds to the context sent with every message, which affects response speed and token usage.
-:::
+## Troubleshooting
 
-### Editing a Skill
+### Skills don't appear in chat
 
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click on the skill you want to edit
-3. Make your changes in the editor
-4. Click **Save**
+- Verify the skill is enabled (toggle is on)
+- Make sure the skill's **description** clearly describes when to use it — RAG search keys off this
+- Start a new chat session
+- Try setting the search mode to `wide`
 
-### Deleting a Skill
+### GitHub import fails
 
-1. Open Management window (**⌘⇧M**) → **Skills**
-2. Click on the skill
-3. Click **Delete**
-4. Confirm deletion
+- Ensure the repo is public or you have access
+- Verify the repo has `.claude-plugin/marketplace.json`
+- Check your network connection
 
-:::note Built-in Skills
-Built-in skills cannot be deleted, but you can disable them.
-:::
+### Skill instructions seem ignored
 
-## Skills vs Agents
+- Review the instructions for clarity and specificity
+- Make the description more specific so RAG matches it on the right queries
+- Try being more explicit in your prompt
 
-Skills and agents serve different purposes and work together:
+### Import format errors
 
-| Aspect        | Agents                                | Skills                                |
-| ------------- | ------------------------------------- | ------------------------------------- |
-| **Purpose**   | Define personality and behavior       | Add domain expertise                  |
-| **Scope**     | Controls tools, model, temperature    | Provides instructions and context     |
-| **Usage**     | One active at a time                  | Multiple can be enabled simultaneously|
-| **Best for**  | Different assistant modes             | Specialized knowledge areas           |
-
-**Example combination:**
-
-- **Agent:** Code Assistant (low temperature, filesystem tools enabled)
-- **Skills:** Debug Assistant + Code Reviewer (methodology for the task)
-
-## Agent Skills Compatibility
-
-Osaurus skills follow the open [Agent Skills](https://github.com/agentskills/agentskills) specification, making them compatible with other tools that support this format.
-
-**Key compatibility features:**
-
-- Standard markdown format
-- Metadata in frontmatter
-- Portable between compatible tools
-- Version-controlled in Git
-
-## Use Cases
-
-### Research Workflow
-
-Enable the **Research Analyst** skill when gathering information:
-
-- Structured approach to evaluating sources
-- Methodology for synthesizing findings
-- Framework for presenting research results
-
-### Learning Sessions
-
-Use the **Study Tutor** skill for educational conversations:
-
-- Socratic questioning approach
-- Adaptive explanation depth
-- Knowledge verification techniques
-
-### Code Reviews
-
-Combine **Code Reviewer** and **Debug Assistant** skills:
-
-- Systematic code analysis
-- Bug identification methodology
-- Best practice recommendations
-
-### Creative Projects
-
-Enable **Creative Brainstormer** for ideation:
-
-- Divergent thinking techniques
-- Idea generation frameworks
-- Creative constraint methods
-
-## Tips and Best Practices
-
-1. **Start with built-in skills** — Try the pre-installed skills before creating custom ones
-2. **Keep skills focused** — One skill per domain works better than monolithic skills
-3. **Enable selectively** — Only load skills relevant to your current task
-4. **Iterate on instructions** — Refine your custom skills based on results
-5. **Share with others** — Export skills to share methodologies with your team
-6. **Version control** — Store skill files in Git for history and collaboration
+- `.md` files: ensure valid YAML frontmatter between `---` markers
+- `.zip` files: `SKILL.md` must be at the root or in a named folder
+- `.json` files: validate JSON syntax
 
 ---
 
-<p align="center">
-  For combining skills with custom assistants, see the <a href="/agents">Agents</a> guide.
-</p>
+**Related:**
+
+- [Agents](/agents) — skills/methods/tools are auto-selected per agent per turn
+- [Tools & Plugins](/tools) — what tools exist and how they're built
+- [Agent Skills Specification](https://agentskills.io/) — the open format Osaurus follows

@@ -1,13 +1,14 @@
 ---
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
-description: Native Swift and Rust MCP tools for Osaurus - browser automation, filesystem, git, search, and more
-sidebar_position: 7
+description: Twenty-plus native Swift/Rust plugins, plus support for v1 (tools) and v2 (full host API) ABIs. Tools are auto-selected via RAG — no manual configuration.
 ---
 
 # Tools & Plugins
 
-Osaurus includes a powerful plugin system with 20+ native plugins for extending AI agent capabilities. Tools are exposed via the Model Context Protocol (MCP), allowing any MCP-compatible client to use them. Osaurus is both a full MCP server and client — aggregate tools from remote MCP servers alongside your locally installed plugins.
+Osaurus ships with 20+ native plugins for everything from filesystem operations and browser automation to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
+
+Tools are **auto-selected per turn** via the RAG-based preflight search — you don't manually toggle them per agent. See [Skills & Methods](/skills) for how that selection works.
 
 ## Why Native Tools?
 
@@ -73,24 +74,24 @@ Tools are installed to:
 ~/.osaurus/Tools/<plugin_id>/<version>/
 ```
 
-## Two-Phase Capability Selection
+## Auto-selection (RAG preflight)
 
-:::tip Key Feature
-This optimization saves ~80% of context space, giving you longer conversations and better AI reasoning.
+:::tip Key feature
+Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus loads only what's relevant to the current message.
 :::
 
-Osaurus uses a smart loading system that dramatically reduces context usage for tools.
+Before each chat turn, a **preflight RAG search** runs across every indexed tool, skill, and method and pulls in just the relevant ones. You don't toggle tools per agent — pick a mode and Osaurus matches the right tools to the right tasks.
 
-### How It Works
+| Mode | Tools loaded | Best for |
+|---|---|---|
+| `off` | 0 | Disabling auto-selection |
+| `narrow` | 2 | Fastest responses, minimal context |
+| `balanced` *(default)* | 5 | Most cases |
+| `wide` | 8 | Maximum coverage |
 
-Instead of loading all tool definitions upfront (which can consume thousands of tokens), Osaurus shows the AI a lightweight catalog first. The AI sees tool names and brief descriptions, then requests full definitions only for tools it actually needs.
+Set the mode in **Management → Settings → Capabilities**. The agent can also expand its kit mid-conversation via `capabilities_search` and `capabilities_load`.
 
-| Approach        | Context Usage | What's Loaded                             |
-| --------------- | ------------- | ----------------------------------------- |
-| **Traditional** | ~5,000 tokens | All tool schemas upfront                  |
-| **Two-Phase**   | ~1,000 tokens | Catalog + only actively used tool schemas |
-
-This saves approximately **80% of context space**, leaving more room for conversation history and AI reasoning. Combined with [Skills](/skills), you can have extensive capabilities available without overwhelming the context window.
+This typically saves ~80% of context tokens compared to loading every tool spec, leaving more room for conversation and reasoning. [Skills & Methods →](/skills)
 
 ## Using Tools
 
@@ -150,7 +151,7 @@ from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:1337/v1", api_key="osaurus")
 
 response = client.chat.completions.create(
-    model="llama-3.2-3b-instruct-4bit",
+    model="gemma-4-e2b-it-4bit",
     messages=[{"role": "user", "content": "What files are in my home directory?"}],
     tools=[{
         "type": "function",
@@ -278,6 +279,24 @@ Plugins support two ABI versions:
 
 v2 plugins have access to the full Osaurus runtime, enabling rich integrations that go beyond simple tool calls.
 
+### v2 capabilities
+
+| Capability | Manifest key | Description |
+|---|---|---|
+| Tools | `capabilities.tools` | AI-callable functions |
+| Routes | `capabilities.routes` | HTTP endpoints (OAuth, webhooks, APIs) |
+| Config | `capabilities.config` | Native settings UI with validation |
+| Web | `capabilities.web` | Static frontend serving with context injection |
+| Docs | `docs` | README, changelog, external links |
+
+Each is opt-in. A plugin can declare any subset.
+
+## Tool contract
+
+Every tool — built-in, folder, sandbox, plugin, MCP — returns a JSON envelope in one of two shapes (success or failure). This is how the chat UI distinguishes "the tool succeeded with this result" from "the model used the tool wrong and should fix it on the next turn".
+
+[Tool Contract →](/tool-contract)
+
 ## Creating Your Own Tools
 
 Want to build a tool? See the [Plugin Authoring Guide](/plugin-authoring) for complete instructions.
@@ -339,6 +358,11 @@ osaurus-tools/
 
 ---
 
-<p align="center">
-  To contribute a tool, see the <a href="/plugin-authoring">Plugin Authoring Guide</a> or browse the <a href="https://github.com/osaurus-ai/osaurus-tools">tools registry</a>.
-</p>
+**Related:**
+
+- [Plugin Authoring](/plugin-authoring) — full guide to building v1/v2 plugins
+- [Tool Contract](/tool-contract) — envelope shape every tool returns
+- [Sandbox Internals](/sandbox) — JSON-recipe plugins for the Linux sandbox
+- [Remote MCP Providers](/remote-mcp-providers) — connecting external MCP servers
+- [Skills & Methods](/skills) — how tools are auto-selected
+- [Tools Registry](https://github.com/osaurus-ai/osaurus-tools) — browse and submit plugins

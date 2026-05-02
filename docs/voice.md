@@ -1,302 +1,248 @@
 ---
 title: Voice Input
 sidebar_label: Voice Input
-description: Speech-to-text powered by FluidAudio on Apple's Neural Engine — fully local, private, on-device transcription
-sidebar_position: 12
+description: On-device speech-to-text via FluidAudio on Apple's Neural Engine. Voice in chat, wake-word activation, global dictation. All local.
+sidebar_position: 10
 ---
 
 # Voice Input
 
-Sometimes typing isn't convenient — you're cooking, exercising, or just want to think out loud. Osaurus includes fully local speech-to-text powered by FluidAudio on Apple's Neural Engine. Speak naturally, see your words appear in real-time, and know that nothing leaves your Mac.
+Sometimes typing isn't convenient — you're cooking, exercising, or just want to think out loud. Osaurus has fully local speech-to-text powered by [FluidAudio](https://github.com/FluidInference/FluidAudio) on Apple's Neural Engine. Speak naturally, see your words appear in real time, knowing nothing leaves your Mac.
 
-## Features
+Three voice features, three different jobs:
 
-- **Real-time transcription** — See your words as you speak
-- **Multiple transcription models** — From Tiny (75 MB) to Large V3 (3 GB)
-- **Microphone or system audio** — Transcribe your voice or computer audio
-- **Configurable sensitivity** — Adjust for quiet or noisy environments
-- **Auto-send with confirmation** — Hands-free message sending
-- **Transcription Mode** — Dictate into any app with a global hotkey
+| Feature | What it does | Where it works |
+|---|---|---|
+| **Voice input in chat** | Dictate your next message | Chat overlay |
+| **VAD Mode** | Always-on listening for a wake word | System-wide (background) |
+| **Transcription Mode** | Hotkey to dictate into any text field | Anywhere on macOS |
 
-## Setup
+## Setup (once)
 
-### 1. Open Voice Settings
+1. Open the Management window (`⌘ ⇧ M`) → **Voice**
+2. Complete the requirements at the top of the page:
+   - **Microphone** — click **Grant** to enable mic access
+   - **Parakeet model** — click **Download** to fetch the recommended model
+3. When both show checkmarks, the big mic button activates — tap to test
 
-1. Open the Management window (**⌘⇧M**)
-2. Navigate to the **Voice** tab
+If you'd rather configure it manually, the settings live in the same Voice tab.
 
-### 2. Grant Microphone Permission
+## Parakeet models
 
-When prompted, allow Osaurus to access your microphone:
+Osaurus uses [FluidAudio](https://github.com/FluidInference/FluidAudio) Parakeet TDT models for on-device speech recognition via CoreML and the Apple Neural Engine.
 
-1. Click **Enable Microphone** in Voice settings
-2. macOS will show a permission dialog
-3. Click **Allow**
+| Model | Size | Languages | When to pick it |
+|---|---|---|---|
+| **Parakeet TDT v3 (0.6B)** | ~600 MB | Multilingual (25 European languages) | Recommended default |
+| **Parakeet TDT v2 (0.6B)** | ~600 MB | English only | Slightly better English recall |
 
-If you accidentally denied permission:
+Models are stored at `~/Library/Application Support/FluidAudio/Models/`.
 
-1. Open **System Settings** → **Privacy & Security** → **Microphone**
-2. Find Osaurus in the list
-3. Toggle the switch to enable
+Languages supported by v3: English, German, Spanish, French, Dutch, Italian, Danish, Estonian, Finnish, Greek, Hungarian, Latvian, Lithuanian, Maltese, Polish, Portuguese, Romanian, Slovak, Slovenian, Swedish, Russian, Ukrainian, Bulgarian, Croatian, Czech.
 
-### 3. Download a Transcription Model
+## Voice input in chat
 
-Choose and download a transcription model:
+The simplest mode. Click the microphone button in the chat input bar, speak, watch the transcription appear in real time, click again to stop (or wait for auto-send).
 
-| Model        | Size   | Speed    | Accuracy  | Best For                        |
-| ------------ | ------ | -------- | --------- | ------------------------------- |
-| **Tiny**     | 75 MB  | Fastest  | Basic     | Quick notes, casual use         |
-| **Base**     | 142 MB | Fast     | Good      | General purpose                 |
-| **Small**    | 466 MB | Moderate | Better    | Balanced performance            |
-| **Medium**   | 1.5 GB | Slower   | Very Good | Higher accuracy needs           |
-| **Large V3** | 3 GB   | Slowest  | Best      | Maximum accuracy, complex audio |
+### Settings
 
-Click **Download** next to your chosen model. The model downloads to `~/.osaurus/voice-models`.
+| Setting | Default | Description |
+|---|---|---|
+| Voice input enabled | On | Master toggle for voice in chat |
+| Sensitivity | Medium | Voice detection threshold |
+| Pause duration | 2.0s | Silence before auto-send (set to 0 to disable) |
+| Confirmation delay | 1.5s | Countdown shown before sending |
 
-:::tip Recommended
-Start with **Small** for a good balance of speed and accuracy. Upgrade to **Large V3** if you need better transcription for accented speech or technical vocabulary.
-:::
+### Sensitivity levels
 
-### 4. Test Your Voice Input
+| Level | Energy threshold | Silence detection | Best for |
+|---|---|---|---|
+| Low | Higher | 0.4s | Noisy environments, louder speech |
+| Medium | Balanced | 0.6s | Normal conversation |
+| High | Lower | 1.2s | Quiet environments, soft speech |
 
-1. Click the microphone button in the chat input area
-2. Speak a test phrase
-3. Watch the transcription appear in real-time
-4. Click the microphone button again to stop
+### Auto-send
 
-## Using Voice Input
+When pause duration is set:
 
-### Starting Voice Input
+1. You speak; you see real-time transcription
+2. When you pause, a countdown appears
+3. If you resume speaking, the countdown resets
+4. After the countdown elapses, the message sends automatically
 
-- **Click** the microphone icon in the chat input area
-- The icon animates to show recording is active
-- Speak naturally at a normal pace
+Set pause duration to 0 to disable (manual send only).
 
-### Stopping Voice Input
+### Audio sources
 
-- **Click** the microphone icon again
-- Or wait for the silence timeout
-- Transcription is inserted into the input field
+Osaurus can transcribe from your microphone or from the audio playing on your Mac.
 
-### Auto-Send
+| Source | Use case |
+|---|---|
+| Microphone (built-in / external / Bluetooth) | Dictating messages |
+| System audio | Transcribe a meeting, podcast, video, or lecture |
 
-When enabled, voice input automatically sends your message after transcription:
+System audio capture requires macOS 12.3+ and Screen Recording permission. Osaurus's own audio output is excluded automatically to prevent feedback.
 
-1. Open Voice settings (**⌘⇧M** → **Voice**)
-2. Enable **Auto-send after transcription**
-3. Optionally enable **Confirm before sending** for a review step
+## VAD Mode (wake-word activation)
 
-### Switching Audio Sources
+VAD (Voice Activity Detection) Mode lets you activate Osaurus hands-free. Say an agent's name or a custom wake phrase to open chat with that agent.
 
-Choose between microphone and system audio:
+### Enable VAD
 
-| Source           | Description                    | Use Case                      |
-| ---------------- | ------------------------------ | ----------------------------- |
-| **Microphone**   | Your voice input               | Dictating messages            |
-| **System Audio** | Audio playing on your computer | Transcribing videos, meetings |
+1. **Voice → VAD Mode → Enable**
+2. Select which agents should respond to wake words
+3. Optionally set a custom wake phrase like "Hey Osaurus"
 
-Select the audio source in Voice settings.
+### How it works
 
-## Sensitivity Settings
+```
+1. Osaurus listens in the background
+2. Real-time transcription is checked for agent names + wake phrase
+3. On a match, chat opens with the detected agent
+4. Voice input starts automatically (if enabled)
+5. After chat closes, VAD resumes listening
+```
 
-Adjust voice detection for your environment:
+### VAD settings
 
-| Setting             | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| **Sensitivity**     | How loud audio must be to trigger transcription |
-| **Silence Timeout** | How long to wait after silence before stopping  |
+| Setting | Default | Description |
+|---|---|---|
+| VAD Mode enabled | Off | Master toggle |
+| Enabled agents | None | Which agents respond to wake words |
+| Custom wake phrase | Empty | Optional activation phrase |
+| Wake-word sensitivity | Medium | Detection threshold |
+| Auto-start voice input | On | Begin recording after activation |
+| Silence timeout | 0 (disabled) | Auto-close chat after this many seconds of silence |
 
-- **Quiet environment** — Lower sensitivity, shorter timeout
-- **Noisy environment** — Higher sensitivity, longer timeout
+### Status indicators
 
-## VAD Mode (Voice Activity Detection)
-
-VAD Mode enables hands-free activation of Osaurus using wake phrases. Say your agent's name or a custom phrase to open chat and start voice input automatically.
-
-### Enabling VAD Mode
-
-1. Open Voice settings (**⌘⇧M** → **Voice**)
-2. Toggle **VAD Mode** to enable
-3. Configure wake phrases (optional)
-
-### How VAD Works
-
-1. **Always Listening** — Osaurus listens for wake phrases in the background
-2. **Activation** — When a wake phrase is detected, chat opens automatically
-3. **Voice Input Starts** — Microphone activates for your message
-4. **Automatic Close** — Chat closes after silence timeout (configurable)
-
-### Status Indicators
-
-| Indicator                  | Meaning                                      |
-| -------------------------- | -------------------------------------------- |
-| **Blue pulsing dot**       | VAD is active and listening for wake phrases |
-| **Microphone icon active** | Currently recording voice input              |
-
-The blue pulsing dot appears on the menu bar icon when VAD is enabled and listening.
-
-### Wake Phrases
-
-By default, saying an agent's name activates that agent:
-
-- "Hey Code Assistant" → Opens chat with Code Assistant agent
-- "Hey Research Helper" → Opens chat with Research Helper agent
-
-You can also configure custom wake phrases in Voice settings.
-
-### VAD Settings
-
-| Setting             | Description                               |
-| ------------------- | ----------------------------------------- |
-| **Wake Phrases**    | Custom phrases to trigger activation      |
-| **Silence Timeout** | Time to wait after silence before closing |
-| **Auto-Close**      | Automatically close chat after inactivity |
-
-### VAD Use Cases
-
-- **Hands-free computing** — Control Osaurus while cooking, exercising, etc.
-- **Accessibility** — Voice-first interaction
-- **Quick queries** — Fast questions without touching the keyboard
-- **Multi-tasking** — Keep working while asking questions
+| Where | What it looks like | Meaning |
+|---|---|---|
+| Menu bar icon | Blue pulsing dot | VAD is listening |
+| Menu bar icon | Orange dot | VAD is processing speech |
+| Menu bar icon | No dot | VAD is off |
+| Popover | Waveform button green | Listening on |
+| Popover | Waveform button gray | Listening off |
 
 ## Transcription Mode
 
-Transcription Mode lets you dictate text directly into any application on your Mac. Press a global hotkey, speak, and watch your words appear in the currently focused text field—no copy-paste required.
+Transcription Mode is a global hotkey that types your speech directly into any focused text field — email, document, search bar, code editor, anything.
 
-### What is Transcription Mode?
+### One-time setup
 
-Unlike regular voice input (which types into Osaurus chat), Transcription Mode types into whatever app you're using. Writing an email? Dictate it. Filling out a form? Speak instead of type. Coding? Dictate comments without switching windows.
+1. **Voice → Transcription**
+2. Grant **Accessibility permission** (System Settings → Privacy & Security → Accessibility → enable Osaurus). You may need to restart Osaurus.
+3. Toggle **Enable Transcription Mode**
+4. Click the hotkey field and press your preferred combination
 
-### Features
+### Using it
 
-- **Global Hotkey** — Trigger transcription from anywhere on your Mac
-- **Live Typing** — Text appears in the focused text field in real-time
-- **Accessibility Integration** — Uses macOS accessibility APIs to simulate keyboard input
-- **Minimal Overlay** — Sleek floating UI shows recording status
-- **Press Esc or Done** — Stop transcription when finished
+1. Click into any text field, anywhere on macOS
+2. Press your hotkey
+3. Speak — your words type into the focused field in real time
+4. Press `Esc` or click **Done** to stop
 
-### Setup
+### What appears
 
-#### 1. Grant Accessibility Permission
+A minimal floating overlay at the top of the screen with:
 
-Transcription Mode requires accessibility access to type into other applications:
+- Status indicator ("Listening" with a pulsing accent color)
+- Animated waveform that responds to audio level
+- Done button
+- Close button (cancels and discards)
 
-1. Open **System Settings** → **Privacy & Security** → **Accessibility**
-2. Click the **+** button
-3. Find and add **Osaurus**
-4. Toggle the switch to enable
+The overlay stays on top of every window and follows your active theme. Reduced-motion settings are respected.
 
-:::note Why Accessibility Access?
-Transcription Mode simulates keyboard input to type into other apps. macOS requires explicit permission for any app that controls input in other applications.
-:::
+### Tips for best results
 
-#### 2. Configure the Global Hotkey
+- **Speak clearly.** Enunciate; don't mumble.
+- **External mic helps.** Built-ins work but external mics improve accuracy.
+- **Quiet environment.** Background noise hurts transcription.
+- **Use Parakeet TDT v3.** It's the multilingual model and has the best overall accuracy.
 
-1. Open Management window (**⌘⇧M**) → **Voice**
-2. Navigate to the **Transcription** tab
-3. Click the hotkey recorder field
-4. Press your desired key combination (e.g., **⌥Space**)
-5. The hotkey is saved automatically
+### Use cases
 
-### Using Transcription Mode
-
-1. **Focus a text field** — Click into any text input (email, document, search bar, code editor)
-2. **Press your hotkey** — The transcription overlay appears
-3. **Speak** — Your words are typed into the focused field in real-time
-4. **Stop** — Press **Esc** or click **Done** to finish
-
-### The Transcription Overlay
-
-When active, a minimal overlay shows:
-
-| Element          | Description                              |
-| ---------------- | ---------------------------------------- |
-| **Recording indicator** | Visual confirmation that you're being transcribed |
-| **Done button**  | Click to stop transcription              |
-| **Audio level**  | Real-time visualization of your voice    |
-
-The overlay stays out of your way while giving you clear feedback.
-
-### Tips for Best Results
-
-1. **Speak at a natural pace** — No need to slow down or over-enunciate
-2. **Pause for punctuation** — Brief pauses help the model place periods and commas
-3. **Use a quiet environment** — Background noise reduces accuracy
-4. **External mic recommended** — Better audio quality improves transcription
-
-### Transcription Mode Use Cases
-
-- **Email and messaging** — Dictate messages in any app
-- **Document writing** — Draft content in Word, Pages, Google Docs, etc.
-- **Code comments** — Speak documentation without switching to Osaurus
-- **Form filling** — Voice input for any text field on the web
-- **Note-taking** — Quick capture in any notes app
-- **Search** — Speak search queries in Spotlight, browsers, or any app
-
-## Troubleshooting
-
-### Microphone Not Working
-
-1. Check microphone permission in **System Settings** → **Privacy & Security** → **Microphone**
-2. Verify the correct audio input is selected in Voice settings
-3. Test your microphone in another app
-4. Restart Osaurus
-
-### Poor Transcription Quality
-
-1. **Upgrade your model** — Try a larger Whisper model
-2. **Reduce background noise** — Move to a quieter environment
-3. **Speak clearly** — Maintain consistent volume and pace
-4. **Check microphone quality** — External mics often work better
-
-### VAD Not Activating
-
-1. Verify VAD is enabled in Voice settings
-2. Check the blue pulsing dot is visible on the menu bar icon
-3. Speak the wake phrase clearly
-4. Adjust sensitivity settings
-5. Ensure microphone permissions are granted
-
-### High CPU Usage
-
-Transcription is computationally intensive:
-
-1. **Use a smaller model** — Tiny or Base for lower resource usage
-2. **Close unnecessary apps** — Free up system resources
-3. **Disable VAD when not needed** — Always-listening uses continuous CPU
-
-### Model Download Failed
-
-1. Check your internet connection
-2. Verify disk space (Large V3 needs 3 GB)
-3. Try a smaller model first
-4. Check `~/.osaurus/voice-models` for partial downloads and delete them
-
-### Transcription Mode Not Working
-
-1. **Check accessibility permission** — Open **System Settings** → **Privacy & Security** → **Accessibility** and verify Osaurus is enabled
-2. **Verify the hotkey** — Ensure your global hotkey doesn't conflict with other apps
-3. **Focus a text field** — Transcription Mode requires an active text input
-4. **Restart Osaurus** — Some permission changes require a restart
-
-### Text Not Appearing in Target App
-
-1. **Ensure the text field is focused** — Click into the field before starting
-2. **Check app compatibility** — Some apps with custom text fields may not work
-3. **Try a different app** — Test with a standard app like TextEdit to verify functionality
-4. **Grant accessibility again** — Remove and re-add Osaurus in accessibility settings
+- Email composition (Mail, Gmail, etc.)
+- Document writing (Word, Pages, Google Docs)
+- Code comments in your IDE
+- Chat messages in Slack, Discord, iMessage
+- Form filling on the web
+- Quick capture in any notes app
 
 ## Privacy
 
-Voice input in Osaurus is completely local:
+Everything is local:
 
-- **No cloud processing** — All transcription happens on your Mac
-- **No data uploaded** — Audio never leaves your device
-- **Models stored locally** — Downloaded once, used offline
-- **VAD is local** — Wake phrase detection runs on-device
+- **No cloud transcription.** FluidAudio runs entirely on-device.
+- **No audio recording.** Audio is processed in memory only — nothing is saved.
+- **Models stored locally.** Downloaded once, used offline.
+- **VAD is local.** Wake-phrase detection runs on-device.
+
+Your voice never leaves your Mac.
+
+## Troubleshooting
+
+### Mic not working
+
+1. **System Settings → Privacy & Security → Microphone** → enable Osaurus
+2. Verify the right device is selected in Voice settings
+3. Test the mic in another app
+4. Restart Osaurus
+
+### Poor transcription quality
+
+1. Switch to Parakeet TDT v3 if you're on v2
+2. Use a quieter environment or external mic
+3. Speak more clearly and at consistent volume
+4. Lower sensitivity if it's picking up background noise; raise it for soft speech
+
+### VAD not detecting wake words
+
+1. Confirm VAD is enabled and the menu bar dot is visible
+2. At least one agent must be enabled for VAD (or a custom wake phrase set)
+3. Speak the full agent name; allow a 2–3 second cooldown between detections
+4. Check that the menu bar icon shows the blue pulsing dot
+
+### System audio not capturing
+
+1. Check macOS version (12.3+)
+2. Grant Screen Recording permission
+3. Restart after granting
+
+### Transcription Mode not typing
+
+1. **System Settings → Privacy & Security → Accessibility** → enable Osaurus and restart
+2. Verify the hotkey is set and doesn't conflict with another app
+3. Click into a text field before pressing the hotkey
+4. Some apps with custom text fields may not accept simulated keyboard input — try TextEdit to confirm setup
+
+### High CPU when VAD is on
+
+Always-on listening uses continuous CPU. If it's a problem:
+
+- Use a smaller model
+- Disable VAD when you don't need it
+- Close unnecessary apps
+
+### Model download fails
+
+- Check your internet connection
+- Verify ≥1 GB of free disk space
+- Delete partial downloads from `~/Library/Application Support/FluidAudio/Models/` and retry
+
+## Requirements
+
+- **macOS 15.5+** for voice input
+- **macOS 12.3+** for system audio capture
+- **Apple Silicon** (M1+) for optimal performance
+- **Microphone** permission (always)
+- **Screen Recording** permission (system audio only)
+- **Accessibility** permission (Transcription Mode only)
 
 ---
 
-<p align="center">
-  For agent-specific voice workflows, see the <a href="/agents">Agents</a> guide.
-</p>
+**Related:**
+
+- [Chat](/chat) — voice input in the chat overlay
+- [Agents](/agents) — agents that respond to VAD wake words
+- [Themes](/themes) — overlay follows the active theme

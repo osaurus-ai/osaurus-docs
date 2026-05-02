@@ -1,234 +1,174 @@
 ---
 title: Agents
 sidebar_label: Agents
-description: Create custom AI assistant personalities with unique behaviors, capabilities, and styles
-sidebar_position: 11
+description: Specialized AI assistants with their own prompt, theme, default model, and memory. Tools and skills are auto-selected.
+sidebar_position: 5
 ---
 
 # Agents
 
-One AI doesn't fit all. When you're writing code, you want a focused technical assistant. When you're brainstorming, you want creativity. When you're researching, you want access to the web.
+One AI doesn't fit every job. When you're writing code you want a focused technical assistant. When you're brainstorming you want creativity. When you're researching you want web access. Agents let you save those configurations and switch between them instantly.
 
-Agents let you create specialized AI assistants for different tasks—each with its own personality, tools, and visual style. Switch between them instantly.
+## What an agent is
 
-## What is an Agent?
+An agent is a saved configuration with:
 
-An agent is a saved configuration that defines how your AI assistant behaves. Each agent can have:
+- A **system prompt** (the personality and instructions)
+- An optional **default model** (Foundation, MLX, or a cloud provider)
+- Optional **temperature** and **max tokens** overrides
+- An optional **theme** that activates with the agent
+- Its own **identity** (a cryptographic address derived from your master key)
+- Its own **memory** — pinned facts and episode digests are scoped per agent
+- An optional **`autonomous_exec`** flag that controls Sandbox write/exec access
 
-- **Custom System Prompt** — Define unique instructions and personality
-- **Tool Configuration** — Enable or disable specific tools per agent
-- **Visual Theme** — Assign a custom theme that activates with the agent
-- **Model & Generation Settings** — Set default model, temperature, and max tokens
-- **Import/Export** — Share agents as JSON files
+You don't configure tools or skills per-agent any more — those are auto-selected for every message via your **Core Model** (`Settings → General → Core Model`, falls back to the chat model when unset). More on that below.
 
-## Accessing Agents
+## Creating an agent
 
-Open the Management window with **⌘⇧M**, then navigate to the **Agents** tab.
-
-## Creating an Agent
-
-1. Open the Management window (**⌘⇧M**)
-2. Select **Agents** from the sidebar
+1. Open the Management window (`⌘ ⇧ M`)
+2. Click **Agents** in the sidebar
 3. Click **Create Agent**
-4. Configure the agent settings (see below)
-5. Click **Save**
+4. Fill in:
+   - **Name** — required (e.g. "Code Assistant")
+   - **Description** — optional one-liner
+   - **System Prompt** — instructions prepended to every message
+   - **Default Model** — optional override of the user's selected model
+   - **Temperature** / **Max Tokens** — optional generation overrides
+   - **Theme** — optional theme that activates when the agent is selected
 
-## Agent Settings
+Click **Save**. The agent is immediately available in the agent selector.
 
-### Name and Description
+### Example system prompts
 
-| Setting         | Description                              |
-| --------------- | ---------------------------------------- |
-| **Name**        | Display name for the agent               |
-| **Description** | Brief description of the agent's purpose |
-
-### System Prompt
-
-The system prompt defines the agent's personality and behavior. This is sent as the first message in every conversation.
-
-**Example for a Code Assistant:**
+**Code Assistant** (low temperature, focus on correctness):
 
 ```
-You are an expert software engineer. You write clean, efficient, and well-documented code. When asked to write code, you:
-- Follow best practices and design patterns
-- Include helpful comments
-- Consider edge cases
-- Suggest improvements when appropriate
+You are an expert software engineer. You write clean, efficient,
+well-tested code. You consider edge cases, suggest improvements
+when relevant, and admit when you don't know something.
 ```
 
-**Example for a Creative Writer:**
+**Creative Writer** (high temperature, vivid output):
 
 ```
-You are a creative writing assistant with a flair for vivid descriptions and engaging narratives. You help users craft compelling stories, poems, and creative content. Your writing style is expressive and imaginative.
+You are a creative writing assistant with a flair for vivid
+descriptions and engaging narratives. You help craft compelling
+stories, poems, and creative content with an expressive style.
 ```
 
-### Model Settings
+**Research Helper** (balanced temperature, structured output):
 
-Configure the default model behavior for this agent:
+```
+You are a research analyst. For every question, you cite sources,
+flag uncertainty, and structure findings into:
+- Executive summary
+- Key findings
+- Confidence assessment
+```
 
-| Setting         | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| **Model**       | Default model to use (e.g., `llama-3.2-3b-instruct-4bit`) |
-| **Temperature** | Controls randomness (0.0 = deterministic, 1.0 = creative) |
-| **Max Tokens**  | Maximum length of generated responses                     |
+## Capabilities are auto-selected
 
-**Tips:**
+This is the part that surprises long-time users. Osaurus does **not** ask you which tools and skills each agent gets. Instead, before every message, a **preflight RAG search** runs across every indexed tool, skill, and method and pulls in just the relevant ones.
 
-- Use lower temperature (0.1–0.3) for code and factual tasks
-- Use higher temperature (0.7–0.9) for creative writing
-- Adjust max tokens based on expected response length
+| Mode | Methods loaded | Tools loaded | Skills loaded |
+|---|---|---|---|
+| `off` | 0 | 0 | 0 |
+| `narrow` | 1 | 2 | 1 |
+| `balanced` (default) | 3 | 5 | 2 |
+| `wide` | 5 | 8 | 4 |
 
-### Tool Configuration
+Configure the mode in **Management → Settings → Capabilities**. The default (`balanced`) is the right answer for most people. Capability search runs through the **Core Model** you set in **Settings → General → Core Model** — pick a small fast one (`foundation` or `gemma-4-e2b-it-4bit`) for cheap preflight.
 
-Enable or disable specific tools for each agent. This lets you create focused assistants:
+The agent can also expand its kit mid-conversation via the always-on `capabilities_search` and `capabilities_load` tools. So if you start asking about Git halfway through a chat that began with web research, the right tools show up without restarting.
 
-| Tool State   | Description                            |
-| ------------ | -------------------------------------- |
-| **Enabled**  | Tool is available for the agent to use |
-| **Disabled** | Tool is hidden from the agent          |
+[Skills & Methods deep dive →](/skills)
 
-**Example configurations:**
+## Working folders and the Sandbox
 
-- **Code Assistant** — Enable `osaurus.git`, `osaurus.filesystem`; disable `osaurus.search`
-- **Research Helper** — Enable `osaurus.search`, `osaurus.fetch`; disable `osaurus.filesystem`
-- **Pure Chat** — Disable all tools for distraction-free conversation
+Agents don't have a "give it filesystem access" toggle. Instead:
 
-### Visual Theme
+- **Click the folder picker** in the chat input bar to point a chat at a folder. The agent gets file/search/git tools scoped to that folder for the current chat.
+- **Toggle the Sandbox** *(macOS 26+)* to give the agent shell access in an isolated Linux VM. Mutually exclusive with a working folder.
 
-Assign a custom theme that activates automatically when you switch to this agent. Each agent can have its own color scheme, creating a visual distinction between different assistants.
+Both decisions are per-chat, not per-agent. The agent's `autonomous_exec` flag controls whether write/exec tools are available *if the Sandbox is on*:
 
-### Sandbox
+| Flag | What it unlocks in the Sandbox |
+|---|---|
+| `autonomous_exec.enabled = false` | Read-only sandbox tools only (`sandbox_read_file`, `sandbox_search_files`) |
+| `autonomous_exec.enabled = true` | Adds write, edit, exec, install, secret, and plugin-register tools |
+| `autonomous_exec.pluginCreate = true` | Lets the agent author and register new sandbox plugins at runtime |
 
-Each agent can execute code in an isolated Linux VM powered by Apple's Containerization framework. Inside the sandbox, every agent gets its own Linux user (`agent-{name}`) and home directory at `/workspace/agents/{name}/`. This means agents can run arbitrary shell commands, install packages, and modify files without any risk to your Mac — and without interfering with each other.
+Toggle these in the agent editor under **Sandbox**.
 
-Enable `autonomous_exec` on an agent to give it access to write and execution tools inside the sandbox. Read-only sandbox tools are always available.
+[Working Folders & Sandbox →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
-:::info
-The Sandbox requires macOS 26 (Tahoe) or later. See the [Sandbox guide](/sandbox) for setup, configuration, and plugin authoring.
-:::
+## Memory per agent
 
-## Example Agents
+Each agent has its own memory — pinned facts, episodes, and identity overrides are stored per-agent. So your Code Assistant doesn't accidentally carry over context from your Therapy Buddy.
 
-### Code Assistant
+Identity overrides ("I prefer tabs over spaces", "Reply in English") are also per-agent unless you set them at the top level. [Memory →](/memory)
 
-A focused programming assistant with code-related tools enabled.
+## Switching agents
 
-| Setting       | Value                                    |
-| ------------- | ---------------------------------------- |
-| Name          | Code Assistant                           |
-| Temperature   | 0.2                                      |
-| Enabled Tools | filesystem, git                          |
-| System Prompt | "You are an expert software engineer..." |
+| Where | How |
+|---|---|
+| Inside a chat | Click the agent selector (top of the chat window) |
+| New chat with a specific agent | Right-click an agent in **Management → Agents** → **New Chat** |
+| Voice activation | Enable the agent for VAD and say its name. See [Voice → VAD](/voice#vad-mode-wake-word-activation) |
 
-### Daily Planner
+Switching changes the system prompt, default model (if set), theme (if set), and memory scope. The current chat session keeps its history.
 
-An assistant for task management and scheduling.
+## Built-in agents
 
-| Setting       | Value                                 |
-| ------------- | ------------------------------------- |
-| Name          | Daily Planner                         |
-| Temperature   | 0.5                                   |
-| Enabled Tools | time                                  |
-| System Prompt | "You are a productivity assistant..." |
+Osaurus ships with a default **Osaurus** agent — a generalist with the standard system prompt. It's read-only (you can copy it), so you can always reset to a known-good configuration.
 
-### Research Helper
+## Import and export
 
-A web-savvy assistant for information gathering.
+Agents are JSON files. To share or back up:
 
-| Setting       | Value                             |
-| ------------- | --------------------------------- |
-| Name          | Research Helper                   |
-| Temperature   | 0.4                               |
-| Enabled Tools | search, fetch                     |
-| System Prompt | "You are a research assistant..." |
+1. Open **Management → Agents**
+2. Right-click an agent → **Export**
+3. Pick a save location
 
-### Creative Writer
+To import: **Agents → Import** → pick the JSON file.
 
-A high-temperature assistant for creative tasks.
-
-| Setting       | Value                                     |
-| ------------- | ----------------------------------------- |
-| Name          | Creative Writer                           |
-| Temperature   | 0.9                                       |
-| Enabled Tools | (none)                                    |
-| System Prompt | "You are a creative writing assistant..." |
-
-## Managing Agents
-
-### Switching Agents
-
-1. Click the agent selector in the chat window
-2. Choose the agent you want to use
-3. The theme and settings change immediately
-
-### Editing an Agent
-
-1. Open Management window (**⌘⇧M**) → **Agents**
-2. Click on the agent you want to edit
-3. Make your changes
-4. Click **Save**
-
-### Deleting an Agent
-
-1. Open Management window (**⌘⇧M**) → **Agents**
-2. Click on the agent
-3. Click **Delete**
-4. Confirm deletion
-
-## Import and Export
-
-Share agents with others or back them up as JSON files.
-
-### Exporting an Agent
-
-1. Open Management window (**⌘⇧M**) → **Agents**
-2. Select the agent to export
-3. Click **Export**
-4. Choose a save location
-
-### Importing an Agent
-
-1. Open Management window (**⌘⇧M**) → **Agents**
-2. Click **Import**
-3. Select an agent JSON file
-4. The agent is added to your list
-
-### Agent File Format
-
-Exported agents are JSON files containing all settings:
+A typical exported agent:
 
 ```json
 {
   "name": "Code Assistant",
-  "description": "Expert programming assistant",
+  "description": "Expert programming partner",
   "systemPrompt": "You are an expert software engineer...",
-  "model": "llama-3.2-3b-instruct-4bit",
+  "defaultModel": "gemma-4-e2b-it-4bit",
   "temperature": 0.2,
   "maxTokens": 2048,
-  "enabledTools": ["osaurus.filesystem", "osaurus.git"],
-  "theme": "dark-blue"
+  "themeId": "dark-blue",
+  "autonomousExec": {
+    "enabled": true,
+    "pluginCreate": true
+  }
 }
 ```
 
-## Agents with Multi-Window
+Skills, tools, and memory are **not** part of the export — those are managed centrally and don't move with the agent file.
 
-Agents work seamlessly with [Multi-Window Chat](/multi-window):
+## Identity and access keys
 
-- Each window can have a different active agent
-- Run multiple agents simultaneously (e.g., Code Assistant in one window, Research Helper in another)
-- Right-click a session to open it in a new window with its original agent
+Each agent gets a cryptographic address derived from your master key. You can mint per-agent access keys (`osk-v1`) that scope external tools and MCP clients to just that agent. [Identity & Access →](/identity)
 
-## Tips and Best Practices
+## Tips
 
-1. **Start with templates** — Begin with the example agents and customize them
-2. **Be specific in system prompts** — Detailed instructions yield better results
-3. **Match temperature to task** — Low for precision, high for creativity
-4. **Limit tools thoughtfully** — Fewer tools can mean more focused responses
-5. **Use themes for context** — Visual distinction helps you stay oriented
-6. **Export regularly** — Back up your custom agents
+- **Start from a template.** Duplicate the default Osaurus agent and tweak the prompt — that's the fastest way to a working specialized agent.
+- **Match temperature to the task.** Low for code/facts (0.1–0.3), high for creative work (0.7–0.9).
+- **Use themes for context.** Visual cues (a green theme for your assistant, a red theme for your code reviewer) help you stay oriented when running multiple windows.
+- **Don't over-prompt.** Long system prompts eat into context. Keep them tight and lean on Skills for specialized methodology.
+- **Export regularly.** They're tiny JSON files — back them up to git.
 
 ---
 
-<p align="center">
-  For multi-window usage with agents, see the <a href="/multi-window">Multi-Window Chat</a> guide.
-</p>
+**Related:**
+
+- [Working Folders & Sandbox](/agent-loop) — the per-chat tool kit
+- [Skills & Methods](/skills) — auto-selected expertise
+- [Memory](/memory) — what your agent remembers
+- [Themes](/themes) — visual customization per agent

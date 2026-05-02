@@ -1,132 +1,104 @@
 ---
-title: Configuration
-sidebar_label: Configuration
-description: Configure Osaurus settings, environment variables, and server options
-sidebar_position: 6
+title: Server Settings
+sidebar_label: Server Settings
+description: Environment variables, server flags, defaults knobs, and where everything lives on disk.
 ---
 
-# Configuration
+# Server Settings
 
-Osaurus is designed to work out of the box with sensible defaults. Most behavior is controlled per request via the API. This page covers the available configuration options.
+Osaurus is designed to work out of the box with sensible defaults. This page covers the knobs you can turn.
 
-## Environment Variables
+## Environment variables
 
-Configure Osaurus using environment variables:
-
-| Variable         | Description             | Default       |
-| ---------------- | ----------------------- | ------------- |
-| `OSU_PORT`       | Server port number      | `1337`        |
-| `OSU_MODELS_DIR` | Custom models directory | `~/MLXModels` |
-
-### Setting Environment Variables
-
-**Temporary (current session):**
+| Variable | Description | Default |
+|---|---|---|
+| `OSU_PORT` | Server port number | `1337` |
+| `OSU_MODELS_DIR` | Custom MLX models directory | `~/MLXModels` |
 
 ```bash
-OSU_PORT=8080 osaurus serve
-```
-
-**Persistent (shell profile):**
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
+# Persistent (shell profile)
 export OSU_PORT=8080
 export OSU_MODELS_DIR=/Volumes/External/MLXModels
 
-# Reload shell
-source ~/.zshrc
+# Or inline
+OSU_PORT=8080 osaurus serve
 ```
 
-## Server Settings
+## Server flags
 
-### Port
+`osaurus serve` accepts:
 
-Default: `1337`
-
-Change the server port:
-
-- **Environment variable:** `OSU_PORT=8080`
-- **CLI flag:** `osaurus serve --port 8080`
-- **UI:** Menu bar → Settings → Server Port
-
-### Listen Address
-
-Default: `127.0.0.1` (localhost only)
-
-To expose the server on your local network:
+| Option | Description | Default |
+|---|---|---|
+| `--port`, `-p` | Server port | 1337 |
+| `--expose` | Bind to all interfaces (LAN access) | localhost only |
 
 ```bash
-osaurus serve --expose
+osaurus serve                          # localhost:1337
+osaurus serve --port 8080              # localhost:8080
+osaurus serve --expose                 # 0.0.0.0:1337 (LAN)
+osaurus serve --expose --port 1337     # 0.0.0.0:1337 (LAN, explicit)
 ```
 
-This binds to `0.0.0.0`, making the server accessible from other devices on your network.
-
-:::warning Security Note
-Only use `--expose` on trusted networks. The server has no authentication.
+:::warning LAN exposure
+When you `--expose`, anyone on your network can reach your Osaurus. Use access keys to protect endpoints — see [Identity & Access](/identity).
 :::
 
-### CORS
+## Capabilities (auto-selection)
 
-Cross-Origin Resource Sharing is enabled by default for development:
+Tools, skills, and methods are auto-selected via RAG before each turn. Configure the search width in **Management → Settings → Capabilities**:
 
-- **Allowed Origins:** `*` (all origins)
-- **Allowed Methods:** `GET, POST, OPTIONS`
-- **Allowed Headers:** `Content-Type, Authorization`
+| Mode | Methods | Tools | Skills |
+|---|---|---|---|
+| `off` | 0 | 0 | 0 |
+| `narrow` | 1 | 2 | 1 |
+| `balanced` (default) | 3 | 5 | 2 |
+| `wide` | 5 | 8 | 4 |
 
-CORS settings are not currently configurable.
+Higher modes give the agent more tools to choose from at the cost of larger system prompts. [Skills & Methods →](/skills)
 
-## Model Storage
+## Memory
 
-Models are stored at:
+Memory is on by default, with eight settings. Edit them in **Management → Memory** or in `~/.osaurus/config/memory.json`:
 
-```
-~/MLXModels
-```
+| Setting | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle |
+| `embeddingBackend` | `mlx` | Embedding backend (`mlx` / `none`) |
+| `embeddingModel` | `nomic-embed-text-v1.5` | Embedding model used by VecturaKit |
+| `extractionMode` | `sessionEnd` | When to distill (`sessionEnd` / `manual`) |
+| `relevanceGateMode` | `heuristic` | Read-path gate (`off` / `heuristic` / `llm`) |
+| `memoryBudgetTokens` | `800` | Per-request budget (100–4,000) |
+| `summaryDebounceSeconds` | `60` | Inactivity before distillation (10–3,600) |
+| `consolidationIntervalHours` | `24` | Background consolidator cadence (1–168) |
+| `salienceFloor` | `0.2` | Eviction threshold for pinned facts (0–1) |
+| `episodeRetentionDays` | `365` | Episode/transcript retention (0 = forever) |
 
-Override with `OSU_MODELS_DIR`:
+[Memory architecture →](/memory)
+
+## Local inference
+
+**Settings → Local Inference → Model Management:**
+
+| Setting | Description |
+|---|---|
+| **Eviction policy** | `Strict (One Model)` keeps one model loaded (default); `Flexible (Multi Model)` allows concurrent models for high-RAM systems |
+| **Top P** | Default top-p for inference (per-request override available) |
+| **Allowed origins** | CORS origins (currently `*`) |
+
+### Advanced (`defaults`)
+
+One advanced tunable, exposed only via `defaults`:
 
 ```bash
-export OSU_MODELS_DIR=/Volumes/ExternalDrive/Models
+defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-The directory structure:
+Default `4`, clamped to `[1, 32]`. Higher values raise total throughput at the cost of wired-memory footprint and per-request latency. [Inference Runtime details →](/inference-runtime)
 
-```
-~/MLXModels/
-├── llama-3.2-3b-instruct-4bit/
-│   ├── config.json
-│   ├── model.safetensors
-│   └── tokenizer.json
-├── mistral-7b-instruct-v0.2-4bit/
-│   └── ...
-└── ...
-```
+## Sandbox (macOS 26+)
 
-## Tools Storage
-
-Installed plugins are stored at:
-
-```
-~/.osaurus/Tools/<plugin_id>/<version>/
-```
-
-This location is not configurable.
-
-## Voice Models Storage
-
-Voice input models (FluidAudio) are stored at:
-
-```
-~/.osaurus/voice-models
-```
-
-This location is not configurable. Models range from 75 MB (Tiny) to 3 GB (Large V3). See the [Voice Input](/voice) guide for model options.
-
-## Sandbox Configuration
-
-The [Sandbox](/sandbox) runs agent code in an isolated Linux VM. Configure it via the Management window → **Sandbox** → **Container** tab, or edit the config file directly:
-
-**Config file:** `~/.osaurus/config/sandbox.json`
+The Linux sandbox is configured in **Management → Sandbox → Container → Resources** or by editing `~/.osaurus/config/sandbox.json`:
 
 ```json
 {
@@ -137,130 +109,108 @@ The [Sandbox](/sandbox) runs agent code in an isolated Linux VM. Configure it vi
 }
 ```
 
-| Setting | Range | Default | Description |
-|---------|-------|---------|-------------|
-| `autoStart` | true / false | true | Start the container when Osaurus launches |
-| `cpus` | 1–8 | 2 | Virtual CPU cores allocated to the VM |
-| `memoryGB` | 1–8 | 2 | RAM in GB allocated to the VM |
-| `network` | outbound / none | outbound | NAT networking for outbound internet access |
+| Setting | Range | Default |
+|---|---|---|
+| `autoStart` | true / false | true |
+| `cpus` | 1–8 | 2 |
+| `memoryGB` | 1–8 | 2 |
+| `network` | `outbound` / `none` | outbound |
 
-Changes require a container restart to take effect. The Sandbox requires macOS 26 (Tahoe) or later.
+Changes require a container restart. [Sandbox Internals →](/sandbox)
 
-## API Path Prefixes
+## Storage encryption
+
+Since 0.17.7, every Osaurus SQLite database is encrypted at rest with SQLCipher. The data-encryption key lives in your macOS Keychain. **Settings → Storage** is where you back up, rotate, and recover.
+
+You don't normally configure anything — it just works. [Storage & Encryption →](/storage)
+
+## API path prefixes
 
 Endpoints are available under multiple prefixes for compatibility:
 
 - `/v1/endpoint` — OpenAI style
-- `/api/endpoint` — Generic style
-- `/v1/api/endpoint` — Combined style
+- `/api/endpoint` — generic / Ollama style
+- `/v1/api/endpoint` — combined
 
 All prefixes route to the same handlers.
 
-## Not Currently Configurable
+## Where things live
 
-The following features are not configurable at this time:
+| What | Path | Override |
+|---|---|---|
+| MLX models | `~/MLXModels/` | `OSU_MODELS_DIR` |
+| App data root | `~/.osaurus/` | not configurable |
+| Plugin install root | `~/.osaurus/Tools/<plugin_id>/<version>/` | not configurable |
+| Voice models | `~/Library/Application Support/FluidAudio/Models/` | not configurable |
+| Memory | `~/.osaurus/memory/memory.sqlite` (encrypted) + `vectura/{agent}/` | not configurable |
+| Chat history | `~/.osaurus/chat-history/history.sqlite` (encrypted) + `blobs/*.osec` | not configurable |
+| Methods | `~/.osaurus/methods/methods.sqlite` (encrypted) | not configurable |
+| Tool index | `~/.osaurus/tool-index/tool_index.sqlite` (encrypted) | not configurable |
+| Schedules | `~/.osaurus/schedules/{uuid}.json` | not configurable |
+| Watchers | `~/.osaurus/watchers/{uuid}.json` | not configurable |
+| Skills | `~/.osaurus/skills/{name}/SKILL.md` | not configurable |
+| Themes | `~/.osaurus/themes/{uuid}.json` | not configurable |
+| Sandbox plugins | `~/.osaurus/sandbox-plugins/` | not configurable |
+| Sandbox container | `~/.osaurus/container/` | not configurable |
+| Configs | `~/.osaurus/config/*.json` | edit directly |
+| Encryption key | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
+| Identity master key | iCloud Keychain | see [Identity & Access](/identity) |
 
-- TLS/SSL termination (use a reverse proxy)
-- Custom CORS origin lists
-- Global model aliases
-- Authentication/API keys
-- Request rate limiting
-- Configuration profiles
-- CLI config files
+## Per-request configuration
 
-## Per-Request Configuration
-
-Most model behavior is controlled per-request via API parameters:
+Most generation behavior is per-request via API parameters:
 
 ```json
 {
-  "model": "llama-3.2-3b-instruct-4bit",
+  "model": "gemma-4-e2b-it-4bit",
   "messages": [{ "role": "user", "content": "Hello" }],
   "temperature": 0.7,
   "max_tokens": 1000,
   "top_p": 0.9,
-  "stream": true
+  "stream": true,
+  "session_id": "my-conversation"
 }
 ```
 
-See the [API Reference](/api) for all available parameters.
+[HTTP API reference →](/api)
 
-## Recommended Configurations
+## Recommended setups
 
-### Development
+**Single-machine local-first development:**
 
 ```bash
-# Default settings work well
-osaurus serve
+osaurus serve                          # default port, loopback only
 ```
 
-### Team/LAN Access
+**LAN access for testing on phone or another laptop:**
 
 ```bash
-# Expose on network
-osaurus serve --expose --port 1337
+osaurus serve --expose
+# Then mint an osk-v1 access key from Identity → Access Keys
 ```
 
-### Custom Model Location
+**External drive for large models:**
 
 ```bash
-# External drive for large models
 export OSU_MODELS_DIR=/Volumes/ModelsDrive/MLXModels
 osaurus serve
 ```
 
-### Multiple Instances
+**Multiple instances (one per project, etc.):**
 
 ```bash
 # Terminal 1
 OSU_PORT=1337 osaurus serve
 
-# Terminal 2
-OSU_PORT=1338 osaurus serve
+# Terminal 2 (separate models dir if you want isolation)
+OSU_MODELS_DIR=~/MLXModels-experimental OSU_PORT=1338 osaurus serve
 ```
-
-## Custom Themes
-
-Osaurus supports full theme customization, letting you personalize the appearance of the Chat UI and Management windows.
-
-### Accessing Theme Settings
-
-1. Click the Osaurus menu bar icon
-2. Select **Settings**
-3. Navigate to the **Appearance** tab
-
-### Theme Options
-
-| Setting           | Description                                |
-| ----------------- | ------------------------------------------ |
-| **Preset Themes** | Choose from built-in light and dark themes |
-| **Custom Colors** | Full control over individual color values  |
-| **Accent Color**  | Primary color for buttons and highlights   |
-| **Background**    | Window and panel background colors         |
-| **Text Colors**   | Primary, secondary, and muted text         |
-
-### Creating a Custom Theme
-
-1. Start with a preset theme as a base
-2. Adjust individual color values
-3. Preview changes in real-time
-4. Save your custom theme
-
-### Import and Export
-
-Share themes with others or back them up:
-
-- **Export** — Save your theme as a JSON file
-- **Import** — Load a theme from a JSON file
-
-Theme files are portable and can be shared across installations.
-
-### System Appearance
-
-By default, Osaurus follows your macOS appearance setting (Light/Dark). Override this behavior in theme settings to lock a specific appearance regardless of system preference.
 
 ---
 
-<p align="center">
-  For model-specific configuration, see the <a href="/models">Model Management</a> guide.
-</p>
+**Related:**
+
+- [Storage & Encryption](/storage) — SQLCipher migration, key rotation, plaintext export
+- [Memory](/memory) — settings explained
+- [Inference Runtime](/inference-runtime) — what the batch-size knob actually does
+- [Identity & Access](/identity) — `osk-v1` keys, whitelists, revocation

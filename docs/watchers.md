@@ -1,278 +1,224 @@
 ---
 title: Watchers
 sidebar_label: Watchers
-description: Monitor folders for file system changes and automatically trigger AI tasks
-sidebar_position: 12
+description: Monitor folders for file changes and trigger AI agent tasks. Six responsiveness tiers from instant to "settle for 10 minutes".
+sidebar_position: 11
 ---
 
 # Watchers
 
-Some tasks should happen automatically when your files change. A new file lands in your Downloads folder, a screenshot appears on your Desktop, or a shared document gets updated—Watchers detect these changes and trigger AI tasks in response, so you don't have to do it manually.
+Watchers monitor folders for file system changes and automatically trigger AI agent tasks. Where Schedules run on a clock, Watchers react to the real world — files arriving, being modified, or removed.
 
-## What is a Watcher?
+Useful for:
 
-A watcher monitors a folder on your Mac for file system changes—files added, modified, or removed—and automatically triggers an AI task when something happens. Think of it as a folder automation powered by your AI assistant.
+- **File organization** — sort and rename as files arrive
+- **Content processing** — analyze or transform new files
+- **Workflow automation** — multi-step AI tasks in response to drops
+- **End-of-session checkpoints** — auto-commit a wiki after you stop editing
 
-Each watcher includes:
+## Quick start
 
-- **Folder** — The directory to monitor
-- **Responsiveness** — How quickly to react to changes
-- **Agent** — Which AI assistant handles the triggered task
-- **Instructions** — The prompt sent when changes are detected
-- **Recursive Monitoring** — Optionally watch subdirectories too
-
-## Features
-
-- **Folder Monitoring** — Watch any directory for file system changes using FSEvents
-- **Configurable Responsiveness** — Fast (~200ms), Balanced (~1s), or Patient (~3s) debounce timing
-- **Recursive Monitoring** — Optionally monitor subdirectories
-- **Agent Integration** — Assign an agent to handle triggered tasks
-- **Manual Trigger** — Run any watcher immediately with "Trigger Now"
-- **Convergence Loop** — Smart re-checking ensures the directory stabilizes before stopping
-- **Pause/Resume** — Temporarily disable watchers without deleting them
-
-## Accessing Watchers
-
-Open the Management window with **⌘⇧M**, then navigate to the **Watchers** tab.
-
-## Creating a Watcher
-
-1. Open Management window (**⌘⇧M**) → **Watchers**
+1. Open the Management window (`⌘ ⇧ M`) → **Watchers**
 2. Click **Create Watcher**
-3. Configure the watcher settings:
-   - **Name** — Give your watcher a descriptive name
-   - **Folder** — Select the directory to monitor
-   - **Responsiveness** — Choose how quickly to react
-   - **Recursive** — Toggle subdirectory monitoring
-   - **Agent** — Select which agent handles the task
-   - **Instructions** — Write the prompt to send when changes are detected
-4. Click **Save**
+3. Fill in:
+   - **Name** — e.g. "Downloads Organizer"
+   - **Watched Folder** — click **Browse** and pick a folder
+   - **Instructions** — describe what the AI should do when changes are detected
+   - **Agent** *(optional)* — pick which agent runs the task
+4. Configure:
+   - **Recursive** — monitor subdirectories?
+   - **Responsiveness** — debounce window (see below)
+5. Click **Save**
 
-## Watcher Settings
+The watcher starts immediately. The card shows a "Watching" badge.
 
-### Name and Description
-
-| Setting         | Description                                |
-| --------------- | ------------------------------------------ |
-| **Name**        | Display name for the watcher               |
-| **Description** | Optional notes about the watcher's purpose |
-
-### Folder Selection
-
-Choose any folder on your Mac to monitor. Click **Select Folder** or drag a folder onto the field.
-
-:::tip Scope
-Choose specific folders rather than broad directories like your home folder. Monitoring large directory trees generates many events and may impact performance.
-:::
-
-### Responsiveness
-
-Control how quickly the watcher reacts to file system changes. Debouncing prevents the watcher from triggering repeatedly during rapid changes (like copying multiple files at once).
-
-| Level         | Debounce | Best For                                   |
-| ------------- | -------- | ------------------------------------------ |
-| **Fast**      | ~200ms   | Small folders with infrequent changes      |
-| **Balanced**  | ~1s      | General-purpose monitoring                 |
-| **Patient**   | ~3s      | Large batch operations, file syncing       |
-
-### Recursive Monitoring
-
-Toggle whether the watcher monitors subdirectories:
-
-| Setting         | Description                                          |
-| --------------- | ---------------------------------------------------- |
-| **Enabled**     | Monitor the selected folder and all subdirectories   |
-| **Disabled**    | Monitor only the top-level folder                    |
-
-### Agent Selection
-
-Assign an agent to handle the triggered task:
-
-1. Select an agent from the dropdown
-2. The agent's system prompt and tool configuration apply when the watcher triggers
-3. Different watchers can use different agents
-
-### Instructions
-
-Write the prompt that's sent when the watcher detects changes:
-
-**Example for Downloads organizer:**
+## How a watcher fires
 
 ```
-New files have appeared in my Downloads folder. Please:
-1. Identify the file types
-2. Move documents (.pdf, .doc, .txt) to ~/Documents/Downloads
-3. Move images (.jpg, .png, .gif) to ~/Pictures/Downloads
-4. Move archives (.zip, .rar) to ~/Documents/Archives
-5. Leave anything else in place and let me know what's there
+1. FSEvents detects a change in the watched folder
+2. Debouncing: rapid changes coalesce into a single trigger (per the responsiveness tier)
+3. Fingerprinting: a Merkle hash of file metadata captures the current state
+4. Dispatch: an AI agent task runs with your instructions and the folder context
+5. Convergence: after the agent completes, re-fingerprint
+   - If it changed (e.g. agent moved files), re-dispatch
+   - If stable, return to idle (max 5 iterations)
 ```
 
-**Example for screenshot manager:**
+The convergence loop matters: it lets the agent organize files without re-triggering itself endlessly.
+
+## Responsiveness
+
+Responsiveness controls how long the watcher waits after detecting changes before firing the AI task. Pick a tier that matches your workflow:
+
+| Setting | Debounce window | Best for |
+|---|---|---|
+| **Fast** | ~200 ms | Screenshots, single-file drops, quick edits |
+| **Balanced** *(default)* | ~1 s | General-purpose monitoring |
+| **Patient** | ~3 s | Large downloads, batch operations, multi-file drops |
+| **Relaxed** | ~1 minute | Note-taking, wiki edits, active editing sessions |
+| **Deferred** | ~5 minutes | Extended writing sessions, periodic syncs |
+| **Extended** | ~10 minutes | End-of-session checkpoints, long-running activity |
+
+Choose **Fast** for near-instant reactions and **Balanced** for most cases. The longer tiers (Relaxed, Deferred, Extended) are designed for "settle then act" workflows — like an automatic-commit watcher on an Obsidian wiki that should fire only after you've stopped editing for a while.
+
+## States
+
+Each watcher operates as a small state machine:
 
 ```
-A new screenshot has been saved. Please:
-1. Read the screenshot filename
-2. Rename it with a descriptive name based on the date and content
-3. Move it to ~/Pictures/Screenshots organized by month
+┌──────┐     ┌────────────┐     ┌────────────┐     ┌──────────┐
+│ idle │ ──▶ │ debouncing │ ──▶ │ processing │ ──▶ │ settling │
+└──────┘     └────────────┘     └────────────┘     └──────────┘
+   ▲                                                     │
+   │                                                     │
+   └─────────────────────────────────────────────────────┘
+                    (fingerprint stable)
 ```
 
-## Managing Watchers
+| State | Description | Card badge |
+|---|---|---|
+| Idle | Waiting for changes | "Watching" (green) |
+| Debouncing | Coalescing rapid events | "Watching" (green) |
+| Processing | Agent task running | "Running" (accent + spinner) |
+| Settling | Waiting for self-caused FSEvents to flush | "Watching" (green) |
+| Disabled | Manually paused | "Paused" (gray) |
 
-### Viewing Watchers
+## Properties
 
-The Watchers tab shows all your configured watchers with:
+| Property | Required | Description |
+|---|---|---|
+| Name | Yes | Display name |
+| Watched Folder | Yes | Directory to monitor (selected via folder picker) |
+| Instructions | Yes | Prompt sent to the AI when changes are detected |
+| Agent | No | Agent to use for the task |
+| Recursive | No | Monitor subdirectories (default: off) |
+| Responsiveness | No | Fast / Balanced / Patient / Relaxed / Deferred / Extended |
 
-- Watcher name
-- Monitored folder path
-- Assigned agent
-- Status (active/paused)
+### Folder access
 
-### Editing a Watcher
+Watchers use **security-scoped bookmarks** to persist folder access across app restarts. If a bookmark goes stale (folder moved or deleted), the watcher card shows a warning — edit it and re-select the folder.
 
-1. Open Management window (**⌘⇧M**) → **Watchers**
-2. Click on the watcher you want to edit
-3. Modify the settings
-4. Click **Save**
+### Sessions tagged `watcher`
 
-### Pausing and Resuming
+Each triggered run is persisted as a chat session with `source = watcher`, keyed by the watcher's id. So all triggers from the same watcher accumulate into a single auditable session row in the chat sidebar — great for reviewing what happened over time.
 
-Temporarily disable a watcher without deleting it:
+## Managing watchers
 
-1. Find the watcher in the list
-2. Click the toggle to pause or resume
-3. Paused watchers stop monitoring until resumed
+The card's context menu (ellipsis):
 
-This is useful when:
+| Action | Description |
+|---|---|
+| Edit | Open the editor |
+| Trigger Now | Run the watcher immediately |
+| Pause | Temporarily stop monitoring |
+| Resume | Re-enable a paused watcher |
+| Delete | Remove permanently (confirmation required) |
 
-- You're doing bulk file operations and don't want triggers
-- You need to temporarily reduce system resource usage
-- You want to test changes to watcher settings
-
-### Triggering Manually
-
-Run any watcher on demand:
-
-1. Click on the watcher
-2. Click **Trigger Now**
-3. The watcher executes immediately with your configured agent and instructions
-
-This is useful for:
-
-- Testing new watchers
-- Processing files that arrived while the watcher was paused
-- Running a one-time cleanup using your watcher's instructions
-
-### Deleting a Watcher
-
-1. Open Management window (**⌘⇧M**) → **Watchers**
-2. Click on the watcher
-3. Click **Delete**
-4. Confirm deletion
-
-## How Watchers Work
-
-### FSEvents Integration
-
-Watchers use macOS FSEvents to efficiently monitor the file system. FSEvents is the same technology that powers Spotlight and Time Machine—it's low overhead and reliable.
-
-### Convergence Loop
-
-When changes are detected, the watcher doesn't just fire once. It uses a convergence loop:
-
-1. **Detect** — File system change is noticed
-2. **Debounce** — Wait for the configured responsiveness period
-3. **Trigger** — Send the task to the assigned agent
-4. **Re-check** — After the task completes, scan the directory again
-5. **Stabilize** — If no new changes are found, the watcher returns to idle
-
-This ensures that multi-step file operations (like copying a large folder) are fully complete before the AI acts on them.
-
-## Use Cases
+## Examples
 
 ### Downloads Organizer
 
-Automatically sort downloaded files by type.
-
-| Setting         | Value                                              |
-| --------------- | -------------------------------------------------- |
-| Name            | Downloads Organizer                                |
-| Folder          | ~/Downloads                                        |
-| Responsiveness  | Balanced                                           |
-| Agent           | File Assistant                                     |
-| Instructions    | "Sort new files by type into Documents, Images, Videos, and Archives subfolders." |
+- **Folder:** `~/Downloads`
+- **Responsiveness:** Patient (files take time to download)
+- **Instructions:**
+  ```
+  Organize new files by type into subfolders (Documents, Images,
+  Videos, Archives, etc.). Skip files already in a subfolder.
+  Don't move files currently downloading (look for .crdownload
+  or .part extensions).
+  ```
 
 ### Screenshot Manager
 
-Rename and organize screenshots as they're captured.
+- **Folder:** `~/Desktop` (or your screenshot location)
+- **Responsiveness:** Fast (screenshots appear instantly)
+- **Instructions:**
+  ```
+  Rename new screenshots with a descriptive name based on their
+  content. Move them to ~/Pictures/Screenshots organized by date
+  (YYYY-MM folders).
+  ```
 
-| Setting         | Value                                              |
-| --------------- | -------------------------------------------------- |
-| Name            | Screenshot Manager                                 |
-| Folder          | ~/Desktop                                          |
-| Responsiveness  | Fast                                               |
-| Agent           | File Assistant                                     |
-| Instructions    | "Rename new screenshots with descriptive names and move to ~/Pictures/Screenshots." |
+### Obsidian Auto-Commit
 
-### Dropbox Automation
+- **Folder:** `~/Documents/ObsidianVault` (recursive)
+- **Responsiveness:** Relaxed (~1 minute) — pick Deferred or Extended for longer settle windows
+- **Instructions:**
+  ```
+  Stage all changes in the wiki repository and create a single
+  commit. Generate a concise commit message that summarizes
+  what changed (look at the diff). If there is nothing to commit,
+  return without making changes.
+  ```
 
-Process shared files automatically when they change.
+### Dropbox Processor
 
-| Setting         | Value                                              |
-| --------------- | -------------------------------------------------- |
-| Name            | Shared Files Processor                             |
-| Folder          | ~/Dropbox/Shared                                   |
-| Responsiveness  | Patient                                            |
-| Recursive       | Enabled                                            |
-| Agent           | Research Helper                                    |
-| Instructions    | "Summarize any new or modified documents and save summaries to ~/Documents/Summaries." |
+- **Folder:** `~/Dropbox/Shared`
+- **Responsiveness:** Balanced
+- **Instructions:**
+  ```
+  When new files appear, analyze their contents and create a
+  summary document. For spreadsheets, generate a brief data
+  overview. For documents, create a one-paragraph summary.
+  ```
 
-### Project File Monitor
+## Tips
 
-Track changes in a project directory.
+### Write idempotent instructions
 
-| Setting         | Value                                              |
-| --------------- | -------------------------------------------------- |
-| Name            | Project Monitor                                    |
-| Folder          | ~/Projects/my-app                                  |
-| Responsiveness  | Patient                                            |
-| Recursive       | Enabled                                            |
-| Agent           | Code Assistant                                     |
-| Instructions    | "Review any changed files and flag potential issues or suggest improvements." |
+Watchers may fire repeatedly. Write instructions that produce the same result whether run once or many times:
 
-## Tips and Best Practices
+- "Skip files already in a subfolder"
+- "Only process files modified in the last 5 minutes"
+- "Check if a summary already exists before creating one"
 
-1. **Start with one watcher** — Test with a single folder before setting up multiple watchers
-2. **Use descriptive names** — Make it easy to identify what each watcher does
-3. **Choose appropriate responsiveness** — Fast for small folders, Patient for busy directories
-4. **Be specific in instructions** — Tell the AI exactly what to do with different file types
-5. **Use Balanced for most cases** — The 1-second debounce works well for general use
-6. **Pause during bulk operations** — Avoid unnecessary triggers when moving many files manually
-7. **Match agent to task** — Choose an agent with the right tools enabled (e.g., filesystem tools)
-8. **Monitor resource usage** — Many active watchers with recursive monitoring can use more CPU
+The watcher prompt automatically includes guidance to avoid re-processing already-organized files, but explicit instructions help.
+
+### Smart exclusion of nested watchers
+
+If you have a watcher on `~/Documents` and another on `~/Documents/Projects`, Osaurus automatically excludes the nested folder from the parent watcher's monitoring. No duplicate triggers.
+
+### Why fingerprinting is fast
+
+Fingerprints use a Merkle hash of file metadata only — path, size, modification time. No file contents are read during change detection. Even very large directories are fingerprinted in milliseconds.
 
 ## Troubleshooting
 
-### Watcher Not Triggering
+### Watcher not triggering
 
-- **Check if Osaurus is running** — Watchers require the app to be active
-- **Verify the watcher is enabled** — Paused watchers don't monitor
-- **Check the folder path** — Ensure the monitored folder still exists
-- **Try "Trigger Now"** — Test manual execution to verify the agent and instructions work
+- Verify it's enabled (not paused)
+- Check that the folder still exists and is accessible
+- If the bookmark is stale, edit and re-select the folder
+- Confirm the changes are actually inside the watched folder
+- If `Recursive` is off, changes in subdirectories won't trigger it
 
-### Too Many Triggers
+### Agent runs too often
 
-- **Increase responsiveness** — Switch from Fast to Balanced or Patient
-- **Disable recursive monitoring** — Reduce the scope of monitored directories
-- **Narrow the folder** — Monitor a more specific subdirectory
+- Increase responsiveness to Patient, Relaxed, or longer
+- Make instructions more idempotent
+- Check whether the agent's file operations are causing a feedback loop
 
-### Slow Performance
+### Stale bookmark warning
 
-- **Reduce active watchers** — Each watcher uses system resources
-- **Avoid monitoring large trees** — Recursive monitoring on broad directories is expensive
-- **Use Patient responsiveness** — Longer debounce reduces processing frequency
+Edit the watcher and re-select the folder. Restart Osaurus if the issue persists.
+
+## Storage
+
+Watchers are stored as JSON:
+
+```
+~/.osaurus/watchers/
+├── {uuid-1}.json
+├── {uuid-2}.json
+└── ...
+```
+
+Each file contains the watcher's configuration with ISO 8601 dates.
 
 ---
 
-<p align="center">
-  For creating custom AI assistants to use with watchers, see the <a href="/agents">Agents</a> guide.
-</p>
+**Related:**
+
+- [Schedules](/schedules) — time-based automation (complements Watchers)
+- [Working Folders & Sandbox](/agent-loop) — the agent loop and folder context
+- [Agents](/agents) — pick which agent runs your watcher tasks
