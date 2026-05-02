@@ -11,32 +11,74 @@ One AI doesn't fit every job. When you're writing code you want a focused techni
 
 ## What an agent is
 
-An agent is a saved configuration with:
+An agent is a saved configuration with its own:
 
-- A **system prompt** (the personality and instructions)
-- An optional **default model** (Foundation, MLX, or a cloud provider)
-- Optional **temperature** and **max tokens** overrides
-- An optional **theme** that activates with the agent
-- Its own **identity** (a cryptographic address derived from your master key)
-- Its own **memory** — pinned facts and episode digests are scoped per agent
-- An optional **`autonomous_exec`** flag that controls Sandbox write/exec access
+- **Identity** — name, description, optional avatar (mascot or initial monogram), and a cryptographic address derived from your master key
+- **Personality** — system prompt, optional default model, optional temperature and max-tokens overrides, optional theme that activates when the agent is selected
+- **Capabilities** — its own enabled set of tools and skills, plus an *Auto-discover* toggle that controls how that set is delivered to the model (more below)
+- **Memory** — pinned facts, episode digests, and identity overrides are stored per-agent
+- **Sandbox autonomy** — optional `autonomous_exec` config that controls whether the agent can write, execute, and install in the [Linux Sandbox](/agent-loop)
+- **Quick actions** — per-agent prompt templates shown in the chat empty state, separate lists for Chat and Work modes
+- **Plugin instructions** — optional per-plugin instruction overrides
+- **Bonjour discovery** — opt-in flag that advertises the agent on your local network so connector apps can find it
+- **Per-agent disables** — toggles to skip tools entirely (`disableTools`) or skip memory entirely (`disableMemory`) for this agent
 
-You don't configure tools or skills per-agent any more — those are auto-selected for every message via your **Core Model** (`Settings → General → Core Model`, falls back to the chat model when unset). More on that below.
+You can override almost everything per-agent, or leave fields empty to fall back to your global defaults.
 
 ## Creating an agent
 
-1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Agents** in the sidebar
-3. Click **Create Agent**
-4. Fill in:
-   - **Name** — required (e.g. "Code Assistant")
-   - **Description** — optional one-liner
-   - **System Prompt** — instructions prepended to every message
-   - **Default Model** — optional override of the user's selected model
-   - **Temperature** / **Max Tokens** — optional generation overrides
-   - **Theme** — optional theme that activates when the agent is selected
+1. Open the Management window (`⌘ ⇧ M`) → **Agents**
+2. Click **Create Agent**
 
-Click **Save**. The agent is immediately available in the agent selector.
+The Create Agent sheet has a few sections:
+
+### Identity
+
+- **Name** — required (e.g. "Code Assistant")
+- **Avatar** *(optional)* — pick a mascot icon, or leave it blank for an initial-monogram badge in the agent's auto-assigned color
+- **Description** — optional one-liner that shows under the name in the grid
+
+### Personality
+
+- **System prompt** — instructions prepended to every message in chats with this agent
+- **Default model** *(optional)* — locks this agent to a specific model regardless of your global pick
+- **Temperature** *(optional)* — 0.0–1.0; lower = focused, higher = creative
+- **Max tokens** *(optional)* — caps response length
+- **Theme** *(optional)* — pick from your built-in or custom themes; activates automatically with the agent
+
+### Capabilities
+
+The Capabilities picker is the single source of truth for what reaches the model. It shows your full inventory of tools and skills, grouped by source. See the [Capabilities](#capabilities) section below for the details.
+
+### Sandbox autonomy *(optional)*
+
+Configure what the agent can do when the [Sandbox](/agent-loop) is toggled on for a chat:
+
+| Setting | What it does | Default |
+|---|---|---|
+| `enabled` | Unlocks write/exec/install/secret tools in the Sandbox. With it off, the agent only gets read-only sandbox tools. | `false` |
+| `pluginCreate` | Lets the agent author and register new Sandbox plugins at runtime | `true` |
+| `maxCommandsPerTurn` | Caps how many shell commands the agent can run in a single turn | `10` |
+| `commandTimeout` | Per-command timeout in seconds | `30` |
+
+These settings are also editable on existing agents from the agent's **Sandbox** tab.
+
+### Memory and discovery *(optional)*
+
+- **Disable memory** — turn off memory entirely for this agent (no injection on read, no recording on write)
+- **Disable tools** — skip the tool/preflight system entirely; the agent is text-in-text-out
+- **Bonjour discovery** — advertise this agent on your local network so connector apps and remote pairers can find it
+
+### Quick actions *(optional)*
+
+The chat empty state shows up to four prompt templates. You can leave the defaults, hide them, or customize:
+
+- **Chat quick actions** — ideas like *"Explain a concept"*, *"Summarize text"*, *"Write code"*, *"Help me write"*
+- **Work quick actions** — ideas like *"Build a site"*, *"Research a topic"*, *"Write a blog post"*, *"Organize my files"*
+
+Each entry has an SF Symbols icon, a short label, and the prompt prefix that gets typed when the user taps it.
+
+Click **Save** when you're done. The agent is immediately available in the agent selector.
 
 ### Example system prompts
 
@@ -66,91 +108,127 @@ flag uncertainty, and structure findings into:
 - Confidence assessment
 ```
 
-## Capabilities are auto-selected
+## Capabilities
 
-This is the part that surprises long-time users. Osaurus does **not** ask you which tools and skills each agent gets. Instead, before every message, a **preflight RAG search** runs across every indexed tool, skill, and method and pulls in just the relevant ones.
+Each agent has its own enabled set of tools and skills. You configure it in two places:
 
-| Mode | Methods loaded | Tools loaded | Skills loaded |
-|---|---|---|---|
-| `off` | 0 | 0 | 0 |
-| `narrow` | 1 | 2 | 1 |
-| `balanced` (default) | 3 | 5 | 2 |
-| `wide` | 5 | 8 | 4 |
+- **Inside the Create Agent sheet** — under the Capabilities section, when you're building a new agent
+- **On an existing agent** — open the agent and click the **Capabilities** tab
 
-Configure the mode in **Management → Settings → Capabilities**. The default (`balanced`) is the right answer for most people. Capability search runs through the **Core Model** you set in **Settings → General → Core Model** — pick a small fast one (`foundation` or `gemma-4-e2b-it-4bit`) for cheap preflight.
+### Auto-discover vs Manual
 
-The agent can also expand its kit mid-conversation via the always-on `capabilities_search` and `capabilities_load` tools. So if you start asking about Git halfway through a chat that began with web research, the right tools show up without restarting.
+A single toggle at the top of the Capabilities picker decides how the agent's enabled set reaches the model each turn:
+
+| Mode | What the model sees per turn |
+|---|---|
+| **Auto-discover** *(default)* | A relevant **subset** of your enabled set, picked by a pre-flight RAG search. Saves context tokens; the right tools show up for the right questions. |
+| **Manual** | The **entire** enabled set, every turn. Predictable but heavier on context. |
+
+In Auto mode, the global **preflight search width** (Settings → Capabilities) controls how aggressively the search looks: `off` / `narrow` / `balanced` *(default)* / `wide`. Pre-flight runs through your **Core Model** (Settings → General → Core Model) — pick a small fast one (`foundation` or `gemma-4-e2b-it-4bit`) for cheap preflight.
+
+In either mode, the per-item Enabled toggles in the picker are honored at runtime — disabling a tool there means the model never sees it, in any mode.
+
+### What the picker looks like
+
+Tools and skills are grouped by **source**:
+
+| Source | What's in it |
+|---|---|
+| **Built-in** | Always-loaded tools (the agent loop's `todo`/`complete`/`clarify`, `share_artifact`, etc.). Shown for transparency — toggling has no effect. |
+| **Plugin** *(one per plugin)* | Tools and skills shipped by each native plugin you've installed |
+| **MCP provider** *(one per provider)* | Tools aggregated from a remote MCP server |
+| **Sandbox plugin** *(one per provisioned plugin)* | Tools defined by JSON-recipe sandbox plugins |
+| **Standalone skills** | Built-in and user-created skills not tied to any plugin |
+
+Per group you can:
+
+- **Expand / collapse** to inspect individual items
+- **Bulk enable / disable** the whole group with one click
+- See an at-a-glance count of how many items are enabled
+
+Per item you see name, description, and an estimated token cost. Filter the whole picture by **All** / **Enabled** / **Tools** / **Skills**, or search by name and description.
+
+### Disabling tools or memory entirely
+
+If you want a strictly conversational agent — no tools, no memory writes — flip these on the agent:
+
+- **Disable tools** — no tools and no preflight context are sent for this agent
+- **Disable memory** — memory is neither injected on read nor recorded on write
+
+Useful for therapy-style assistants, coaching agents, or anything where you want predictable text-in-text-out behavior.
 
 [Skills & Methods deep dive →](/skills)
 
 ## Working folders and the Sandbox
 
-Agents don't have a "give it filesystem access" toggle. Instead:
+Per-chat power-ups, not per-agent settings:
 
 - **Click the folder picker** in the chat input bar to point a chat at a folder. The agent gets file/search/git tools scoped to that folder for the current chat.
 - **Toggle the Sandbox** *(macOS 26+)* to give the agent shell access in an isolated Linux VM. Mutually exclusive with a working folder.
 
-Both decisions are per-chat, not per-agent. The agent's `autonomous_exec` flag controls whether write/exec tools are available *if the Sandbox is on*:
+The agent's `autonomous_exec` config (set when you created the agent, editable later) controls how much capability it has *if the Sandbox is on*. Read-only sandbox tools (`sandbox_read_file`, `sandbox_search_files`) are always available; write/exec/install/secret tools require `autonomous_exec.enabled = true`.
 
-| Flag | What it unlocks in the Sandbox |
-|---|---|
-| `autonomous_exec.enabled = false` | Read-only sandbox tools only (`sandbox_read_file`, `sandbox_search_files`) |
-| `autonomous_exec.enabled = true` | Adds write, edit, exec, install, secret, and plugin-register tools |
-| `autonomous_exec.pluginCreate = true` | Lets the agent author and register new sandbox plugins at runtime |
-
-Toggle these in the agent editor under **Sandbox**.
-
-[Working Folders & Sandbox →](/agent-loop) · [Sandbox Internals →](/sandbox)
+[Agent Loop →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
 ## Memory per agent
 
 Each agent has its own memory — pinned facts, episodes, and identity overrides are stored per-agent. So your Code Assistant doesn't accidentally carry over context from your Therapy Buddy.
 
-Identity overrides ("I prefer tabs over spaces", "Reply in English") are also per-agent unless you set them at the top level. [Memory →](/memory)
+Identity overrides ("I prefer tabs over spaces", "Reply in English") are also per-agent unless you set them at the top level. If you want a clean stateless agent, flip **Disable memory** on the agent — memory is neither injected on read nor recorded on write. [Memory →](/memory)
 
-## Switching agents
+## Switching, duplicating, and managing agents
 
 | Where | How |
 |---|---|
 | Inside a chat | Click the agent selector (top of the chat window) |
 | New chat with a specific agent | Right-click an agent in **Management → Agents** → **New Chat** |
 | Voice activation | Enable the agent for VAD and say its name. See [Voice → VAD](/voice#vad-mode-wake-word-activation) |
+| Make a local copy | Right-click an agent → **Duplicate**. The fastest way to fork a working configuration and tweak it. |
 
 Switching changes the system prompt, default model (if set), theme (if set), and memory scope. The current chat session keeps its history.
 
+Agents you've been invited to (via [Share Agent](#share-an-agent)) appear in the same grid with a **Remote** badge. They show up in the agent selector too, so you can switch to them mid-chat the same way.
+
 ## Built-in agents
 
-Osaurus ships with a default **Osaurus** agent — a generalist with the standard system prompt. It's read-only (you can copy it), so you can always reset to a known-good configuration.
+Osaurus ships with a default **Osaurus** agent — a generalist that uses your global chat settings. It's read-only; **Duplicate** it to start a custom variant, so you can always reset to a known-good configuration.
 
-## Import and export
+## Share an agent
 
-Agents are JSON files. To share or back up:
+When you share an agent with someone, you're not sending them a copy — you're giving them a **live link to your agent on your Mac**, routed over a secure relay tunnel. They chat with the same agent you built, with your prompt, your tools, your memory. You can revoke their access anytime.
 
-1. Open **Management → Agents**
-2. Right-click an agent → **Export**
-3. Pick a save location
+### Send an invite
 
-To import: **Agents → Import** → pick the JSON file.
+1. Open the agent and click **Share Agent**
+2. Pick how long the link should stay valid: **1 hour**, **1 day**, **7 days** *(default)*, or **30 days**
+3. Osaurus enables Relay for that agent automatically and generates a signed `osaurus://…?pair=…` invite link
+4. Send the link however you want — it shows up as a clickable URL, a **QR code**, and a system **Share…** button (drop it in iMessage, AirDrop, Mail, etc.)
 
-A typical exported agent:
+Each invite is **single-use** — once someone accepts, the link can't be reused. If you want to share with three people, generate three invites.
 
-```json
-{
-  "name": "Code Assistant",
-  "description": "Expert programming partner",
-  "systemPrompt": "You are an expert software engineer...",
-  "defaultModel": "gemma-4-e2b-it-4bit",
-  "temperature": 0.2,
-  "maxTokens": 2048,
-  "themeId": "dark-blue",
-  "autonomousExec": {
-    "enabled": true,
-    "pluginCreate": true
-  }
-}
-```
+### The invite ledger
 
-Skills, tools, and memory are **not** part of the export — those are managed centrally and don't move with the agent file.
+Every invite you've ever issued for an agent is listed under **Issued Invites** with its status:
+
+| Status | What it means |
+|---|---|
+| **Active** | Link is valid and unused |
+| **Accepted** | Someone redeemed it. They have access until you revoke. |
+| **Expired** | Past expiry date; no further action needed |
+
+You can **revoke** any active or accepted invite at any time. Revoking an accepted invite kills the receiver's access key immediately — they get turned away on the next request.
+
+### Receiving an invite
+
+When someone sends you a `osaurus://…?pair=…` link:
+
+1. Open it (click the URL or scan the QR code — Osaurus catches the deeplink)
+2. The **Add Remote Agent** sheet shows you who you'd be paired with: name, description, source URL, expiry, an optional note for yourself
+3. Click **Add Remote Agent**
+
+The agent appears in your **Agents** grid with a **Remote** badge and an antenna icon. Chat with it like any other agent — your messages travel over the relay back to the sender's Mac, where their agent runs them.
+
+You can leave a note on the remote agent (e.g. *"Alice's research agent"*) so you remember who shared it. Either side can revoke anytime: the sender from their **Issued Invites** ledger, the receiver from the remote agent's detail view.
 
 ## Identity and access keys
 
@@ -162,13 +240,13 @@ Each agent gets a cryptographic address derived from your master key. You can mi
 - **Match temperature to the task.** Low for code/facts (0.1–0.3), high for creative work (0.7–0.9).
 - **Use themes for context.** Visual cues (a green theme for your assistant, a red theme for your code reviewer) help you stay oriented when running multiple windows.
 - **Don't over-prompt.** Long system prompts eat into context. Keep them tight and lean on Skills for specialized methodology.
-- **Export regularly.** They're tiny JSON files — back them up to git.
+- **Pick a tight expiry.** When you share an agent, default to a short window (1 day or 7 days) — you can always re-share. Long-lived links are harder to keep track of.
 
 ---
 
 **Related:**
 
-- [Working Folders & Sandbox](/agent-loop) — the per-chat tool kit
+- [Agent Loop](/agent-loop) — the per-chat tool kit
 - [Skills & Methods](/skills) — auto-selected expertise
 - [Memory](/memory) — what your agent remembers
 - [Themes](/themes) — visual customization per agent

@@ -220,5 +220,5 @@ Each file contains the watcher's configuration with ISO 8601 dates.
 **Related:**
 
 - [Schedules](/schedules) — time-based automation (complements Watchers)
-- [Working Folders & Sandbox](/agent-loop) — the agent loop and folder context
+- [Agent Loop](/agent-loop) — the agent loop and folder context
 - [Agents](/agents) — pick which agent runs your watcher tasks

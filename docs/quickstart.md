@@ -19,9 +19,7 @@ Or grab the [latest DMG](https://github.com/osaurus-ai/osaurus/releases/latest).
 
 ## 2. First launch
 
-Open Osaurus from Spotlight (`⌘ Space` → "Osaurus"). On 0.17.7+ you'll see a brief **"Securing your data"** overlay — that's the [storage encryption migration](/storage), it usually finishes in under a second.
-
-Then a wizard opens. There are five steps:
+Open Osaurus from Spotlight (`⌘ Space` → "Osaurus"). A short wizard greets you and walks through five quick steps to get you set up.
 
 ### Welcome
 
@@ -68,13 +66,13 @@ The Core Model is a small, lightweight inference target Osaurus uses for **backg
 
 ### What to pick
 
+If `foundation` is available, that's the right answer 99% of the time — it's free, fast, and never leaves your Mac. Otherwise:
+
 | You have | Pick |
 |---|---|
 | macOS 26+ | `foundation` (Apple's on-device model — zero overhead) |
 | macOS 15.5+ with a small local model | The smallest fast model you've downloaded (e.g. `gemma-4-e2b-it-4bit`) |
 | Cloud-only setup | Any cheap, fast remote model (e.g. `anthropic/claude-haiku-4-5`) |
-
-If `foundation` is available, that's the right answer 99% of the time. It's free, fast, and never leaves your Mac.
 
 :::tip
 Choosing **Use chat model (default)** in this picker leaves Core Model unset. That's fine for ad-hoc usage, but **memory will not distill**. Pick an explicit model if you want memory and auto-tools to work in the background.
@@ -90,17 +88,17 @@ Type something:
 
 Press Enter. You'll see the response stream in real-time. Press `⌘;` again to dismiss.
 
-### Try the Agent Loop
+### Watch the agent get something done
 
-Every chat in Osaurus is an agent loop — the model can write a markdown todo list, call tools, and finish with a verified summary. To see it in action:
+Try giving the agent an actual task — it'll write a plan, call tools, and bring back the result:
 
 1. Press `⌘;` to open chat
 2. Click the folder icon next to the input bar and pick a folder you don't mind it touching
 3. Ask: *"Summarize what's in this folder and add a `README.md` describing it."*
 
-The agent gets file/search/git tools scoped to that folder, writes a plan, executes it, and surfaces the new `README.md` as an artifact card.
+You'll see a markdown to-do list appear, ticking off as the agent reads files, drafts the README, and writes it. The new file shows up as an artifact card in the chat.
 
-On macOS 26+, toggle the **Sandbox** instead of picking a folder to give the agent shell access in an isolated Linux VM. [Working folders & Sandbox →](/agent-loop)
+On macOS 26+, toggle the **Sandbox** for shell access in an isolated Linux VM — handy for running scripts, scraping URLs, or trying out a package. [Agent Loop →](/agent-loop)
 
 ### Try voice
 

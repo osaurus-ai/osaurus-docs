@@ -57,7 +57,7 @@ The Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization 
 
 Sandbox runtime artifacts (the GHCR image, the Linux kernel, the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries.
 
-[Working Folders & Sandbox →](/agent-loop) · [Sandbox Internals →](/sandbox)
+[Agent Loop →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
 ---
 

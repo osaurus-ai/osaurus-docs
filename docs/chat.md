@@ -27,11 +27,24 @@ The hotkey is configurable: Settings → General → Global Hotkey if `⌘;` col
 | Element | What it does |
 |---|---|
 | **Input bar** | Type or paste your message. `Enter` to send, `Shift + Enter` for a new line. |
-| **Folder picker** | Click to point this chat at a working folder. Gives the agent file/search/git tools scoped to that folder. See [Working Folders & Sandbox](/agent-loop). |
-| **Sandbox toggle** *(macOS 26+)* | Mutually exclusive with the folder picker. Gives the agent shell access in an isolated Linux VM. |
+| **Folder picker** | Click to point this chat at a working folder. Gives the agent file/search/git tools scoped to that folder. See [Agent Loop](/agent-loop). |
+| **Sandbox toggle** *(macOS 26+)* | Gives the agent shell access in an isolated Linux VM. |
 | **Microphone** | Click for voice input. Long-press the global hotkey for [Transcription Mode](/voice#transcription-mode) into any app. |
 | **Model selector** | Switch between local models, Apple Foundation, and any cloud providers you've connected. |
 | **Agent selector** | Switch the active agent. Theme, prompt, and memory swap with it. |
+
+## Get things done with Agent Loop
+
+Every chat in Osaurus is an agent loop. When you ask the AI to *do* something — not just explain something — it writes a plan, calls tools to do the actual work, and shows you a verified summary at the end. You watch the to-do list tick off as it goes; it pauses to ask only when a question genuinely changes the outcome.
+
+Two power-ups on the input bar give the agent more capability per chat:
+
+- **Working folder** — point at a folder to get scoped file, search, and git tools
+- **Sandbox** *(macOS 26+)* — toggle on for shell access in an isolated Linux VM
+
+Pick one or the other; they're mutually exclusive per chat.
+
+[Agent Loop →](/agent-loop)
 
 ## Sessions
 
@@ -194,7 +207,7 @@ Supported modifiers: `⌘` Command, `⌥` Option, `⌃` Control, `⇧` Shift. Co
 
 **Related:**
 
+- [Agent Loop](/agent-loop) — what happens when you point a chat at a folder or toggle sandbox
 - [Agents](/agents) — specialized assistants per task
-- [Working Folders & Sandbox](/agent-loop) — what happens when you point a chat at a folder or toggle sandbox
 - [Voice Input](/voice) — dictation, wake words, global transcription
 - [Themes](/themes) — make the overlay yours

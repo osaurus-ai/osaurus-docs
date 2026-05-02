@@ -56,9 +56,9 @@ A short tour of the things you can do once Osaurus is installed.
 
 ---
 
-## For developers
+## Build with Osaurus
 
-Osaurus is also a local server. It speaks **OpenAI**, **Anthropic**, **Open Responses**, and **Ollama** APIs at the same port — so any SDK you already use just works. It's also a full **MCP server and client**, so Cursor, Claude Desktop, and other MCP harnesses get instant access to your installed tools.
+Osaurus is also a local server. It speaks **OpenAI**, **Anthropic**, **Open Responses**, and **Ollama** APIs at the same port — so any SDK you already use just works. And it's a full **MCP server and client**, so Cursor, Claude Desktop, and other MCP harnesses get instant access to your installed tools.
 
 - [HTTP API](/api) — endpoint reference, streaming, function calling
 - [SDK Examples](/sdk-examples) — Python, JavaScript, Anthropic SDK, Open Responses
@@ -66,67 +66,7 @@ Osaurus is also a local server. It speaks **OpenAI**, **Anthropic**, **Open Resp
 - [Tools & Plugins](/tools) — 20+ native plugins (Mail, Calendar, Vision, Browser, Git, …) and v1/v2 ABI for building your own
 - [Apple Intelligence](/models/apple-intelligence) — using `foundation` with zero setup on macOS 26+
 
----
-
-## How the pieces fit together
-
-```mermaid
-flowchart TB
-    User[You]
-    Chat[Chat Overlay - ⌘;]
-    Mgmt[Management Window - ⌘ ⇧ M]
-    HTTP[HTTP API on :1337]
-
-    User --> Chat
-    User --> Mgmt
-    User --> HTTP
-
-    subgraph harness [The Harness]
-        Loop[Agent Loop]
-        Mem[Memory]
-        Skills[Skills and Methods]
-        Auto[Schedules and Watchers]
-    end
-
-    Chat --> Loop
-    Mgmt --> Loop
-    HTTP --> Loop
-
-    Loop --> Mem
-    Loop --> Skills
-    Auto --> Loop
-
-    subgraph providers [Inference]
-        MLX[MLX Local]
-        Foundation[Apple Foundation]
-        Cloud[Cloud Providers]
-    end
-
-    Loop --> MLX
-    Loop --> Foundation
-    Loop --> Cloud
-
-    subgraph plugins [Tools]
-        Native[Native Plugins]
-        MCP[Remote MCP]
-        Sandbox[Linux Sandbox]
-    end
-
-    Loop --> Native
-    Loop --> MCP
-    Loop --> Sandbox
-
-    subgraph foundationLayer [Foundations]
-        Identity[Identity and Access]
-        Storage[Encrypted Storage]
-        Relay[Relay Tunnels]
-    end
-
-    harness --> foundationLayer
-    plugins --> foundationLayer
-```
-
-Most features live in the Management window (`⌘ ⇧ M`). The chat overlay (`⌘;`) is the daily driver. The HTTP API is for everything else — your scripts, IDEs, automations.
+For the system view of how everything fits together, see [Architecture](/architecture).
 
 ---
 
@@ -138,8 +78,6 @@ Most features live in the Management window (`⌘ ⇧ M`). The chat overlay (`�
 :::info macOS 26 features
 The **Sandbox** (running agent code in an isolated Linux VM) and **Apple Foundation Models** require macOS 26 (Tahoe) or later.
 :::
-
-Storage encryption is on by default since 0.17.7 — first launch shows a brief migration overlay. [Details →](/storage)
 
 ---
 

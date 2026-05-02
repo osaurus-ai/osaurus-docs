@@ -41,6 +41,11 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "agent-loop",
+          label: "Agent Loop",
+        },
+        {
+          type: "doc",
           id: "agents",
           label: "Agents",
         },
@@ -58,11 +63,6 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "skills",
           label: "Skills & Methods",
-        },
-        {
-          type: "doc",
-          id: "agent-loop",
-          label: "Working Folders & Sandbox",
         },
         {
           type: "doc",
@@ -101,6 +101,11 @@ const sidebars: SidebarsConfig = {
       label: "For Developers",
       collapsed: true,
       items: [
+        {
+          type: "doc",
+          id: "architecture",
+          label: "Architecture",
+        },
         {
           type: "category",
           label: "API Reference",

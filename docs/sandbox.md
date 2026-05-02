@@ -12,7 +12,7 @@ The Sandbox is a shared Linux VM (Alpine, Apple Containerization framework) that
 Per-agent Linux users, vsock-bridge with per-agent bearer tokens, fail-closed network policy, SHA-256-pinned runtime artifacts. Plain-language summary on [Security & Privacy](/security).
 :::
 
-For the everyday view, see [Working Folders & Sandbox](/agent-loop). This page is the reference for plugin authors and contributors.
+For the everyday view, see [Agent Loop](/agent-loop). This page is the reference for plugin authors and contributors.
 
 ## Requirements
 
@@ -406,7 +406,7 @@ Find these under **Container → Danger Zone**.
 
 **Related:**
 
-- [Working Folders & Sandbox](/agent-loop) — the everyday view
+- [Agent Loop](/agent-loop) — the everyday view
 - [Tool Contract](/tool-contract) — envelope shape for every tool
 - [Plugin Authoring](/plugin-authoring) — non-sandbox v1/v2 plugins
 - [Identity Cryptography](/identity-internals) — how the bridge token, body limits, and pre-auth gating fit together
