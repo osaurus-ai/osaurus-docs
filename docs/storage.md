@@ -8,7 +8,7 @@ description: SQLCipher-encrypted databases, AES-GCM attachment spillover, the Ke
 
 Osaurus encrypts everything sensitive on disk — chats, memory, methods, tool indexes, plugin databases, and large attachments — with a per-device key kept in your macOS Keychain. Nothing leaves your Mac, and nothing is readable by another user account, by Spotlight, or by Time Machine snapshots without the same Keychain entry.
 
-:::tip Looking for the user-friendly version?
+:::tip[Looking for the user-friendly version?]
 This page is the technical reference. For a plain-language overview of how Osaurus protects your data — encryption, identity, sandbox, what we can't access — start at [Security & Privacy](/security).
 :::
 

@@ -29,7 +29,7 @@ Osaurus is the AI harness for macOS. It sits between you and any model — local
 
 Works fully offline with local models. Connect to any cloud provider when you want more power. Nothing leaves your Mac unless you choose. Native Swift on Apple Silicon. No Electron. MIT licensed.
 
-:::tip Your data, your Mac
+:::tip[Your data, your Mac]
 Encrypted at rest, signed at every boundary, never sent anywhere unless you explicitly choose a cloud provider. We can't read your conversations and there are no backdoors — see [Security & Privacy](/security).
 :::
 
@@ -75,7 +75,7 @@ For the system view of how everything fits together, see [Architecture](/archite
 - **macOS 15.5** or later
 - **Apple Silicon** (M1, M2, M3, or newer)
 
-:::info macOS 26 features
+:::info[macOS 26 features]
 The **Sandbox** (running agent code in an isolated Linux VM) and **Apple Foundation Models** require macOS 26 (Tahoe) or later.
 :::
 

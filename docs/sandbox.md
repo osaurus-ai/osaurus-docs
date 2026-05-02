@@ -8,7 +8,7 @@ description: The shared Linux VM, host bridge, plugin recipes, security posture,
 
 The Sandbox is a shared Linux VM (Alpine, Apple Containerization framework) that runs agent code with full POSIX userland access — shell, Python, Node, compilers, package managers — all natively on Apple Silicon.
 
-:::tip Sandbox security at a glance
+:::tip[Sandbox security at a glance]
 Per-agent Linux users, vsock-bridge with per-agent bearer tokens, fail-closed network policy, SHA-256-pinned runtime artifacts. Plain-language summary on [Security & Privacy](/security).
 :::
 

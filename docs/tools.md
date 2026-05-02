@@ -76,7 +76,7 @@ Tools are installed to:
 
 ## Auto-selection (RAG preflight)
 
-:::tip Key feature
+:::tip[Key feature]
 Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus loads only what's relevant to the current message.
 :::
 

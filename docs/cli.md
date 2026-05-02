@@ -71,7 +71,7 @@ osaurus serve --port 8080
 osaurus serve --expose
 ```
 
-:::tip Environment Variable
+:::tip[Environment Variable]
 Set `OSU_PORT` to override the default port globally.
 :::
 

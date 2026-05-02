@@ -24,7 +24,7 @@ Apple Foundation Models provide:
 - **Apple Silicon Mac** (M1, M2, M3, or newer)
 - **Apple Intelligence enabled** in System Settings
 
-:::info Compatibility Note
+:::info[Compatibility Note]
 While Osaurus itself runs on macOS 15.5+, Apple Foundation Models specifically require macOS 26 (Tahoe) or later.
 :::
 

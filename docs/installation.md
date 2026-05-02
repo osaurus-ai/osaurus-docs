@@ -1,13 +1,19 @@
 ---
 title: Installation
 sidebar_label: Installation
-description: Install Osaurus via Homebrew or download the latest signed build from GitHub Releases.
+description: Download Osaurus for macOS in under a minute. Native Apple Silicon, signed, free.
 sidebar_position: 2
 ---
 
 # Installation
 
-Osaurus is a native macOS app for Apple Silicon. Most people install it once with Homebrew and forget about it.
+Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is the download button on the home page — drag it to Applications and you're done.
+
+<div style={{textAlign: 'center', margin: '2rem 0'}}>
+<a href="https://osaurus.ai/" class="button button--primary button--lg">Download from osaurus.ai</a>
+&nbsp;&nbsp;
+<a href="https://github.com/osaurus-ai/osaurus/releases/latest" class="button button--secondary button--lg">Latest release on GitHub</a>
+</div>
 
 ## System requirements
 
@@ -15,58 +21,72 @@ Osaurus is a native macOS app for Apple Silicon. Most people install it once wit
 - **Apple Silicon** (M1, M2, M3, or newer)
 - **2–20 GB** free space per local model
 
-:::info macOS 26 features
+:::info[macOS 26 features]
 The [Sandbox](/agent-loop) (running agent code in an isolated Linux VM) and [Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. Osaurus itself runs fine on 15.5+ — those features just stay disabled.
 :::
 
-## Homebrew (recommended)
+## Install in 3 steps
+
+1. **Download** the `.dmg` from [osaurus.ai](https://osaurus.ai/) (or [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest))
+2. **Open** the DMG and drag Osaurus into your **Applications** folder
+3. **Eject** the DMG and launch Osaurus from Spotlight (`⌘ Space` → "Osaurus")
+
+The first time you open it, macOS may show a security dialog because the app is signed but not yet notarized — **right-click** Osaurus.app and choose **Open**, then click **Open** in the dialog. You only need to do this once.
+
+That's it. Updates auto-install via Sparkle when you launch the app — no need to come back here.
+
+## Prefer the terminal?
+
+If you'd rather install via Homebrew:
 
 ```bash
 brew install --cask osaurus
 ```
 
-This installs:
+This puts **Osaurus.app** in your Applications folder and links the **`osaurus` CLI** into your `PATH`. Update with `brew upgrade --cask osaurus`.
 
-- **Osaurus.app** in your Applications folder
-- The **`osaurus` CLI** (linked into your `PATH` automatically)
-- **Auto-updates** through `brew upgrade`
+## Permissions
 
-### First launch
+Osaurus only asks for permissions when you actually use the feature that needs them:
 
-1. Launch from Spotlight (`⌘ Space` → "Osaurus") or run `osaurus ui`
-2. Look for the Osaurus icon in your menu bar
-3. The first time you open it on 0.17.7+, you'll see a brief **"Securing your data"** overlay — that's the [storage encryption migration](/storage), and it usually finishes in under a second
+| Permission | Needed for |
+|---|---|
+| Microphone | Voice input, wake-word activation, Transcription Mode |
+| Screen Recording | Capturing system audio for transcription |
+| Accessibility | Transcription Mode (typing into other apps) |
+| Network | Cloud providers, MCP, public agent links |
+| Files | Working folders (one folder at a time, via macOS security-scoped bookmarks) |
 
-### Updating
+You'll be prompted in System Settings → Privacy & Security as you use each feature.
+
+## Where Osaurus puts things
+
+| What | Path |
+|---|---|
+| Local models (MLX) | `~/MLXModels/` (override with `OSU_MODELS_DIR`) |
+| App data | `~/.osaurus/` |
+| Voice models | `~/Library/Application Support/FluidAudio/Models/` |
+| Encrypted databases | `~/.osaurus/{chat-history,memory,methods,tool-index}/*.sqlite` |
+| Encryption key | macOS Keychain (`com.osaurus.storage`) |
+
+To put models on an external drive:
 
 ```bash
-brew update
-brew upgrade --cask osaurus
+export OSU_MODELS_DIR=/Volumes/External/MLXModels
 ```
 
-The app also auto-updates via Sparkle when you launch it, so manual upgrades are mostly for keeping `brew` happy.
+## Verify the CLI
 
-## Direct download
+If you installed via DMG and want to use the `osaurus` CLI from the terminal:
 
-If you prefer a manual install:
+```bash
+osaurus --version
+osaurus serve         # starts the local server
+osaurus status        # confirms it's up
+osaurus stop          # stops it
+```
 
-1. Visit [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest)
-2. Download the `.dmg`
-3. Open it and drag Osaurus to **Applications**
-4. Eject the DMG
-
-### First launch (DMG)
-
-The DMG is signed but not notarized, so the first launch needs:
-
-1. **Right-click** Osaurus.app and choose **Open**
-2. Click **Open** in the security dialog
-
-You only need to do this once.
-
-### Manual CLI setup
-
-If `osaurus` isn't on your PATH after a manual install, link it:
+If `osaurus` isn't on your PATH (DMG install), link it once:
 
 ```bash
 ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
@@ -79,48 +99,11 @@ echo 'export PATH="/Applications/Osaurus.app/Contents/MacOS:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-## Verify it works
-
-```bash
-osaurus --version
-osaurus serve         # starts the local server
-osaurus status        # confirms it's up
-osaurus stop          # stops it
-```
-
-In another terminal, test the API:
+Test the local server is up:
 
 ```bash
 curl http://127.0.0.1:1337/health
 ```
-
-## Where things live
-
-| What | Path | Override |
-|------|------|----------|
-| Local models (MLX) | `~/MLXModels` | `OSU_MODELS_DIR` env var |
-| App data | `~/.osaurus/` | not configurable |
-| Voice models (FluidAudio) | `~/Library/Application Support/FluidAudio/Models/` | not configurable |
-| Encrypted databases | `~/.osaurus/{chat-history,memory,methods,tool-index}/*.sqlite` | see [Storage](/storage) |
-| Encryption key | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
-
-```bash
-export OSU_MODELS_DIR=/Volumes/External/MLXModels
-```
-
-## Permissions
-
-Osaurus requests permissions only when you use the feature that needs them:
-
-| Permission | Required for |
-|------------|--------------|
-| Microphone | Voice input, VAD wake-word, Transcription Mode |
-| Screen Recording | Capturing system audio for transcription |
-| Accessibility | Transcription Mode (typing into other apps) |
-| Network | Cloud providers, MCP, Relay tunnels |
-| Files | Working folders (per-folder, via security-scoped bookmarks) |
-
-You'll be prompted in System Settings → Privacy & Security as you go.
 
 ## Troubleshooting
 
@@ -130,10 +113,7 @@ System Settings → Privacy & Security → scroll to the security message → **
 
 ### `osaurus` command not found
 
-```bash
-ls /Applications/Osaurus.app/Contents/MacOS/osaurus
-ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
-```
+See the link/PATH steps in [Verify the CLI](#verify-the-cli).
 
 ### Storage migration "failed" notice
 
@@ -142,14 +122,14 @@ If the first-launch migration shows a partial failure, the originals are kept at
 ## Uninstall
 
 ```bash
-# Homebrew
+# If you installed via Homebrew
 brew uninstall --cask osaurus
 
-# Manual
+# If you installed manually
 rm -rf /Applications/Osaurus.app
 rm /usr/local/bin/osaurus 2>/dev/null
 
-# Optional: remove all data
+# Optional: remove all your data
 rm -rf ~/MLXModels
 rm -rf ~/.osaurus
 

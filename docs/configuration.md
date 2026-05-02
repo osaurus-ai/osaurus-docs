@@ -40,7 +40,7 @@ osaurus serve --expose                 # 0.0.0.0:1337 (LAN)
 osaurus serve --expose --port 1337     # 0.0.0.0:1337 (LAN, explicit)
 ```
 
-:::warning LAN exposure
+:::warning[LAN exposure]
 When you `--expose`, anyone on your network can reach your Osaurus. Use access keys to protect endpoints — see [Identity](/identity).
 :::
 

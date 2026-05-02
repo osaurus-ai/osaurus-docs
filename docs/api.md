@@ -144,7 +144,7 @@ List all available models in Ollama format. Also available at `/api/tags`.
 
 Create a chat completion using OpenAI format.
 
-:::info Tool calling semantics
+:::info[Tool calling semantics]
 `/v1/chat/completions` follows **strict OpenAI semantics**: when the model emits `tool_calls`, the response (or final SSE chunk) returns those calls and the **client is expected to execute them and POST the results back** in the next request. Osaurus deliberately does **not** auto-execute tools on this endpoint, so it can serve as a drop-in backend for harnesses that already manage their own tool loop.
 
 If you want server-side autonomous tool loops, use `POST /agents/{id}/run` instead — it executes tools, manages the iteration budget (max 30), and streams hint frames. To expose Osaurus tools to a remote MCP harness, use `/mcp/tools` + `/mcp/call`.

@@ -9,7 +9,7 @@ sidebar_position: 14
 
 Every participant in Osaurus — you, each of your agents, and each device you pair — gets a **cryptographic address**. Authority flows from your master key down to each agent. Agents can prove who they are without a server. Compromised keys can be revoked at any level, anytime.
 
-:::tip Trust at a glance
+:::tip[Trust at a glance]
 Identity is one piece of how Osaurus protects your data. The full picture — encryption at rest, sandboxed execution, what we don't have access to — lives on [Security & Privacy](/security).
 :::
 

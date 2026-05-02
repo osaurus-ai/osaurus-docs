@@ -19,7 +19,7 @@ Memory is on by default and runs in the background. Most messages get **zero ext
 
 No tagging. No "save this". No prompting tricks.
 
-:::warning Memory needs a Core Model
+:::warning[Memory needs a Core Model]
 Memory writes happen through your **Core Model** — a small, fast model dedicated to background work. **Without one set, nothing gets distilled into memory.**
 
 On macOS 26+, the default is Apple's on-device `foundation` model — zero setup. On older macOS, pick one explicitly in **Settings → General → Core Model**. `gemma-4-e2b-it-4bit` is a great local default; `anthropic/claude-haiku-4-5` works if you have a cloud provider connected.

@@ -45,7 +45,7 @@ cp .build/release/libMyPlugin.dylib ./libMyPlugin.dylib
 codesign -s "Developer ID Application: Your Name (TEAMID)" ./libMyPlugin.dylib
 ```
 
-:::warning Code Signing Required
+:::warning[Code Signing Required]
 macOS Gatekeeper blocks unsigned `.dylib` files downloaded from the internet. For local development, ad-hoc signing works, but distribution requires a valid Developer ID certificate.
 :::
 

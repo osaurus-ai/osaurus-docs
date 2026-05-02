@@ -37,7 +37,7 @@ The schedule is now active. Review past runs anytime via **View Last Run**.
 
 For recurring schedules, configure the time (24-hour) and the day-of-week (weekly) or day-of-month (monthly).
 
-:::tip Timing
+:::tip[Timing]
 Schedules run when Osaurus is active. If your Mac is asleep or Osaurus isn't running at the scheduled time, the task runs when you next launch the app.
 :::
 
