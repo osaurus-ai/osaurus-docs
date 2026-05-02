@@ -1,11 +1,11 @@
 ---
-title: Identity & Access
-sidebar_label: Identity & Access
-description: Cryptographic identity for you and your agents. Issue access keys for outside tools, scope them per-agent, revoke them anytime — no central server.
+title: Identity
+sidebar_label: Identity
+description: A cryptographic address for you and each of your agents. Issue access keys for outside tools, scope them per-agent, revoke them anytime — no central server.
 sidebar_position: 14
 ---
 
-# Identity & Access
+# Identity
 
 Every participant in Osaurus — you, each of your agents, and each device you pair — gets a **cryptographic address**. Authority flows from your master key down to each agent. Agents can prove who they are without a server. Compromised keys can be revoked at any level, anytime.
 
@@ -39,7 +39,7 @@ The first time you open Osaurus on a new Mac:
 
 Each agent you create automatically gets a deterministic agent address derived from your master key. You don't see this happen — agents just have an address.
 
-## Access Keys
+## Access keys
 
 When you want an outside tool — Cursor, Claude Desktop, an MCP client, a teammate's Mac — to talk to your Osaurus, you mint an **access key**.
 
@@ -118,31 +118,16 @@ Without one of those, you'll generate a fresh identity. Your agents will get new
 
 ## What's signed and verified
 
-Every authenticated API request to Osaurus carries a signed token (or an `osk-v1` access key). The server checks:
+Every authenticated API request to your Osaurus carries a cryptographic signature, and the server checks it before doing anything. You don't see any of this — your apps and clients handle it. But it means every action is **verifiable** and **revocable** without a central server. [Identity Cryptography →](/identity-internals)
 
-- The signature came from the address claimed in the payload
-- The address is in the active whitelist
-- The token isn't revoked or expired
-- The counter prevents replay
+## Under the hood
 
-You don't see any of this — your apps and clients handle it. But it means every action in Osaurus is **verifiable** and **revocable** without a central server.
-
-## Pre-auth body limits
-
-To prevent unauthenticated clients from exhausting host memory, Osaurus rejects oversized request bodies *before* the auth gate:
-
-| Endpoint | Limit |
-|---|---|
-| `POST /pair` | 64 KiB |
-| Other public HTTP routes | 32 MiB |
-| Sandbox host bridge | 8 MiB |
-
-Oversized requests return `413 Payload Too Large`.
+For the full secp256k1 / App Attest / `osk-v1` spec, request signing rules, and replay protection, see [Identity Cryptography](/identity-internals). Server-side body-size limits live in [Server Settings](/configuration#http-server-limits).
 
 ---
 
 **Related:**
 
 - [Identity Cryptography](/identity-internals) — the full secp256k1 / App Attest / osk-v1 spec
-- [Relay](/relay) — expose an agent to the internet using its identity
+- [Public Links](/relay) — expose an agent to the internet using its identity
 - [Integrations](/integrations) — using access keys with Cursor, Claude Desktop, etc.

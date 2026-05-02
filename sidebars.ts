@@ -27,11 +27,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "doc",
       id: "security",
-      label: "Security & Privacy",
+      label: "Privacy & Trust",
     },
     {
       type: "category",
-      label: "For Everyone",
+      label: "Daily Use",
       collapsed: false,
       items: [
         {
@@ -41,14 +41,31 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
-          id: "agent-loop",
-          label: "Agent Loop",
-        },
-        {
-          type: "doc",
           id: "agents",
           label: "Agents",
         },
+        {
+          type: "doc",
+          id: "agent-loop",
+          label: "Tasks",
+        },
+        {
+          type: "doc",
+          id: "voice",
+          label: "Voice",
+        },
+        {
+          type: "doc",
+          id: "themes",
+          label: "Themes",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Knowledge & Models",
+      collapsed: false,
+      items: [
         {
           type: "doc",
           id: "models",
@@ -62,13 +79,15 @@ const sidebars: SidebarsConfig = {
         {
           type: "doc",
           id: "skills",
-          label: "Skills & Methods",
+          label: "Skills",
         },
-        {
-          type: "doc",
-          id: "voice",
-          label: "Voice Input",
-        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Automation",
+      collapsed: true,
+      items: [
         {
           type: "doc",
           id: "schedules",
@@ -79,20 +98,22 @@ const sidebars: SidebarsConfig = {
           id: "watchers",
           label: "Watchers",
         },
-        {
-          type: "doc",
-          id: "themes",
-          label: "Themes",
-        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Sharing & Access",
+      collapsed: true,
+      items: [
         {
           type: "doc",
           id: "identity",
-          label: "Identity & Access",
+          label: "Identity",
         },
         {
           type: "doc",
           id: "relay",
-          label: "Relay",
+          label: "Public Links",
         },
       ],
     },
@@ -155,6 +176,11 @@ const sidebars: SidebarsConfig = {
             },
             {
               type: "doc",
+              id: "methods",
+              label: "Methods",
+            },
+            {
+              type: "doc",
               id: "sandbox",
               label: "Sandbox Internals",
             },
@@ -206,6 +232,11 @@ const sidebars: SidebarsConfig = {
           items: [
             {
               type: "doc",
+              id: "memory-internals",
+              label: "Memory Internals",
+            },
+            {
+              type: "doc",
               id: "identity-internals",
               label: "Identity Cryptography",
             },
@@ -213,6 +244,11 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "inference-runtime",
               label: "Inference Runtime",
+            },
+            {
+              type: "doc",
+              id: "watcher-internals",
+              label: "Watcher Internals",
             },
             {
               type: "doc",

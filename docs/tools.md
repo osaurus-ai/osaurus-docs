@@ -8,7 +8,7 @@ description: Twenty-plus native Swift/Rust plugins, plus support for v1 (tools) 
 
 Osaurus ships with 20+ native plugins for everything from filesystem operations and browser automation to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
 
-Tools are **auto-selected per turn** via the RAG-based preflight search — you don't manually toggle them per agent. See [Skills & Methods](/skills) for how that selection works.
+Tools are **auto-selected per turn** via the same preflight search that picks skills and methods — you don't manually toggle them per agent. See [Skills](/skills) and [Methods](/methods) for how that selection works.
 
 ## Why Native Tools?
 
@@ -91,7 +91,7 @@ Before each chat turn, a **preflight RAG search** runs across every indexed tool
 
 Set the mode in **Management → Settings → Capabilities**. The agent can also expand its kit mid-conversation via `capabilities_search` and `capabilities_load`.
 
-This typically saves ~80% of context tokens compared to loading every tool spec, leaving more room for conversation and reasoning. [Skills & Methods →](/skills)
+This typically saves ~80% of context tokens compared to loading every tool spec, leaving more room for conversation and reasoning. [Skills →](/skills) · [Methods →](/methods)
 
 ## Using Tools
 
@@ -364,5 +364,6 @@ osaurus-tools/
 - [Tool Contract](/tool-contract) — envelope shape every tool returns
 - [Sandbox Internals](/sandbox) — JSON-recipe plugins for the Linux sandbox
 - [Remote MCP Providers](/remote-mcp-providers) — connecting external MCP servers
-- [Skills & Methods](/skills) — how tools are auto-selected
+- [Skills](/skills) — user-facing skills view
+- [Methods](/methods) — how the auto-selection layer is scored and tuned
 - [Tools Registry](https://github.com/osaurus-ai/osaurus-tools) — browse and submit plugins

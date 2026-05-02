@@ -43,14 +43,14 @@ A short tour of the things you can do once Osaurus is installed.
 - **A chat overlay you can open anywhere.** Press `⌘;` to talk to your AI; press it again to dismiss. No browser tab, no context switch.
 - **Agents that fit different jobs.** A coding partner, a research assistant, a file organizer — each with its own prompt, theme, and history.
 - **Memory that learns from you.** Past conversations are distilled into compact facts and surfaced only when relevant — no firehose of irrelevant context.
-- **Skills and methods.** Reusable instructions and learned workflows that load themselves when the task matches.
+- **Skills that load themselves.** Packaged expertise — research, debugging, writing styles — that surface automatically when the task calls for them.
 - **Working folders.** Point a chat at a folder and the agent gets safe file, search, and git tools — scoped to just that directory.
 - **A Linux Sandbox** *(macOS 26+)*. Toggle it on and the agent can run real code — shell, Python, Node — in an isolated VM with zero risk to your Mac.
 - **Schedules and Watchers.** Run an agent on a timer, or whenever a folder changes. Useful for daily journals, screenshot organizers, end-of-day commits.
 - **Voice input.** Dictate in chat, talk to an agent hands-free with a wake word, or hold a hotkey to dictate into any app — all on-device.
 - **Themes.** Built-in light/dark, fully editable, importable as JSON.
 - **Identity that's yours.** A cryptographic address for you and each of your agents. Issue access keys for outside tools, scope them per-agent, revoke them whenever.
-- **Public reach without ports.** Expose a single agent to the internet via a secure tunnel through `agent.osaurus.ai` — no port forwarding, no ngrok.
+- **Public links without ports.** Give one agent a stable public URL via a secure tunnel through `agent.osaurus.ai` — no port forwarding, no ngrok.
 
 [Get started in 5 minutes →](/quickstart)
 

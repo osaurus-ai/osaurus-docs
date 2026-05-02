@@ -8,7 +8,7 @@ description: secp256k1 master keys, deterministic agent key derivation, App Atte
 
 The Identity system gives every participant — human, agent, device — a cryptographic address. All actions are signed and verifiable, enabling trust without a central authority at runtime.
 
-This page is the spec reference. For the everyday view (creating access keys, recovery codes, revoking), see [Identity & Access](/identity).
+This page is the spec reference. For the everyday view (creating access keys, recovery codes, revoking), see [Identity](/identity).
 
 ## Theory and motivation
 
@@ -376,7 +376,7 @@ The address-based design naturally extends to agent-to-agent communication acros
 
 **Related:**
 
-- [Identity & Access](/identity) — the everyday view
+- [Identity](/identity) — the everyday view
 - [Storage & Encryption](/storage) — how the storage DEK can optionally be derived from the master key
-- [Relay](/relay) — uses the agent's signature to authenticate the tunnel
+- [Public Links](/relay) — uses the agent's signature to authenticate the tunnel
 - [HTTP API → Authentication](/api#authentication) — using `osk-v1` from clients

@@ -1,106 +1,63 @@
 ---
 title: Schedules
 sidebar_label: Schedules
-description: Automate recurring AI tasks with timed execution.
+description: Run an agent on a timer — daily journaling prompts, weekly summaries, monthly reviews. Set it and forget it.
 sidebar_position: 12
 ---
 
 # Schedules
 
-Some AI tasks work best on autopilot. Daily journaling prompts, weekly report generation, monthly summaries—tasks you want to happen consistently without remembering to trigger them. Schedules let you automate recurring AI interactions that run on a timer.
+Some AI tasks are better on autopilot. A daily journal prompt at 8 AM. A weekly code summary on Friday afternoon. A monthly goals review on the first. Schedules let you set those up once and let Osaurus run them — you just review the results.
 
-## What is a Schedule?
+Where [Watchers](/watchers) react to file changes, schedules run on a clock.
 
-A schedule is an automated task that runs at specified intervals. When a schedule triggers, Osaurus sends your configured prompt to an agent and saves the response. You can review results later or set up notifications.
+## Quick start
 
-Each schedule includes:
-
-- **Name** — Identifier for the scheduled task
-- **Frequency** — When and how often to run
-- **Agent** — Which AI assistant handles the task
-- **Instructions** — The prompt sent when the schedule runs
-- **Results** — Access to the last run's conversation
-
-## Features
-
-- **Flexible Frequency** — Once, daily, weekly, monthly, or yearly execution
-- **Agent Integration** — Assign an agent to handle scheduled tasks
-- **Custom Instructions** — Define prompts sent to the AI when the schedule runs
-- **Manual Trigger** — Run any schedule immediately with "Run Now"
-- **Results Tracking** — View the chat session from the last run
-
-## Accessing Schedules
-
-Open the Management window with **⌘⇧M**, then navigate to the **Schedules** tab.
-
-## Creating a Schedule
-
-1. Open Management window (**⌘⇧M**) → **Schedules**
+1. Open the Management window (`⌘ ⇧ M`) → **Schedules**
 2. Click **Create Schedule**
-3. Configure the schedule settings:
-   - **Name** — Give your schedule a descriptive name
-   - **Frequency** — Select how often to run
-   - **Time** — Choose when to run (for recurring schedules)
-   - **Agent** — Select which agent handles the task
-   - **Instructions** — Write the prompt to send
+3. Fill in:
+   - **Name** — what this schedule is for
+   - **Frequency** — once, daily, weekly, monthly, or yearly
+   - **Time** — when it runs (for recurring schedules)
+   - **Agent** — which agent handles the task
+   - **Instructions** — the prompt to send when it fires
 4. Click **Save**
 
-## Schedule Settings
+The schedule is now active. Review past runs anytime via **View Last Run**.
 
-### Name and Description
+## Frequency options
 
-| Setting         | Description                               |
-| --------------- | ----------------------------------------- |
-| **Name**        | Display name for the schedule             |
-| **Description** | Optional notes about the schedule's purpose |
+| Frequency | What it does | Example |
+|---|---|---|
+| **Once** | Single run at a specific date | One-time reminder |
+| **Daily** | Every day at a set time | Morning journaling |
+| **Weekly** | Once a week on a chosen day | Weekly progress reports |
+| **Monthly** | Once a month on a chosen date | Monthly goal reviews |
+| **Yearly** | Once a year on a chosen date | Annual reflection |
 
-### Frequency Options
-
-Choose how often your schedule runs:
-
-| Frequency    | Description                              | Example Use Case               |
-| ------------ | ---------------------------------------- | ------------------------------ |
-| **Once**     | Run a single time at a specific date     | One-time reminder or task      |
-| **Daily**    | Run every day at a set time              | Morning journaling prompts     |
-| **Weekly**   | Run once per week on a chosen day        | Weekly progress reports        |
-| **Monthly**  | Run once per month on a chosen date      | Monthly goal reviews           |
-| **Yearly**   | Run once per year on a chosen date       | Annual reflection prompts      |
-
-### Time Settings
-
-For recurring schedules, configure when they run:
-
-| Setting      | Description                                     |
-| ------------ | ----------------------------------------------- |
-| **Time**     | Hour and minute to run (24-hour format)         |
-| **Day**      | Day of week (weekly) or day of month (monthly)  |
-| **Date**     | Specific date (once or yearly)                  |
+For recurring schedules, configure the time (24-hour) and the day-of-week (weekly) or day-of-month (monthly).
 
 :::tip Timing
 Schedules run when Osaurus is active. If your Mac is asleep or Osaurus isn't running at the scheduled time, the task runs when you next launch the app.
 :::
 
-### Agent Selection
+## Picking an agent
 
-Assign an agent to handle the scheduled task:
+Each schedule runs through one of your agents. The agent's system prompt, default model, and theme apply to the run. Different schedules can use different agents.
 
-1. Select an agent from the dropdown
-2. The agent's system prompt, default model, and theme apply to the scheduled run
-3. Different schedules can use different agents
+Tools and skills are picked automatically at run time based on your instructions — pick the agent whose personality best fits the task; the right capabilities will load themselves. [How auto-selection works →](/skills#how-skills-get-picked)
 
-Tools and skills are auto-selected at run time via RAG search — pick the agent whose system prompt best fits the task; the right capabilities will be loaded automatically. [More on capability auto-selection →](/skills)
-
-**Example configurations:**
+**Example pairings:**
 
 - **Daily Journal** — A reflective, conversational agent
 - **Code Summary** — A technical agent (Git tools surface automatically when the prompt mentions a repo)
 - **Research Digest** — A research-focused agent (Search and Fetch tools surface automatically)
 
-### Instructions
+## Writing good instructions
 
-Write the prompt that's sent when the schedule triggers:
+Be specific. The instructions are the prompt sent to the agent — clear prompts produce useful runs.
 
-**Example for daily journaling:**
+**Daily journaling:**
 
 ```
 Good morning! Let's start the day with a brief reflection.
@@ -113,7 +70,7 @@ Please ask me:
 Keep the conversation warm and encouraging.
 ```
 
-**Example for weekly reports:**
+**Weekly report:**
 
 ```
 Generate a weekly summary based on our conversations from the past week.
@@ -127,125 +84,87 @@ Include:
 Format as a concise bullet-point summary.
 ```
 
-## Managing Schedules
+## Managing schedules
 
-### Viewing Schedules
+### Viewing your schedules
 
-The Schedules tab shows all your configured schedules with:
+The Schedules tab shows all your configured schedules with name, frequency, next run time, assigned agent, and active/paused status.
 
-- Schedule name
-- Frequency and next run time
-- Assigned agent
-- Status (active/paused)
+### Editing
 
-### Editing a Schedule
+1. Click on the schedule
+2. Modify the settings
+3. Click **Save**
 
-1. Open Management window (**⌘⇧M**) → **Schedules**
-2. Click on the schedule you want to edit
-3. Modify the settings
-4. Click **Save**
+### Pausing and resuming
 
-### Pausing and Resuming
+Toggle a schedule on or off without deleting it. Paused schedules don't run until you resume them.
 
-Toggle a schedule on or off without deleting it:
-
-1. Find the schedule in the list
-2. Click the toggle to pause or resume
-3. Paused schedules won't run until resumed
-
-### Running Manually
+### Running manually
 
 Trigger any schedule immediately:
 
 1. Click on the schedule
 2. Click **Run Now**
-3. The schedule executes immediately with your configured agent and instructions
 
-This is useful for:
+Useful for testing new schedules, running outside the normal time, or catching up on missed runs.
 
-- Testing new schedules
-- Running a task outside its normal time
-- Catching up on missed runs
+### Deleting
 
-### Deleting a Schedule
+1. Click on the schedule
+2. Click **Delete**
+3. Confirm
 
-1. Open Management window (**⌘⇧M**) → **Schedules**
-2. Click on the schedule
-3. Click **Delete**
-4. Confirm deletion
+## Reviewing past runs
 
-## Viewing Results
+After a schedule fires, you can see exactly what happened:
 
-After a schedule runs, you can review what happened:
+1. Click on the schedule
+2. Click **View Last Run**
 
-1. Open Management window (**⌘⇧M**) → **Schedules**
-2. Click on the schedule
-3. Click **View Last Run**
-4. The conversation from the last execution opens
+The full conversation opens — your instructions, the agent's response, any tool calls or actions taken.
 
-Results include:
+Each run is also saved as a chat session tagged `schedule` (visible as a badge in the chat sidebar). Filter the sidebar by source to browse all your scheduled runs in one place.
 
-- The full conversation between your instructions and the AI
-- Timestamp of when it ran
-- Any tool calls or actions taken
+## Example schedules
 
-## Example Schedules
+### Daily journaling
 
-### Daily Journaling
-
-Start each day with guided reflection.
-
-| Setting      | Value                                     |
-| ------------ | ----------------------------------------- |
-| Name         | Morning Journal                           |
-| Frequency    | Daily at 8:00 AM                          |
-| Agent        | Personal Coach                            |
+| Setting | Value |
+|---|---|
+| Name | Morning Journal |
+| Frequency | Daily at 8:00 AM |
+| Agent | Personal Coach |
 | Instructions | "Start my day with 3 reflection questions about priorities, energy, and gratitude." |
 
-### Weekly Code Review
+### Weekly code summary
 
-Summarize development activity.
-
-| Setting      | Value                                     |
-| ------------ | ----------------------------------------- |
-| Name         | Weekly Dev Summary                        |
-| Frequency    | Weekly on Friday at 5:00 PM               |
-| Agent        | Code Assistant                            |
+| Setting | Value |
+|---|---|
+| Name | Weekly Dev Summary |
+| Frequency | Weekly on Friday at 5:00 PM |
+| Agent | Code Assistant |
 | Instructions | "Review git activity this week and summarize commits, branches, and open items." |
 
-### Monthly Goals Check
+### Monthly goals
 
-Review progress on longer-term goals.
-
-| Setting      | Value                                     |
-| ------------ | ----------------------------------------- |
-| Name         | Monthly Goals Review                      |
-| Frequency    | Monthly on the 1st at 9:00 AM             |
-| Agent        | Personal Coach                            |
+| Setting | Value |
+|---|---|
+| Name | Monthly Goals Review |
+| Frequency | Monthly on the 1st at 9:00 AM |
+| Agent | Personal Coach |
 | Instructions | "Let's review my goals for last month and set intentions for the new month." |
 
-### Daily News Digest
+### Daily news digest
 
-Get a summary of topics you care about.
-
-| Setting      | Value                                     |
-| ------------ | ----------------------------------------- |
-| Name         | Tech News Digest                          |
-| Frequency    | Daily at 7:00 AM                          |
-| Agent        | Research Helper                           |
+| Setting | Value |
+|---|---|
+| Name | Tech News Digest |
+| Frequency | Daily at 7:00 AM |
+| Agent | Research Helper |
 | Instructions | "Search for the latest AI and developer tools news and give me a 5-item digest." |
 
-## Schedules with Agents
-
-Schedules work seamlessly with [Agents](/agents):
-
-- Each schedule can use a different agent
-- The agent's system prompt shapes how instructions are interpreted
-- Tool access is controlled by the agent's configuration
-
-**Tip:** Create dedicated agents for scheduled tasks with appropriate tool access and personality.
-
-## Tips and Best Practices
+## Tips
 
 1. **Start simple** — Begin with one or two schedules and add more as needed
 2. **Use descriptive names** — Make it easy to identify schedules at a glance
@@ -257,19 +176,19 @@ Schedules work seamlessly with [Agents](/agents):
 
 ## Troubleshooting
 
-### Schedule Didn't Run
+### Schedule didn't run
 
-- **Check if Osaurus was running** — Schedules require the app to be active
-- **Verify the schedule is enabled** — Paused schedules don't run
-- **Check the time settings** — Ensure the scheduled time has passed
+- **Was Osaurus running?** Schedules require the app to be active
+- **Is the schedule enabled?** Paused schedules don't run
+- **Has the time passed yet?** Check the next-run time on the card
 
-### Unexpected Results
+### Unexpected results
 
 - **Review the instructions** — Ambiguous prompts lead to inconsistent results
-- **Check the agent** — Ensure the right agent is assigned
-- **Inspect what tools fired** — Open Insights (`⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific so the RAG search picks better
+- **Check the agent** — Make sure the right agent is assigned
+- **Inspect what tools fired** — Open Insights (`⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
 
-### Missed Schedules
+### Missed schedules
 
 If Osaurus wasn't running at the scheduled time:
 
@@ -277,14 +196,10 @@ If Osaurus wasn't running at the scheduled time:
 - Or waits until the next scheduled time
 - Use "Run Now" to trigger manually
 
-### Auditing scheduled runs
-
-Each scheduled run is persisted as a chat session tagged `source = schedule`, with a badge in the chat sidebar. Filter the sidebar by source to see all your scheduled runs in one place.
-
 ---
 
 **Related:**
 
 - [Agents](/agents) — pick which agent runs your schedules
 - [Watchers](/watchers) — event-based automation (complements Schedules)
-- [Skills & Methods](/skills) — capabilities are auto-selected per run
+- [Skills](/skills) — capabilities are auto-selected per run

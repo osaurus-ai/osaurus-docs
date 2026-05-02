@@ -1,13 +1,13 @@
 ---
 title: Models
 sidebar_label: Models
-description: Local MLX models, Apple Foundation Models, Liquid Foundation Models, and cloud providers — all behind the same API.
+description: Local models on your Mac, Apple's on-device foundation model, or any cloud provider — your agents, memory, and tools work the same across all of them.
 sidebar_position: 6
 ---
 
 # Models
 
-Osaurus is model-agnostic. Run a 2B local Gemma on the train, switch to GPT-4o at the office, hand off to Apple's on-device Foundation model on the weekend — your agents, memory, and tools stay intact across all of them.
+Osaurus is model-agnostic. Run a fast 2B local model on the train, switch to GPT-4o at the office, hand off to Apple's on-device Foundation model on the weekend — your agents, memory, and tools stay intact across all of them.
 
 ## What you can run
 
@@ -18,13 +18,13 @@ Osaurus is model-agnostic. Run a 2B local Gemma on the train, switch to GPT-4o a
 | **Liquid Foundation** | On your Mac | 15.5+ | Download via Model Manager |
 | **Cloud providers** | Their servers | 15.5+ | API key in **Management → Providers** |
 
-## Local: MLX
+## Local models (MLX)
 
 MLX is Apple's array framework with first-class GPU support via unified memory. Local models on Osaurus run through MLX with optimizations for Apple Silicon.
 
 ### Downloading
 
-1. **Management window** (`⌘ ⇧ M`) → **Models**
+1. Open the Management window (`⌘ ⇧ M`) → **Models**
 2. Browse or search the catalog
 3. Click **Download** on a model
 4. Watch progress in the queue
@@ -33,14 +33,11 @@ Each entry shows name, parameter count, quantization (4-bit / 8-bit / JANGTQ / m
 
 ### Where models live
 
-```
-~/MLXModels/
-├── gemma-4-e2b-it-4bit/
-├── qwen3.6-35b-a3b-jangtq2/
-└── ...
-```
+By default, models live at `~/MLXModels/`. To put them on an external drive (helpful for big models), set `OSU_MODELS_DIR`:
 
-Override with `OSU_MODELS_DIR=/Volumes/External/MLXModels`.
+```bash
+export OSU_MODELS_DIR=/Volumes/External/MLXModels
+```
 
 To remove a model: **Models → Downloaded → Delete**.
 
@@ -90,26 +87,26 @@ Osaurus maintains its own [optimized model library on Hugging Face](https://hugg
 | `minimax-m2.7-jangtq4` | 29B | dense | |
 | `deepseek-v4-flash-jangtq` | 21B | dense | |
 
-For the canonical, always-up-to-date list, see [Osaurus-AI on Hugging Face](https://huggingface.co/OsaurusAI).
+For the canonical, always-up-to-date list, see [OsaurusAI on Hugging Face](https://huggingface.co/OsaurusAI).
 
 ### About the quantizations
 
-Model file names include the quantization scheme. Knowing what each one means helps you pick:
+A model's filename hints at how it was compressed (smaller = uses less RAM, larger = higher quality):
 
 | Suffix | What it is |
 |---|---|
 | `4bit` / `8bit` | Standard MLX integer quantization |
-| `mxfp4` | Apple's MX FP4 — block floating-point format with native MLX support; great quality at 4-bit footprint |
-| `JANGTQ` / `JANGTQ2` / `JANGTQ4` | OsaurusAI's curated quant family, MLX-tuned for Apple Silicon. Better quality-to-size ratio than off-the-shelf 4-bit |
-| `JANG_2L`, `JANG_4M`, `JANG_2S`, `JANG_4K` | OsaurusAI's variant codes (different bit widths × calibration recipes). Pick by size + reported quality on the model card |
+| `mxfp4` | Apple's MX FP4 — block floating-point, great quality at 4-bit footprint |
+| `JANGTQ` / `JANGTQ2` / `JANGTQ4` | OsaurusAI's curated quants, tuned for Apple Silicon. Better quality-to-size than off-the-shelf 4-bit. |
+| `JANG_2L`, `JANG_4M`, `JANG_2S`, `JANG_4K` | Variant codes — different bit widths × calibration recipes |
 
-Rule of thumb if you don't want to think about it: for a model with multiple variants, try the one ending in `JANGTQ4` first (best quality for the size), then drop to `JANGTQ2` or `JANG_2S` if you need less RAM.
+Rule of thumb: for a model with multiple variants, try the one ending in `JANGTQ4` first (best quality for the size), then drop to `JANGTQ2` or `JANG_2S` if you need less RAM.
 
 ### Tool calling
 
 Tool calling works across every family above. Osaurus's tool-call parser handles JSON, Qwen XML, Mistral, GLM-4, LFM2, Kimi K2, Gemma 3/4, and MiniMax M2 dialects automatically — your agents don't care which model produced the call.
 
-### Memory rule of thumb
+### How much RAM does a model need?
 
 Apple Silicon shares VRAM with system memory. Approximate RAM per model:
 
@@ -121,7 +118,7 @@ So `gemma-4-e2b-it-4bit` (2B, 4-bit) needs ~1.5 GB; `qwen3.6-35b-a3b-jangtq2` (3
 
 Pick a quantization that leaves room for the rest of your work and your Core Model.
 
-### Eviction policy
+### Loaded models and eviction
 
 Configure how local models are cached in **Settings → Local Inference → Model Management**:
 
@@ -130,7 +127,7 @@ Configure how local models are cached in **Settings → Local Inference → Mode
 | **Strict (One Model)** | Only one local model loaded at a time (default). Switching unloads the previous one. |
 | **Flexible (Multi Model)** | Multiple models loaded concurrently. **Required if your Core Model is local and different from your chat model** — otherwise the two will fight over the slot. |
 
-Models are loaded on demand when a chat window opens (with prefix caching warm-up) and unloaded when no chat references them. [Inference Runtime →](/inference-runtime)
+Models load on demand when a chat window opens (with prefix caching warm-up) and unload when no chat references them.
 
 ## Apple Foundation Models
 
@@ -220,11 +217,9 @@ Recommended temperature ranges:
 
 [Full API reference →](/api)
 
-## Context length and KV cache
+## Context length
 
-Each model has its own architectural context limit. Osaurus does **not** expose a global KV cache cap — vmlx-swift-lm picks model-aware defaults per release, including per-layer sliding windows for models like Gemma-4 (1024-position windows).
-
-Multi-turn KV cache reuse is automatic and content-addressed — repeated prefixes (system prompt, tools, prior turns) are matched without any client opt-in. [Inference Runtime details →](/inference-runtime)
+Each model has its own context limit, which Osaurus picks sane defaults for automatically. Multi-turn caching is also automatic — repeating the same system prompt across messages is cheap. For tunables, see [Inference Runtime](/inference-runtime).
 
 ## Troubleshooting
 
@@ -240,7 +235,6 @@ Multi-turn KV cache reuse is automatic and content-addressed — repeated prefix
 - Close memory-hungry apps
 - Reduce `max_tokens`
 - Watch Activity Monitor for memory pressure
-- Bump batch size: `defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8` (default 4, clamped to [1, 32])
 
 ### Download fails
 
@@ -254,6 +248,10 @@ Multi-turn KV cache reuse is automatic and content-addressed — repeated prefix
 - Reduce `max_tokens`
 - Consider a smaller model (drop from MoE-large to `gemma-4-e2b-it-4bit`)
 - Switch to **Strict (One Model)** eviction policy if you have multiple loaded
+
+## Under the hood
+
+Curious about continuous batching, the KV cache, batch size tuning, or how the inference path is structured? See [Inference Runtime](/inference-runtime).
 
 ---
 

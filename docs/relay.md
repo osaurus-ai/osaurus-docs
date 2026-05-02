@@ -1,22 +1,22 @@
 ---
-title: Relay
-sidebar_label: Relay
-description: Expose your local agents to the public internet via secure WebSocket tunnels through agent.osaurus.ai — no port forwarding, no ngrok, no configuration.
+title: Public Links
+sidebar_label: Public Links
+description: Give a friend, your phone, or a third-party tool a stable public URL to one of your agents — no port forwarding, no ngrok, no configuration.
 sidebar_position: 15
 ---
 
-# Relay
+# Public Links
 
-Relay exposes your agents to the public internet via secure WebSocket tunnels through `agent.osaurus.ai`. Each agent gets a unique public URL based on its cryptographic address — no port forwarding, no ngrok, no configuration.
+Sometimes you want a friend, your phone, or a third-party tool to talk to one of your agents from anywhere. Public Links is how — Osaurus opens a secure tunnel through `agent.osaurus.ai` and gives that one agent a stable public URL based on its cryptographic address. No port forwarding, no ngrok, no firewall changes.
 
-Your access keys still protect all API endpoints. Relay only handles transport; authentication is unchanged.
+Your access keys still protect everything. Public Links only handles transport; authentication is unchanged.
 
-## How It Works
+## How it works
 
-1. Enable a tunnel for an agent in the Management window (**⌘⇧M**) → **Server** → **Relays**
-2. Osaurus authenticates with the relay service using the agent's [EIP-191](https://eips.ethereum.org/EIPS/eip-191) signature
+1. You enable a public link for an agent in the Management window (**⌘⇧M**) → **Server** → **Relays**
+2. Osaurus authenticates with the relay service using the agent's signature
 3. The agent gets a public URL: `https://<address>.agent.osaurus.ai`
-4. Incoming requests are forwarded to your local server over the WebSocket tunnel
+4. Incoming requests are forwarded to your local server over a WebSocket tunnel
 5. Your [access keys](/identity#access-keys) still protect all API endpoints
 
 ```
@@ -33,71 +33,67 @@ Remote Client                    Relay Service                    Your Mac
      │           Response             │                               │
 ```
 
-## Enabling a Relay
+## Enabling a public link
 
 1. Open the Management window (**⌘⇧M**) → **Server** → **Relays**
 2. Find the agent you want to expose
-3. Toggle the relay switch
+3. Toggle the public link switch
 4. Confirm in the dialog that the agent will be publicly accessible
 5. The public URL appears once the tunnel is established
 
 :::warning
-Enabling a relay makes the agent's API endpoints reachable from the public internet. Make sure the agent has appropriate access key protection before enabling. See [Identity](/identity) for details on access keys.
+Enabling a public link makes the agent's API endpoints reachable from the public internet. Make sure the agent has appropriate access key protection before enabling. See [Identity](/identity) for details on access keys.
 :::
 
-## Features
+## What you get
 
-### Per-Agent Tunnels
+### Per-agent toggles
 
-Each agent can be tunneled independently. Enable or disable relays on a per-agent basis without affecting other agents.
+Each agent can be exposed independently. Enable or disable per-agent without affecting other agents.
 
-### Persistent Settings
+### Persistent settings
 
-Tunnel configuration survives app restarts. When the server starts, previously enabled tunnels reconnect automatically.
+Your link configuration survives app restarts. When the server starts, previously enabled links reconnect automatically.
 
-### Auto-Reconnect
+### Auto-reconnect
 
-If the network connection drops, the tunnel reconnects with exponential backoff. No manual intervention is needed after transient network interruptions.
+If your network connection drops, the tunnel reconnects with backoff. No manual intervention needed after transient interruptions.
 
-### Concurrent Multiplexing
+### Concurrent traffic
 
-Multiple requests are proxied concurrently off the main thread. The tunnel handles parallel traffic without blocking.
+Multiple requests are handled in parallel. The tunnel doesn't bottleneck on a single connection.
 
-### Identity-Based Routing
+## When public links are useful
 
-The relay service uses the agent's cryptographic address for routing. The local server receives the correct agent UUID, so memory context injection and agent-specific behavior work the same as local requests.
+### Share an agent with a teammate
 
-## Use Cases
+Give a teammate a public URL to interact with your local agent without exposing your local network or setting up VPNs.
 
-### Share Agents with Teammates
-
-Give teammates a public URL to interact with your local agent without exposing your local network or setting up VPNs.
-
-### Remote MCP Clients
+### MCP clients on other machines
 
 Connect MCP clients running on other machines — or mobile apps — to your local Osaurus instance through the public URL.
 
-### Demo Agents Publicly
+### Demo agents publicly
 
 Show off an agent from your development machine with a stable public URL. No deployment needed.
 
-### Receive Webhooks
+### Receive webhooks
 
 Route webhooks and callbacks from external services to a locally running agent for processing.
 
 ## Security
 
-Relay is a transport layer. It does not weaken authentication:
+Public Links is a transport layer. It does not weaken authentication:
 
-- **Access keys are still required** — the relay forwards requests to your local server, which validates access keys as usual
-- **Explicit opt-in** — enabling a relay requires confirmation through a dialog
+- **Access keys are still required** — the tunnel forwards requests to your local server, which validates access keys as usual
+- **Explicit opt-in** — enabling a public link requires confirmation through a dialog
 - **Per-agent isolation** — each tunnel is scoped to a single agent; enabling one does not expose others
-- **EIP-191 authentication** — the tunnel itself is authenticated using the agent's cryptographic signature, preventing unauthorized tunnel registration
+- **Routing uses the agent's signature** — so requests can't be misdirected and the tunnel itself can't be impersonated
 
 ---
 
 **Related:**
 
-- [Identity & Access](/identity) — set up and manage the access keys that protect a relayed agent
+- [Identity](/identity) — set up and manage the access keys that protect a public link
 - [Identity Cryptography](/identity-internals) — how `osk-v1` keys and signatures work
-- [Integrations](/integrations) — using a relay URL from MCP clients
+- [Integrations](/integrations) — using a public URL from MCP clients

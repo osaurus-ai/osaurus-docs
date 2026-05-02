@@ -1,20 +1,17 @@
 ---
 title: Watchers
 sidebar_label: Watchers
-description: Monitor folders for file changes and trigger AI agent tasks. Six responsiveness tiers from instant to "settle for 10 minutes".
+description: Have your AI react to file changes — sort downloads as they arrive, rename screenshots, auto-commit your wiki when you stop editing.
 sidebar_position: 11
 ---
 
 # Watchers
 
-Watchers monitor folders for file system changes and automatically trigger AI agent tasks. Where Schedules run on a clock, Watchers react to the real world — files arriving, being modified, or removed.
+Some tasks shouldn't wait for you to ask. Drop a file into Downloads and you want it sorted. Take a screenshot and you want it renamed and filed. Stop editing your wiki and you want a commit. Watchers do that.
 
-Useful for:
+A watcher keeps an eye on a folder, and when files appear or change, it hands the work to one of your agents.
 
-- **File organization** — sort and rename as files arrive
-- **Content processing** — analyze or transform new files
-- **Workflow automation** — multi-step AI tasks in response to drops
-- **End-of-session checkpoints** — auto-commit a wiki after you stop editing
+Where [Schedules](/schedules) run on a clock, watchers react to the real world.
 
 ## Quick start
 
@@ -23,34 +20,20 @@ Useful for:
 3. Fill in:
    - **Name** — e.g. "Downloads Organizer"
    - **Watched Folder** — click **Browse** and pick a folder
-   - **Instructions** — describe what the AI should do when changes are detected
+   - **Instructions** — describe what the AI should do when changes happen
    - **Agent** *(optional)* — pick which agent runs the task
 4. Configure:
-   - **Recursive** — monitor subdirectories?
-   - **Responsiveness** — debounce window (see below)
+   - **Recursive** — also monitor subfolders?
+   - **Responsiveness** — how soon to react after a change (see below)
 5. Click **Save**
 
 The watcher starts immediately. The card shows a "Watching" badge.
 
-## How a watcher fires
-
-```
-1. FSEvents detects a change in the watched folder
-2. Debouncing: rapid changes coalesce into a single trigger (per the responsiveness tier)
-3. Fingerprinting: a Merkle hash of file metadata captures the current state
-4. Dispatch: an AI agent task runs with your instructions and the folder context
-5. Convergence: after the agent completes, re-fingerprint
-   - If it changed (e.g. agent moved files), re-dispatch
-   - If stable, return to idle (max 5 iterations)
-```
-
-The convergence loop matters: it lets the agent organize files without re-triggering itself endlessly.
-
 ## Responsiveness
 
-Responsiveness controls how long the watcher waits after detecting changes before firing the AI task. Pick a tier that matches your workflow:
+How long should the watcher wait after detecting changes before firing? Pick the tier that matches your workflow:
 
-| Setting | Debounce window | Best for |
+| Setting | Reacts after | Best for |
 |---|---|---|
 | **Fast** | ~200 ms | Screenshots, single-file drops, quick edits |
 | **Balanced** *(default)* | ~1 s | General-purpose monitoring |
@@ -59,29 +42,7 @@ Responsiveness controls how long the watcher waits after detecting changes befor
 | **Deferred** | ~5 minutes | Extended writing sessions, periodic syncs |
 | **Extended** | ~10 minutes | End-of-session checkpoints, long-running activity |
 
-Choose **Fast** for near-instant reactions and **Balanced** for most cases. The longer tiers (Relaxed, Deferred, Extended) are designed for "settle then act" workflows — like an automatic-commit watcher on an Obsidian wiki that should fire only after you've stopped editing for a while.
-
-## States
-
-Each watcher operates as a small state machine:
-
-```
-┌──────┐     ┌────────────┐     ┌────────────┐     ┌──────────┐
-│ idle │ ──▶ │ debouncing │ ──▶ │ processing │ ──▶ │ settling │
-└──────┘     └────────────┘     └────────────┘     └──────────┘
-   ▲                                                     │
-   │                                                     │
-   └─────────────────────────────────────────────────────┘
-                    (fingerprint stable)
-```
-
-| State | Description | Card badge |
-|---|---|---|
-| Idle | Waiting for changes | "Watching" (green) |
-| Debouncing | Coalescing rapid events | "Watching" (green) |
-| Processing | Agent task running | "Running" (accent + spinner) |
-| Settling | Waiting for self-caused FSEvents to flush | "Watching" (green) |
-| Disabled | Manually paused | "Paused" (gray) |
+Pick **Fast** for near-instant reactions and **Balanced** for most cases. The longer tiers are designed for "settle then act" workflows — like an automatic-commit watcher on an Obsidian wiki that should fire only after you've stopped editing for a while.
 
 ## Properties
 
@@ -94,19 +55,13 @@ Each watcher operates as a small state machine:
 | Recursive | No | Monitor subdirectories (default: off) |
 | Responsiveness | No | Fast / Balanced / Patient / Relaxed / Deferred / Extended |
 
-### Folder access
-
-Watchers use **security-scoped bookmarks** to persist folder access across app restarts. If a bookmark goes stale (folder moved or deleted), the watcher card shows a warning — edit it and re-select the folder.
-
-### Sessions tagged `watcher`
-
-Each triggered run is persisted as a chat session with `source = watcher`, keyed by the watcher's id. So all triggers from the same watcher accumulate into a single auditable session row in the chat sidebar — great for reviewing what happened over time.
+Each triggered run is saved as a chat session tagged `watcher`, keyed by the watcher's id, so all triggers from the same watcher accumulate into one auditable thread in your sidebar.
 
 ## Managing watchers
 
 The card's context menu (ellipsis):
 
-| Action | Description |
+| Action | What it does |
 |---|---|
 | Edit | Open the editor |
 | Trigger Now | Run the watcher immediately |
@@ -174,14 +129,6 @@ Watchers may fire repeatedly. Write instructions that produce the same result wh
 
 The watcher prompt automatically includes guidance to avoid re-processing already-organized files, but explicit instructions help.
 
-### Smart exclusion of nested watchers
-
-If you have a watcher on `~/Documents` and another on `~/Documents/Projects`, Osaurus automatically excludes the nested folder from the parent watcher's monitoring. No duplicate triggers.
-
-### Why fingerprinting is fast
-
-Fingerprints use a Merkle hash of file metadata only — path, size, modification time. No file contents are read during change detection. Even very large directories are fingerprinted in milliseconds.
-
 ## Troubleshooting
 
 ### Watcher not triggering
@@ -202,23 +149,15 @@ Fingerprints use a Merkle hash of file metadata only — path, size, modificatio
 
 Edit the watcher and re-select the folder. Restart Osaurus if the issue persists.
 
-## Storage
+## Under the hood
 
-Watchers are stored as JSON:
-
-```
-~/.osaurus/watchers/
-├── {uuid-1}.json
-├── {uuid-2}.json
-└── ...
-```
-
-Each file contains the watcher's configuration with ISO 8601 dates.
+Curious about the FSEvents pipeline, the convergence loop, the state machine, or how fingerprinting stays fast? See [Watcher Internals](/watcher-internals).
 
 ---
 
 **Related:**
 
 - [Schedules](/schedules) — time-based automation (complements Watchers)
-- [Agent Loop](/agent-loop) — the agent loop and folder context
+- [Tasks](/agent-loop) — what the agent actually does once a watcher fires
 - [Agents](/agents) — pick which agent runs your watcher tasks
+- [Watcher Internals](/watcher-internals) — the developer-facing deep dive

@@ -47,7 +47,7 @@ Every API call to your Osaurus carries a **cryptographic signature** from a key 
 - Each **agent** gets its own deterministic child key derived from your master — agents can sign on their own behalf, but their authority always traces back to you
 - External tools, MCP clients, and remote agents authenticate with **`osk-v1` access keys** — portable tokens you mint, scope (master-wide or single-agent), expire (30/90/365 days or never), and revoke at any time
 
-There's no central server handing out access. Verification is local and offline-capable. If something signs a request as you, it's you. [Identity & Access →](/identity) · [Identity Cryptography →](/identity-internals)
+There's no central server handing out access. Verification is local and offline-capable. If something signs a request as you, it's you. [Identity →](/identity) · [Identity Cryptography →](/identity-internals)
 
 ---
 
@@ -57,7 +57,7 @@ The Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization 
 
 Sandbox runtime artifacts (the GHCR image, the Linux kernel, the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries.
 
-[Agent Loop →](/agent-loop) · [Sandbox Internals →](/sandbox)
+[Tasks →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
 ---
 
@@ -142,4 +142,4 @@ For the technical references behind this page:
 - [Storage & Encryption](/storage) — SQLCipher migration, key rotation, plaintext export, key-mismatch recovery
 - [Identity Cryptography](/identity-internals) — secp256k1, App Attest, the `osk-v1` spec, request signing
 - [Sandbox Internals](/sandbox) — VM isolation, vsock bridge auth, artifact integrity pinning
-- [Identity & Access](/identity) — managing your own access keys (everyday view)
+- [Identity](/identity) — managing your own access keys (everyday view)

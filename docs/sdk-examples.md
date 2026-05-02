@@ -1020,5 +1020,6 @@ class RateLimitedClient {
 - [HTTP API](/api) — endpoint reference
 - [Models](/models) — choosing the right model
 - [Integrations](/integrations) — framework-specific guides
-- [Memory](/memory) — what `X-Osaurus-Agent-Id` does
-- [Identity & Access](/identity) — minting and revoking `osk-v1` keys
+- [Memory](/memory) — what your AI remembers
+- [Memory Internals](/memory-internals) — what `X-Osaurus-Agent-Id` does
+- [Identity](/identity) — minting and revoking `osk-v1` keys

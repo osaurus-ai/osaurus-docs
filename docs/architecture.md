@@ -81,10 +81,10 @@ flowchart TB
 | Layer | What it does | Reference |
 |---|---|---|
 | **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
-| **Harness** | Agent Loop, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Agent Loop](/agent-loop), [Memory](/memory), [Skills & Methods](/skills), [Schedules](/schedules), [Watchers](/watchers) |
+| **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
 | **Tools** | 20+ native plugins (Mail, Calendar, Browser, Git, …), remote MCP aggregation, the Linux Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
-| **Foundations** | Identity & Access (signed requests, `osk-v1` keys), encrypted storage (SQLCipher), Relay (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Relay](/relay) |
+| **Foundations** | Identity (signed requests, `osk-v1` keys), encrypted storage (SQLCipher), Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Public Links](/relay) |
 
 ## Entry points
 
@@ -108,7 +108,7 @@ The harness is what makes Osaurus more than a thin SDK shim:
 
 - **Agent Loop** — every chat is an agent loop. The model writes a markdown todo list, calls tools, iterates, and ends with a verified summary or pauses to ask one critical question.
 - **Memory** — persistent on-device memory with three layers (identity, pinned facts, episodes) plus a transcript fallback. Distillation runs once per session, gated on a configured Core Model.
-- **Skills & Methods** — reusable capabilities. Skills are markdown packages of expertise; Methods are scored YAML workflows the agent saved from past runs. Both are auto-selected via RAG preflight.
+- **Skills & Methods** — reusable capabilities. [Skills](/skills) are markdown packages of expertise; [Methods](/methods) are scored YAML workflows the agent saved from past runs. Both are auto-selected via RAG preflight.
 - **Schedules & Watchers** — automation. Schedules run on a clock; watchers react to file system changes via FSEvents.
 
 Plugins, schedules, watchers, and the HTTP API all dispatch through the same agent loop — same engine, same loop tools, same intercepts. Sessions are tagged with their source (`chat` / `plugin` / `http` / `schedule` / `watcher`) so you can audit what spawned each conversation in the chat sidebar.
@@ -139,9 +139,9 @@ Every tool — built-in, folder, sandbox, plugin, MCP-aggregated — returns the
 
 The trust layer underneath everything:
 
-- **Identity & Access** — secp256k1 master key in iCloud Keychain (biometric-gated), deterministic per-agent child keys, Apple App Attest device assertion, `osk-v1` access keys for external callers (scoped, expirable, revocable).
+- **Identity** — secp256k1 master key in iCloud Keychain (biometric-gated), deterministic per-agent child keys, Apple App Attest device assertion, `osk-v1` access keys for external callers (scoped, expirable, revocable).
 - **Encrypted Storage** — SQLCipher across chat history, memory, methods, tool index, and plugin databases. Large attachments spilled to AES-GCM `.osec` blobs. Key in macOS Keychain, device-bound.
-- **Relay** — secure WebSocket tunnels through `agent.osaurus.ai` per agent. The agent's cryptographic address is the routing key. No port forwarding.
+- **Public Links** — secure WebSocket tunnels through `agent.osaurus.ai` per agent. The agent's cryptographic address is the routing key. No port forwarding.
 
 These are the boundaries. See [Security & Privacy](/security) for the user-facing summary, [Identity Cryptography](/identity-internals) and [Storage & Encryption](/storage) for the specs.
 

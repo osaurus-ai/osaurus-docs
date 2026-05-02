@@ -400,7 +400,7 @@ export async function POST(request) {
 
 ## Authentication with Access Keys
 
-By default, Osaurus does not require authentication for local requests. When exposing your server to external clients — especially via [Relay](/relay) — you should use access keys to protect API endpoints.
+By default, Osaurus does not require authentication for local requests. When exposing your server to external clients — especially via [Public Links](/relay) — you should use access keys to protect API endpoints.
 
 Access keys use the `osk-v1` format and are created through the [Identity](/identity) system. Pass them as a Bearer token:
 
@@ -468,4 +468,4 @@ Access keys can be scoped to a specific agent or your entire identity. See [Iden
 - [SDK Examples](/sdk-examples) — runnable snippets
 - [Remote Providers](/remote-providers) — connecting Osaurus to OpenAI/Anthropic/etc.
 - [Remote MCP Providers](/remote-mcp-providers) — connecting Osaurus to remote MCP servers
-- [Identity & Access](/identity) — access keys and pairing
+- [Identity](/identity) — access keys and pairing

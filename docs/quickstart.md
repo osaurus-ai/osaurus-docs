@@ -47,7 +47,7 @@ You can always add more later from **Management → Models** or **Management →
 
 Osaurus generates a cryptographic master key the first time it runs. The key lives in your iCloud Keychain, gated by Face ID / Touch ID. A one-time **recovery code** is shown — **write this down somewhere safe**, it's the only thing that can recover your identity if you lose access to your Mac.
 
-This step is skippable but recommended — it unlocks Identity, access keys, and Relay later. [Identity & Access →](/identity)
+This step is skippable but recommended — it unlocks Identity, access keys, and Public Links later. [Identity →](/identity)
 
 ### How it works
 
@@ -98,7 +98,7 @@ Try giving the agent an actual task — it'll write a plan, call tools, and brin
 
 You'll see a markdown to-do list appear, ticking off as the agent reads files, drafts the README, and writes it. The new file shows up as an artifact card in the chat.
 
-On macOS 26+, toggle the **Sandbox** for shell access in an isolated Linux VM — handy for running scripts, scraping URLs, or trying out a package. [Agent Loop →](/agent-loop)
+On macOS 26+, toggle the **Sandbox** for shell access in an isolated Linux VM — handy for running scripts, scraping URLs, or trying out a package. [Tasks →](/agent-loop)
 
 ### Try voice
 
@@ -113,7 +113,7 @@ Now that you're set up:
 - [Chat](/chat) — overlay, multi-window, sessions, shortcuts
 - [Agents](/agents) — create specialized assistants for different tasks
 - [Memory](/memory) — what your AI remembers and how
-- [Skills & Methods](/skills) — reusable expertise, automatically loaded
+- [Skills](/skills) — reusable expertise, automatically loaded
 - [Voice Input](/voice) — dictate, wake-words, global transcription
 - [Themes](/themes) — make the chat overlay yours
 

@@ -145,6 +145,26 @@ Empty-string filler in optional fields (`content: ""`, `filename: ""`) is treate
 
 Foreground (default): returns `{stdout, stderr, exit_code, cwd}` when the command finishes (capped by `timeout`, max 300s). Pass `background:true` to spawn a detached process — the tool returns `{pid, log_file, cwd, background:true}` as soon as the spawn shim returns. Manage the resulting job through `sandbox_process` (poll/wait/kill).
 
+## Loop tools
+
+Three special tools drive the inline UI for the [Tasks](/agent-loop) experience. The chat layer intercepts their results and renders the live to-do list, "Completed" banner, and clarifying-question prompt. They're available in every chat.
+
+### `todo`
+
+Publishes or updates the plan as a markdown checklist. The list lives in the chat and ticks off as the agent works. Each call replaces the whole list, so the agent can rewrite the plan as it learns more.
+
+### `complete`
+
+Ends the loop with a summary of what was done and how it was verified. Becomes a "Completed" banner in the chat. Placeholder summaries (`done`, `ok`, `looks good`) are rejected by the validator so the agent can't fake completion — partial completions must be honest about what was and wasn't done.
+
+### `clarify`
+
+Pauses the loop and asks one critical question. Optional one-tap answer chips (`options[]`) let the user answer with a single click. The validator only accepts `clarify` calls when the question genuinely changes the outcome — agents can't use it for cosmetic preferences mid-task.
+
+### Result envelopes
+
+All three return their payload via the `text` convenience (a single human-readable string). The chat-layer parsers consume the envelope's `result.text` to render the corresponding UI element.
+
 ---
 
 **Related:**

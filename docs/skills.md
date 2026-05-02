@@ -1,21 +1,19 @@
 ---
-title: Skills & Methods
-sidebar_label: Skills & Methods
-description: Reusable AI capabilities — Skills package expertise, Methods capture learned workflows. Both are auto-selected via RAG search.
+title: Skills
+sidebar_label: Skills
+description: Reusable expertise your AI can pull in on demand — a research methodology, a debugging framework, a writing style. Built-ins included; create or import your own.
 sidebar_position: 8
 ---
 
-# Skills & Methods
+# Skills
 
-Skills are reusable packages of instructions, context, and resources that give your AI specialized expertise — a research methodology, a debugging framework, a creative writing style.
+Skills are reusable packages of expertise. Think of them as on-demand specialists you can attach to your AI: a research methodology, a debugging framework, a creative writing style. When you ask a relevant question, the right skill loads itself — you don't have to remember what to enable.
 
-Methods are similar but learned. When an agent figures out an effective sequence of tool calls, it saves that workflow as a method. Future tasks find and reuse it.
-
-Both are **auto-selected via RAG search** before each message — no manual configuration needed.
+Osaurus picks the right skills automatically before each message, so you mostly just enable the ones you want and forget about it.
 
 ## Quick start
 
-Osaurus ships with 6 built-in skills:
+Osaurus ships with six built-in skills:
 
 | Skill | What it does |
 |---|---|
@@ -29,38 +27,18 @@ Osaurus ships with 6 built-in skills:
 To get started:
 
 1. Open the Management window (`⌘ ⇧ M`) → **Skills**
-2. Built-in skills are enabled by default — toggle any off you don't want
-3. Start a new chat — relevant skills get loaded automatically when you ask the right kind of question
+2. Built-in skills are enabled by default — toggle off any you don't want
+3. Start a new chat — relevant skills load themselves when you ask the right kind of question
 
-## How auto-selection works
+## How skills get picked
 
-Before every message, a **preflight RAG search** runs across all enabled skills, methods, and tools. It uses hybrid BM25 + vector matching to find the ones relevant to your query, then injects matching skill instructions and method bodies into the system prompt.
+Before every message, Osaurus runs a quick search across your enabled skills (and tools, and methods — see below) and picks the most relevant ones for the question you just asked. The matching skill's instructions are added to the system prompt for that turn.
 
-The search itself runs through your **Core Model** when configured (set in **Settings → General → Core Model**), and falls back to the active chat model when Core Model is unset. A small fast Core Model (`foundation` on macOS 26+, or `gemma-4-e2b-it-4bit`) keeps preflight cheap.
+You don't configure which skills to load per-chat. You just enable them once; the right ones surface when they're needed.
 
-You control how aggressively it searches:
+If you'd rather see them all every turn (predictable but heavier on context), each agent has an **Auto-discover vs Manual** toggle in its Capabilities tab. [Agents → Capabilities](/agents#capabilities)
 
-| Mode | Methods | Tools | Skills | Best for |
-|---|---|---|---|---|
-| `off` | 0 | 0 | 0 | Disabling auto-selection |
-| `narrow` | 1 | 2 | 1 | Fastest responses, minimal context |
-| `balanced` (default) | 3 | 5 | 2 | Most cases — good coverage at moderate cost |
-| `wide` | 5 | 8 | 4 | Maximum coverage, larger prompts |
-
-Set the mode in **Management → Settings → Capabilities**.
-
-### Mid-conversation discovery
-
-The agent can also expand its kit while a chat is in progress via two always-on tools:
-
-| Tool | What it does |
-|---|---|
-| `capabilities_search` | Search methods, tools, and skills across all indexes in parallel |
-| `capabilities_load` | Load a specific capability by ID into the active session |
-
-Loading a method automatically loads its referenced tools and skills. So an agent that starts with research skills can pull in a "deploy to staging" method (and the tools that method uses) without you doing anything.
-
-## Skills
+## Adding your own skills
 
 ### Importing from GitHub
 
@@ -75,7 +53,7 @@ Osaurus follows the open [Agent Skills](https://agentskills.io/) specification, 
 
 ### Importing from files
 
-| Format | Description |
+| Format | What it is |
 |---|---|
 | `.md` / `SKILL.md` | Agent Skills format — Markdown with YAML frontmatter |
 | `.json` | Osaurus export format |
@@ -87,24 +65,26 @@ Osaurus follows the open [Agent Skills](https://agentskills.io/) specification, 
 
 **Skills → Create Skill**:
 
-| Field | Description |
+| Field | What it's for |
 |---|---|
 | **Name** | A clear, descriptive name |
-| **Description** | One-line summary (used by the RAG search — make it specific) |
+| **Description** | One-line summary — used to match the skill to your questions, so be specific |
 | **Category** | Optional grouping ("Development", "Writing") |
 | **Instructions** | The full guidance for the AI in Markdown |
 | **Version** / **Author** | Metadata |
 
-Tips for instructions:
+Tips:
 
 - Be specific about purpose and approach
 - Include examples of expected behavior
 - Define any frameworks or methodologies to follow
 - Specify output formats when relevant
 
+The **description** is the most important field. It's what determines whether your skill gets matched to a user question, so write it like a one-line résumé bullet, not a marketing tagline.
+
 ### Reference files
 
-Add files that load into the AI's context whenever the skill is active. Useful for style guides, terminology, process docs, templates.
+Add files that load alongside the skill whenever it activates — style guides, terminology, process docs, templates.
 
 1. Edit a skill
 2. Add files to its `references/` folder
@@ -117,7 +97,7 @@ Add files that load into the AI's context whenever the skill is active. Useful f
 | **Edit** | Click a skill → **Edit**. Built-in skills are read-only but viewable. |
 | **Export** | Right-click → **Export** → JSON, Markdown, or ZIP |
 | **Delete** | Right-click → **Delete** (custom skills only) |
-| **Disable** | Toggle the switch — disabled skills are excluded from RAG search |
+| **Disable** | Toggle the switch — disabled skills are excluded from auto-selection |
 
 ### File format
 
@@ -153,62 +133,18 @@ Always include:
 
 Skills are stored as directories at `~/.osaurus/skills/{skill-name}/SKILL.md`, with optional `references/` and `assets/` subfolders.
 
-## Methods
+## A note on Methods
 
-Methods capture **learned procedures**. When an agent finishes a multi-step task, it can save the sequence of tool calls as a YAML workflow that future tasks can reuse.
-
-### What's in a method
-
-| Property | Description |
-|---|---|
-| `name` | Display name |
-| `description` | Brief description (used by RAG search) |
-| `triggerText` | Optional phrases that activate this method ("deploy to staging", "publish post") |
-| `body` | The YAML workflow — step-by-step tool calls with logic between them |
-| `toolsUsed` / `skillsUsed` | Auto-extracted from `body` so loading the method auto-loads its dependencies |
-| `tokenCount` | Estimated cost for context budgeting |
-| `version` | Bumped on every edit |
-
-### Scoring
-
-Methods are scored using a recency-weighted success rate:
-
-```
-score = successRate × recencyWeight
-recencyWeight = 1.0 / (1.0 + daysSinceUsed / 30.0)
-```
-
-Each time a method is used, the system records a `MethodEvent` (`loaded`, `succeeded`, `failed`) and recalculates the score. High-quality, recently-used methods rank higher in search results — so the workflows that actually work float to the top automatically.
-
-### Storage
-
-Methods live in `~/.osaurus/methods/methods.sqlite` (encrypted with SQLCipher since 0.17.7).
-
-### Browsing methods
-
-There isn't a separate "Methods" tab — they live alongside skills in the same RAG index. To inspect what's been learned:
-
-- **Management → Insights** shows when methods were loaded and whether they succeeded
-- The methods database is browsable via SQLite tools if you really need to dig in
-
-## Skills, Methods, Tools — what's the difference?
-
-| | Skills | Methods | Tools |
-|---|---|---|---|
-| **Source** | You author them or import from a marketplace | Agents save them after successful runs | Built-in plugins, native plugins, MCP providers |
-| **Content** | Markdown instructions + reference files | YAML sequences of tool calls | Code (Swift, Rust, Python via MCP) |
-| **What they do** | Add domain knowledge / methodology | Replay a known-good workflow | Take action (read files, run commands, call APIs) |
-| **Loaded by** | RAG search (preflight + on-demand) | RAG search (preflight + on-demand) | RAG search; loading a method auto-loads its tools |
-| **Token cost** | The skill's instructions text | The method's YAML body | Just the tool's spec (description + parameters) |
+You may see "Methods" mentioned alongside Skills in places like Insights and Capabilities. Methods are **learned workflows** — when an agent successfully completes a multi-step task, it can save the sequence of steps as a method that future tasks reuse. They're picked by the same auto-selection that picks skills, so you don't have to think about them as a user. If you're building plugins or want to see the scoring math, see [Methods](/methods).
 
 ## Troubleshooting
 
 ### Skills don't appear in chat
 
 - Verify the skill is enabled (toggle is on)
-- Make sure the skill's **description** clearly describes when to use it — RAG search keys off this
+- Make sure the skill's **description** clearly describes when to use it — auto-selection keys off this
 - Start a new chat session
-- Try setting the search mode to `wide`
+- Try setting the search width to `wide` in **Management → Settings → Capabilities**
 
 ### GitHub import fails
 
@@ -219,7 +155,7 @@ There isn't a separate "Methods" tab — they live alongside skills in the same 
 ### Skill instructions seem ignored
 
 - Review the instructions for clarity and specificity
-- Make the description more specific so RAG matches it on the right queries
+- Make the description more specific so auto-selection matches it on the right queries
 - Try being more explicit in your prompt
 
 ### Import format errors
@@ -228,10 +164,15 @@ There isn't a separate "Methods" tab — they live alongside skills in the same 
 - `.zip` files: `SKILL.md` must be at the root or in a named folder
 - `.json` files: validate JSON syntax
 
+## Under the hood
+
+Curious about how methods are scored, the auto-selection mechanics, or the search width tiers? See [Methods](/methods).
+
 ---
 
 **Related:**
 
-- [Agents](/agents) — skills/methods/tools are auto-selected per agent per turn
+- [Agents](/agents) — skills are auto-selected per agent per turn
 - [Tools & Plugins](/tools) — what tools exist and how they're built
+- [Methods](/methods) — the developer view on the auto-selection layer
 - [Agent Skills Specification](https://agentskills.io/) — the open format Osaurus follows

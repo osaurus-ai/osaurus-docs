@@ -822,7 +822,7 @@ client = anthropic.Anthropic(
 )
 ```
 
-Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Identity & Access →](/identity)
+Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Identity →](/identity)
 
 ### Pre-auth body-size limits
 
@@ -913,6 +913,7 @@ curl -X POST http://127.0.0.1:1337/mcp/call \
 - [SDK Examples](/sdk-examples) — Python, JS, Anthropic SDK, Open Responses
 - [Integrations](/integrations) — wiring Osaurus into Cursor, Claude Desktop, etc.
 - [Tool Contract](/tool-contract) — envelope shape for every tool
-- [Memory](/memory) — what `X-Osaurus-Agent-Id` does under the hood
-- [Identity & Access](/identity) — minting and revoking `osk-v1` keys
+- [Memory](/memory) — what memory does for users
+- [Memory Internals](/memory-internals) — what `X-Osaurus-Agent-Id` and `/memory/ingest` do under the hood
+- [Identity](/identity) — minting and revoking `osk-v1` keys
 - [Inference Runtime](/inference-runtime) — KV cache, batching, model leases

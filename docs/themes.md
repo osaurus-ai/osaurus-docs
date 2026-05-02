@@ -7,7 +7,7 @@ sidebar_position: 13
 
 # Themes
 
-Osaurus lets you customize the entire look of the chat overlay and management window — colors, glass material, typography, animations, message bubble shapes. Built-in themes are a great starting point; the editor lets you go anywhere from there.
+Make Osaurus look the way you want. Pick from the built-in light and dark themes, or use the editor to customize colors, glass material, typography, animation timing, even the shape of message bubbles. Bind a theme to an agent so it activates whenever that agent does — useful as a visual cue that you're talking to your code reviewer vs. your therapist.
 
 ## Quick start
 

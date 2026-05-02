@@ -41,7 +41,7 @@ osaurus serve --expose --port 1337     # 0.0.0.0:1337 (LAN, explicit)
 ```
 
 :::warning LAN exposure
-When you `--expose`, anyone on your network can reach your Osaurus. Use access keys to protect endpoints — see [Identity & Access](/identity).
+When you `--expose`, anyone on your network can reach your Osaurus. Use access keys to protect endpoints — see [Identity](/identity).
 :::
 
 ## Capabilities (auto-selection)
@@ -55,7 +55,7 @@ Tools, skills, and methods are auto-selected via RAG before each turn. Configure
 | `balanced` (default) | 3 | 5 | 2 |
 | `wide` | 5 | 8 | 4 |
 
-Higher modes give the agent more tools to choose from at the cost of larger system prompts. [Skills & Methods →](/skills)
+Higher modes give the agent more tools to choose from at the cost of larger system prompts. [Skills →](/skills) · [Methods →](/methods)
 
 ## Memory
 
@@ -74,7 +74,7 @@ Memory is on by default, with eight settings. Edit them in **Management → Memo
 | `salienceFloor` | `0.2` | Eviction threshold for pinned facts (0–1) |
 | `episodeRetentionDays` | `365` | Episode/transcript retention (0 = forever) |
 
-[Memory architecture →](/memory)
+[Memory →](/memory) · [Memory Internals →](/memory-internals)
 
 ## Local inference
 
@@ -134,6 +134,18 @@ Endpoints are available under multiple prefixes for compatibility:
 
 All prefixes route to the same handlers.
 
+## HTTP server limits
+
+To prevent unauthenticated clients from exhausting host memory, Osaurus rejects oversized request bodies *before* the auth gate:
+
+| Endpoint | Limit |
+|---|---|
+| `POST /pair` | 64 KiB |
+| Other public HTTP routes | 32 MiB |
+| Sandbox host bridge | 8 MiB |
+
+Oversized requests return `413 Payload Too Large`.
+
 ## Where things live
 
 | What | Path | Override |
@@ -154,7 +166,7 @@ All prefixes route to the same handlers.
 | Sandbox container | `~/.osaurus/container/` | not configurable |
 | Configs | `~/.osaurus/config/*.json` | edit directly |
 | Encryption key | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
-| Identity master key | iCloud Keychain | see [Identity & Access](/identity) |
+| Identity master key | iCloud Keychain | see [Identity](/identity) |
 
 ## Per-request configuration
 
@@ -211,6 +223,6 @@ OSU_MODELS_DIR=~/MLXModels-experimental OSU_PORT=1338 osaurus serve
 **Related:**
 
 - [Storage & Encryption](/storage) — SQLCipher migration, key rotation, plaintext export
-- [Memory](/memory) — settings explained
+- [Memory Internals](/memory-internals) — settings explained
 - [Inference Runtime](/inference-runtime) — what the batch-size knob actually does
-- [Identity & Access](/identity) — `osk-v1` keys, whitelists, revocation
+- [Identity](/identity) — `osk-v1` keys, whitelists, revocation

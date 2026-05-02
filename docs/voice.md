@@ -1,15 +1,15 @@
 ---
-title: Voice Input
-sidebar_label: Voice Input
-description: On-device speech-to-text via FluidAudio on Apple's Neural Engine. Voice in chat, wake-word activation, global dictation. All local.
+title: Voice
+sidebar_label: Voice
+description: Talk to your AI hands-free, dictate into any app, or transcribe meetings — all on-device. Nothing leaves your Mac.
 sidebar_position: 10
 ---
 
-# Voice Input
+# Voice
 
-Sometimes typing isn't convenient — you're cooking, exercising, or just want to think out loud. Osaurus has fully local speech-to-text powered by [FluidAudio](https://github.com/FluidInference/FluidAudio) on Apple's Neural Engine. Speak naturally, see your words appear in real time, knowing nothing leaves your Mac.
+Sometimes typing isn't convenient — you're cooking, driving, or just want to think out loud. Osaurus has fully local speech-to-text powered by [FluidAudio](https://github.com/FluidInference/FluidAudio) on Apple's Neural Engine. Speak naturally, see your words appear in real time, knowing nothing leaves your Mac.
 
-Three voice features, three different jobs:
+Three voice features for three different jobs:
 
 | Feature | What it does | Where it works |
 |---|---|---|
@@ -25,20 +25,14 @@ Three voice features, three different jobs:
    - **Parakeet model** — click **Download** to fetch the recommended model
 3. When both show checkmarks, the big mic button activates — tap to test
 
-If you'd rather configure it manually, the settings live in the same Voice tab.
+## Picking a model
 
-## Parakeet models
+Osaurus uses Parakeet TDT models for on-device speech recognition. Two versions are available:
 
-Osaurus uses [FluidAudio](https://github.com/FluidInference/FluidAudio) Parakeet TDT models for on-device speech recognition via CoreML and the Apple Neural Engine.
+- **Parakeet TDT v3** — the multilingual default. Recognizes 25 European languages including English, German, Spanish, French, and most major European languages. Pick this one unless you have a reason not to.
+- **Parakeet TDT v2** — English only, with a slight edge in pure-English recall. Pick this if you only ever dictate in English and want the best possible accuracy.
 
-| Model | Size | Languages | When to pick it |
-|---|---|---|---|
-| **Parakeet TDT v3 (0.6B)** | ~600 MB | Multilingual (25 European languages) | Recommended default |
-| **Parakeet TDT v2 (0.6B)** | ~600 MB | English only | Slightly better English recall |
-
-Models are stored at `~/Library/Application Support/FluidAudio/Models/`.
-
-Languages supported by v3: English, German, Spanish, French, Dutch, Italian, Danish, Estonian, Finnish, Greek, Hungarian, Latvian, Lithuanian, Maltese, Polish, Portuguese, Romanian, Slovak, Slovenian, Swedish, Russian, Ukrainian, Bulgarian, Croatian, Czech.
+Both models are about 600 MB and download once.
 
 ## Voice input in chat
 
@@ -46,7 +40,7 @@ The simplest mode. Click the microphone button in the chat input bar, speak, wat
 
 ### Settings
 
-| Setting | Default | Description |
+| Setting | Default | What it does |
 |---|---|---|
 | Voice input enabled | On | Master toggle for voice in chat |
 | Sensitivity | Medium | Voice detection threshold |
@@ -55,11 +49,11 @@ The simplest mode. Click the microphone button in the chat input bar, speak, wat
 
 ### Sensitivity levels
 
-| Level | Energy threshold | Silence detection | Best for |
-|---|---|---|---|
-| Low | Higher | 0.4s | Noisy environments, louder speech |
-| Medium | Balanced | 0.6s | Normal conversation |
-| High | Lower | 1.2s | Quiet environments, soft speech |
+| Level | Best for |
+|---|---|
+| Low | Noisy environments, louder speech |
+| Medium | Normal conversation |
+| High | Quiet environments, soft speech |
 
 ### Auto-send
 
@@ -85,7 +79,7 @@ System audio capture requires macOS 12.3+ and Screen Recording permission. Osaur
 
 ## VAD Mode (wake-word activation)
 
-VAD (Voice Activity Detection) Mode lets you activate Osaurus hands-free. Say an agent's name or a custom wake phrase to open chat with that agent.
+VAD ("Voice Activity Detection") Mode lets you activate Osaurus hands-free. Say an agent's name or a custom wake phrase, and chat opens with that agent.
 
 ### Enable VAD
 
@@ -93,19 +87,13 @@ VAD (Voice Activity Detection) Mode lets you activate Osaurus hands-free. Say an
 2. Select which agents should respond to wake words
 3. Optionally set a custom wake phrase like "Hey Osaurus"
 
-### How it works
+### How it feels
 
-```
-1. Osaurus listens in the background
-2. Real-time transcription is checked for agent names + wake phrase
-3. On a match, chat opens with the detected agent
-4. Voice input starts automatically (if enabled)
-5. After chat closes, VAD resumes listening
-```
+Osaurus listens in the background. When it hears an agent's name (or your custom wake phrase), the chat overlay appears with that agent ready, and voice input starts automatically. Close the chat and VAD goes back to listening.
 
 ### VAD settings
 
-| Setting | Default | Description |
+| Setting | Default | What it does |
 |---|---|---|
 | VAD Mode enabled | Off | Master toggle |
 | Enabled agents | None | Which agents respond to wake words |
@@ -146,7 +134,7 @@ Transcription Mode is a global hotkey that types your speech directly into any f
 
 A minimal floating overlay at the top of the screen with:
 
-- Status indicator ("Listening" with a pulsing accent color)
+- A "Listening" indicator with a pulsing accent color
 - Animated waveform that responds to audio level
 - Done button
 - Close button (cancels and discards)
@@ -158,7 +146,7 @@ The overlay stays on top of every window and follows your active theme. Reduced-
 - **Speak clearly.** Enunciate; don't mumble.
 - **External mic helps.** Built-ins work but external mics improve accuracy.
 - **Quiet environment.** Background noise hurts transcription.
-- **Use Parakeet TDT v3.** It's the multilingual model and has the best overall accuracy.
+- **Use Parakeet TDT v3.** Best overall accuracy unless you only need English.
 
 ### Use cases
 
