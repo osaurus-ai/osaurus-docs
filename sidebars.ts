@@ -78,6 +78,11 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "claude-plugins",
+          label: "Claude Plugins",
+        },
+        {
+          type: "doc",
           id: "themes",
           label: "Themes",
         },
@@ -92,6 +97,11 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "models",
           label: "Models",
+        },
+        {
+          type: "doc",
+          id: "osaurus-router",
+          label: "Osaurus Router",
         },
         {
           type: "doc",
@@ -193,11 +203,6 @@ const sidebars: SidebarsConfig = {
             },
             {
               type: "doc",
-              id: "claude-plugins",
-              label: "Claude Plugins",
-            },
-            {
-              type: "doc",
               id: "plugin-authoring",
               label: "Plugin Authoring",
             },
@@ -227,11 +232,6 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "remote-providers",
               label: "Remote Providers",
-            },
-            {
-              type: "doc",
-              id: "osaurus-router",
-              label: "Osaurus Router",
             },
             {
               type: "doc",
