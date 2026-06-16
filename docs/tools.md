@@ -1,7 +1,7 @@
 ---
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
-description: Twenty-plus native Swift/Rust plugins, plus support for v1 (tools) and v2 (full host API) ABIs. Tools are auto-selected via RAG — no manual configuration.
+description: Twenty-plus native Swift/Rust plugins across an append-only v1–v6 host ABI. Tools are auto-selected via RAG — no manual configuration.
 ---
 
 # Tools & Plugins
@@ -270,14 +270,23 @@ Remote tools are also available to MCP clients like Cursor and Claude Desktop th
 
 ## Plugin ABIs
 
-Plugins support two ABI versions:
+The native plugin host API is **append-only**. It has grown from v1 through **v6**, and every older plugin keeps loading unchanged against a newer host. Most plugins still choose between the two foundational tiers:
 
 | ABI | Capabilities |
 | --- | ------------ |
-| **v1** | Tools only — define tool schemas and handle invocations |
+| **v1** | Tools only — define tool schemas and handle invocations, with no host callbacks |
 | **v2** | Full host API — register HTTP routes, serve web apps, persist data in SQLite, dispatch agent tasks, and call inference through any model |
 
-v2 plugins have access to the full Osaurus runtime, enabling rich integrations that go beyond simple tool calls.
+v2 plugins have access to the full Osaurus runtime, enabling rich integrations that go beyond simple tool calls. Versions v3–v6 add capabilities on top of v2 without breaking anything:
+
+| ABI | Adds |
+| --- | ---- |
+| **v3** | Streaming control — cancel an in-flight completion by `stream_id` |
+| **v4** | Agent-context introspection — `get_active_agent_id()` so a plugin knows which agent invoked it |
+| **v5** | Structured logging — `log_structured()` emits searchable fields into Insights |
+| **v6** | Host-side `free_string()` — an allocator-stable free path for host-returned strings |
+
+Every new slot is optional: a plugin built against v6 checks `host->version` before calling a newer callback, and a v1 plugin runs fine on a v6 host. See the upstream [ABI versioning reference](https://github.com/osaurus-ai/osaurus/blob/main/docs/plugins/ABI_VERSIONS.md) for the full history and compatibility table.
 
 ### v2 capabilities
 
@@ -360,7 +369,7 @@ osaurus-tools/
 
 **Related:**
 
-- [Plugin Authoring](/plugin-authoring) — full guide to building v1/v2 plugins
+- [Plugin Authoring](/plugin-authoring) — full guide to building native plugins (v1–v6 ABI)
 - [Tool Contract](/tool-contract) — envelope shape every tool returns
 - [Sandbox Internals](/sandbox) — JSON-recipe plugins for the Linux sandbox
 - [Remote MCP Providers](/remote-mcp-providers) — connecting external MCP servers

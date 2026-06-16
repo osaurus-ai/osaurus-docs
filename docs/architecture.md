@@ -16,7 +16,7 @@ Osaurus presents three entry points:
 - **The Management window** (`⌘ ⇧ M`) — settings, agents, models, plugins, tools, memory, themes, automation
 - **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP
 
-All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1/v2 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **encrypted storage** (SQLCipher), and **relay** (public tunnels).
+All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **encrypted storage** (SQLCipher), and **relay** (public tunnels).
 
 ## How the pieces fit together
 
@@ -84,7 +84,7 @@ flowchart TB
 | **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
 | **Tools** | 20+ native plugins (Mail, Calendar, Browser, Git, …), remote MCP aggregation, the Linux Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
-| **Foundations** | Identity (signed requests, `osk-v1` keys), encrypted storage (SQLCipher), Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Public Links](/relay) |
+| **Foundations** | Identity (signed requests, `osk-v1` keys), encrypted storage (SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
 
 ## Entry points
 
@@ -120,16 +120,17 @@ Three local options and a cloud surface, all behind the same model picker:
 - **MLX** — local transformer / SSM models, optimized for Apple Silicon via vmlx-swift-lm's `BatchEngine` (continuous batching, content-addressed prefix caching). [Inference Runtime →](/inference-runtime)
 - **Apple Foundation Models** — Apple's on-device system model (`model: "foundation"`) on macOS 26+. Zero downloads, zero config.
 - **Liquid Foundation Models** — non-transformer architecture optimized for edge.
-- **Cloud providers** — OpenAI, Anthropic, xAI, OpenRouter, Venice, Ollama, LM Studio. API keys in macOS Keychain.
+- **Cloud providers** — OpenAI, Anthropic, Gemini, xAI, DeepSeek, MiniMax, Venice, AtlasCloud, Azure OpenAI, OpenRouter, Ollama, and more — plus the hosted **[Osaurus Router](/osaurus-router)**. API keys in macOS Keychain. [Remote Providers →](/remote-providers)
 
 Memory and agent context persist across all of them — switching from local Gemma to Claude 4 doesn't lose what your agent has learned about you.
 
 ## Tools
 
-Two ABIs for native plugins:
+An append-only host ABI for native plugins, **v1 through v6**:
 
 - **v1** — tools only
 - **v2** — full host API: HTTP routes, SQLite-backed config, web app serving, agent dispatch, inference, events
+- **v3–v6** — streaming cancellation, agent-context introspection, structured logging, and a host-side string free path, each added without breaking older plugins
 
 Plus **remote MCP providers** to aggregate tools from external MCP servers, and the **Linux Sandbox** (macOS 26+) for safe code execution. The sandbox itself accepts JSON-recipe plugins so users can extend an agent's capabilities without compiling anything.
 

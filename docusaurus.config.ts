@@ -6,7 +6,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Osaurus Docs",
-  tagline: "Native Apple Silicon local LLM server",
+  tagline: "Own your AI — a local-first agent harness for Apple Silicon",
   favicon: "img/osaurus-squirqle.svg",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -107,7 +107,7 @@ const config: Config = {
       tagName: "meta",
       attributes: {
         property: "og:title",
-        content: "Osaurus — Local-First AI Runtime for Apple Silicon",
+        content: "Osaurus — Own Your AI on Apple Silicon",
       },
     },
     {
@@ -115,7 +115,7 @@ const config: Config = {
       attributes: {
         property: "og:description",
         content:
-          "Run AI models locally with complete privacy. OpenAI- & Ollama-compatible APIs, powered by Apple MLX.",
+          "Run AI agents with memory, tools, and identity entirely on your Mac — offline and open source. OpenAI-, Anthropic-, Ollama-, and MCP-compatible so any client connects.",
       },
     },
     {
@@ -136,7 +136,7 @@ const config: Config = {
       tagName: "meta",
       attributes: {
         name: "twitter:title",
-        content: "Osaurus — Local-First AI Runtime for Apple Silicon",
+        content: "Osaurus — Own Your AI on Apple Silicon",
       },
     },
     {
@@ -144,7 +144,7 @@ const config: Config = {
       attributes: {
         name: "twitter:description",
         content:
-          "Run AI models locally with complete privacy and blazing performance.",
+          "Own your AI: local-first agents with memory, tools, and identity on Apple Silicon. Offline, open source, and API-compatible with OpenAI, Anthropic, and Ollama.",
       },
     },
     {
@@ -173,7 +173,7 @@ const config: Config = {
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS",
         description:
-          "The fastest and most private AI runtime built specifically for Apple Silicon. Run AI models locally with complete privacy and blazing performance.",
+          "Open-source, local-first AI harness for Apple Silicon. Run AI agents with persistent memory, tools, and a cryptographic identity entirely on your Mac — offline. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
         url: "https://osaurus.ai",
         author: {
           "@type": "Organization",
@@ -196,12 +196,12 @@ const config: Config = {
       {
         name: "description",
         content:
-          "Osaurus — the fastest and most private AI runtime built specifically for Apple Silicon. Run AI models locally with complete privacy and blazing performance.",
+          "Osaurus is an open-source, local-first AI harness for Apple Silicon — run AI agents with persistent memory, tools, and a cryptographic identity on your Mac, fully offline. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
       },
       {
         name: "keywords",
         content:
-          "Osaurus, local AI, Apple Silicon, MLX, OpenAI API, Ollama, Swift, SwiftNIO, macOS, privacy",
+          "Osaurus, local AI, AI agents, AI harness, agent memory, Apple Silicon, MLX, OpenAI API, Anthropic API, Ollama, MCP, identity, private AI, offline AI, macOS, Swift",
       },
       { name: "robots", content: "index, follow" },
     ],

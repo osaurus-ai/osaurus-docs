@@ -25,9 +25,26 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
-      type: "doc",
-      id: "security",
+      type: "category",
       label: "Privacy & Trust",
+      collapsed: false,
+      items: [
+        {
+          type: "doc",
+          id: "security",
+          label: "Security & Privacy",
+        },
+        {
+          type: "doc",
+          id: "privacy-filter",
+          label: "Privacy Filter",
+        },
+        {
+          type: "doc",
+          id: "telemetry",
+          label: "Telemetry",
+        },
+      ],
     },
     {
       type: "category",
@@ -53,6 +70,11 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "voice",
           label: "Voice",
+        },
+        {
+          type: "doc",
+          id: "app-intents",
+          label: "Shortcuts & Siri",
         },
         {
           type: "doc",
@@ -97,6 +119,11 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "watchers",
           label: "Watchers",
+        },
+        {
+          type: "doc",
+          id: "agent-db",
+          label: "Agent DB & Self-Scheduling",
         },
       ],
     },
@@ -166,6 +193,11 @@ const sidebars: SidebarsConfig = {
             },
             {
               type: "doc",
+              id: "claude-plugins",
+              label: "Claude Plugins",
+            },
+            {
+              type: "doc",
               id: "plugin-authoring",
               label: "Plugin Authoring",
             },
@@ -195,6 +227,11 @@ const sidebars: SidebarsConfig = {
               type: "doc",
               id: "remote-providers",
               label: "Remote Providers",
+            },
+            {
+              type: "doc",
+              id: "osaurus-router",
+              label: "Osaurus Router",
             },
             {
               type: "doc",

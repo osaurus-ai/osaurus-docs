@@ -200,7 +200,7 @@ async function getBestModel() {
 ## Privacy and Security
 
 - **100% on-device** — No data leaves your Mac
-- **No telemetry** — Apple Foundation Models don't phone home via Osaurus
+- **No network calls** — Apple Foundation Models run entirely locally; inference never leaves your Mac
 - **Sandboxed** — Runs within macOS security boundaries
 - **No API keys** — No authentication or tracking
 

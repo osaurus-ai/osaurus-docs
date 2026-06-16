@@ -247,4 +247,5 @@ Each agent gets a cryptographic address derived from your master key. You can mi
 - [Tasks](/agent-loop) — what happens when you ask the agent to *do* something
 - [Skills](/skills) — auto-selected expertise
 - [Memory](/memory) — what your agent remembers
+- [Agent DB & Self-Scheduling](/agent-db) — give an agent structured storage and the ability to wake itself
 - [Themes](/themes) — visual customization per agent

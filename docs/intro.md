@@ -48,6 +48,7 @@ A short tour of the things you can do once Osaurus is installed.
 - **A Linux Sandbox** *(macOS 26+)*. Toggle it on and the agent can run real code — shell, Python, Node — in an isolated VM with zero risk to your Mac.
 - **Schedules and Watchers.** Run an agent on a timer, or whenever a folder changes. Useful for daily journals, screenshot organizers, end-of-day commits.
 - **Voice input.** Dictate in chat, talk to an agent hands-free with a wake word, or hold a hotkey to dictate into any app — all on-device.
+- **A Privacy Filter for cloud prompts** *(experimental)*. An on-device classifier scrubs names, emails, and secrets out of anything you send to a cloud provider — you review what's redacted, and it blocks the send rather than leak.
 - **Themes.** Built-in light/dark, fully editable, importable as JSON.
 - **Identity that's yours.** A cryptographic address for you and each of your agents. Issue access keys for outside tools, scope them per-agent, revoke them whenever.
 - **Public links without ports.** Give one agent a stable public URL via a secure tunnel through `agent.osaurus.ai` — no port forwarding, no ngrok.

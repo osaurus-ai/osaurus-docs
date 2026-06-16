@@ -1,7 +1,7 @@
 ---
 title: Remote Providers
 sidebar_label: Remote Providers
-description: Connect Osaurus to OpenAI, Anthropic, xAI, OpenRouter, Ollama, LM Studio, and any custom OpenAI-compatible endpoint.
+description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, DeepSeek, MiniMax, Venice, OpenRouter, Ollama, and any custom OpenAI-compatible endpoint — by API key or browser sign-in.
 ---
 
 # Remote Providers
@@ -27,15 +27,28 @@ Remote Providers let you connect Osaurus to external inference APIs (OpenAI, Ant
 
 ### Provider presets
 
+Osaurus ships first-class presets for the providers below — pick one and you only fill in a key (or sign in). The OAuth-capable providers are listed first because a browser sign-in is the lowest-friction path.
+
 | Preset | Host | Port | Base path | API format | Auth |
 |---|---|---|---|---|---|
-| **Anthropic** | `api.anthropic.com` | 443 | `/v1` | Anthropic | API key required |
-| **OpenAI** | `api.openai.com` | 443 | `/v1` | OpenAI | API key required |
-| **xAI** | `api.x.ai` | 443 | `/v1` | OpenAI | API key required |
-| **OpenRouter** | `openrouter.ai` | 443 | `/api/v1` | OpenAI | API key required |
-| **Custom** | (you specify) | — | `/v1` | OpenAI | Optional |
+| **OpenAI** | `api.openai.com` | 443 | `/v1` | OpenAI / Open Responses | API key or browser sign-in |
+| **xAI** | `api.x.ai` | 443 | `/v1` | OpenAI-compatible | API key or browser sign-in |
+| **OpenRouter** | `openrouter.ai` | 443 | `/api/v1` | OpenAI-compatible | API key or browser sign-in |
+| **Anthropic** | `api.anthropic.com` | 443 | `/v1` | Anthropic | API key |
+| **Google (Gemini)** | `generativelanguage.googleapis.com` | 443 | `/v1beta` | Gemini | API key |
+| **Azure OpenAI Foundry** | your resource host | 443 | `/openai/v1` | OpenAI | API key |
+| **AtlasCloud** | `api.atlascloud.ai` | 443 | `/v1` | OpenAI-compatible | API key |
+| **DeepSeek** | `api.deepseek.com` | 443 | `/v1` | OpenAI-compatible | API key |
+| **MiniMax** | `api.minimax.io` | 443 | `/v1` | OpenAI-compatible | API key |
+| **Venice AI** | `api.venice.ai` | 443 | `/api/v1` | OpenAI-compatible | API key |
+| **Ollama** | `localhost` | 11434 | `/v1` | OpenAI-compatible | None (local) |
+| **Custom** | (you specify) | — | `/v1` | OpenAI-compatible | Optional |
 
-For Ollama, LM Studio, Venice AI, or any other OpenAI-compatible endpoint, use **Custom** and configure host/port manually. See [Provider-specific notes](#provider-specific-notes) below.
+Need something else? Use **Custom** for LM Studio or any other OpenAI-compatible endpoint. For a hosted, zero-setup option tied to your Osaurus account (no key to paste), see [Osaurus Router](/osaurus-router).
+
+### Signing in with OAuth
+
+**OpenAI**, **xAI**, and **OpenRouter** support a **browser sign-in** instead of an API key: pick the provider, click **Sign in**, and authorize in your browser. For OpenAI you can sign in with your **ChatGPT / Codex** account or paste a Platform API key — either works. These providers are surfaced first in the picker because OAuth is the quickest way to connect.
 
 ### API format types
 
@@ -147,10 +160,21 @@ The model name should match what the remote provider expects.
 Host:     api.openai.com
 Protocol: HTTPS
 Base:     /v1
-Auth:     API key (platform.openai.com)
+Auth:     API key (platform.openai.com) or browser sign-in
 ```
 
-All ChatGPT models via the OpenAI API.
+Sign in with your **ChatGPT / Codex** account for the lowest-friction setup, or paste a Platform API key — either works.
+
+### xAI
+
+```
+Host:     api.x.ai
+Protocol: HTTPS
+Base:     /v1
+Auth:     API key (console.x.ai) or browser sign-in
+```
+
+Grok models, with browser sign-in or a pasted key.
 
 ### OpenRouter
 
@@ -158,7 +182,7 @@ All ChatGPT models via the OpenAI API.
 Host:     openrouter.ai
 Protocol: HTTPS
 Base:     /api/v1
-Auth:     API key (openrouter.ai)
+Auth:     API key (openrouter.ai) or browser sign-in
 ```
 
 OpenRouter aggregates many providers. Use IDs like:
@@ -177,32 +201,70 @@ Auth:     API key (console.anthropic.com)
 Format:   Anthropic
 ```
 
-### xAI
+Claude models, spoken natively over the Anthropic Messages format.
+
+### Google (Gemini)
 
 ```
-Host:     api.x.ai
+Host:     generativelanguage.googleapis.com
+Protocol: HTTPS
+Base:     /v1beta
+Auth:     API key (aistudio.google.com)
+Format:   Gemini
+```
+
+### Azure OpenAI Foundry
+
+```
+Host:     your resource endpoint (e.g. my-resource.openai.azure.com)
+Protocol: HTTPS
+Base:     /openai/v1
+Auth:     API key (Azure AI Foundry)
+```
+
+Point the host at your own Azure OpenAI resource and add deployment names if they don't appear automatically.
+
+### AtlasCloud
+
+```
+Host:     api.atlascloud.ai
 Protocol: HTTPS
 Base:     /v1
-Auth:     API key (x.ai)
+Auth:     API key (atlascloud.ai)
+```
+
+OpenAI-compatible access to DeepSeek, Qwen, GLM, Kimi, and MiniMax models.
+
+### DeepSeek
+
+```
+Host:     api.deepseek.com
+Protocol: HTTPS
+Base:     /v1
+Auth:     API key (platform.deepseek.com)
+```
+
+### MiniMax
+
+```
+Host:     api.minimax.io
+Protocol: HTTPS
+Base:     /v1
+Auth:     API key (platform.minimax.io)
 ```
 
 ### Venice AI
 
-Use the **Custom** preset:
-
 ```
 Host:     api.venice.ai
 Protocol: HTTPS
-Base:     /v1
+Base:     /api/v1
 Auth:     API key (venice.ai)
-Format:   OpenAI
 ```
 
-Venice provides uncensored, privacy-focused inference with no data retention.
+Privacy-first, uncensored inference with no data retention.
 
 ### Ollama
-
-Use the **Custom** preset:
 
 ```
 Host:     localhost (or remote Ollama IP)
@@ -212,7 +274,7 @@ Base:     /v1
 Auth:     None (unless you've configured Ollama auth)
 ```
 
-To expose Ollama on the network:
+Run models locally via Ollama. To expose Ollama on the network:
 
 ```bash
 OLLAMA_HOST=0.0.0.0:11434 ollama serve
@@ -269,5 +331,7 @@ This file contains connection settings but **not** API keys or secret headers.
 **Related:**
 
 - [Models](/models) — how cloud and local models share the same picker
+- [Osaurus Router](/osaurus-router) — hosted inference with no key to paste
+- [Privacy Filter](/privacy-filter) — redact sensitive content before it reaches a cloud provider
 - [HTTP API](/api) — what callers see once a provider is connected
 - [Remote MCP Providers](/remote-mcp-providers) — connecting Osaurus to remote *tool* providers (different feature)

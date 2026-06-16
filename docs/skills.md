@@ -173,6 +173,7 @@ Curious about how methods are scored, the auto-selection mechanics, or the searc
 **Related:**
 
 - [Agents](/agents) — skills are auto-selected per agent per turn
+- [Claude Plugins](/claude-plugins) — import skills, agents, commands, and MCP servers from GitHub
 - [Tools & Plugins](/tools) — what tools exist and how they're built
 - [Methods](/methods) — the developer view on the auto-selection layer
 - [Agent Skills Specification](https://agentskills.io/) — the open format Osaurus follows

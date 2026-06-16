@@ -162,16 +162,21 @@ Connect to cloud providers when you need more power. Each provider's models appe
 
 | Provider | Notes |
 |---|---|
-| **OpenAI** | GPT-4o, o-series, etc. via OpenAI Chat Completions |
+| **OpenAI** | GPT-4o, o-series, etc. — API key or ChatGPT / Codex sign-in |
 | **Anthropic** | Claude family via Anthropic Messages |
 | **Gemini** | Google Gemini |
-| **xAI / Grok** | xAI's Grok via OpenAI-compatible endpoint |
+| **xAI / Grok** | xAI's Grok — API key or browser sign-in |
+| **DeepSeek** | DeepSeek V-series via OpenAI-compatible endpoint |
+| **MiniMax** | MiniMax M-series models |
 | **Venice AI** | Privacy-focused, uncensored, no data retention |
+| **AtlasCloud** | DeepSeek, Qwen, GLM, Kimi, MiniMax under one key |
+| **Azure OpenAI** | OpenAI models on your own Azure resource and deployments |
 | **OpenRouter** | One key, many providers (`openai/gpt-4o`, `anthropic/claude-3.5-sonnet`, …) |
 | **Ollama** | Local or remote Ollama servers |
-| **LM Studio** | LM Studio's local server |
+| **LM Studio** | LM Studio's local server (via Custom) |
+| **[Osaurus Router](/osaurus-router)** | Hosted inference tied to your Osaurus account — no key to paste |
 
-Add a provider via **Management → Providers → Add Provider**. API keys are stored in the macOS Keychain. [Remote Providers →](/remote-providers)
+Add a provider via **Management → Providers → Add Provider**. Connect with an API key (stored in the macOS Keychain) or a browser sign-in where supported. [Remote Providers →](/remote-providers)
 
 Memory and agent context persist across providers — switching from your local Gemma to Claude 4 or GPT-4o doesn't lose your agent's memory.
 
@@ -259,5 +264,6 @@ Curious about continuous batching, the KV cache, batch size tuning, or how the i
 
 - [Apple Intelligence](/models/apple-intelligence) — using `foundation` on macOS 26+
 - [Remote Providers](/remote-providers) — connecting cloud providers
+- [Osaurus Router](/osaurus-router) — hosted inference with no key to paste
 - [Inference Runtime](/inference-runtime) — how MLX inference works under the hood
 - [OsaurusAI on Hugging Face](https://huggingface.co/OsaurusAI) — the canonical model catalog

@@ -327,6 +327,25 @@ pub extern "C" fn plugin_free_string(s: *mut c_char) {
 
 The v2 ABI extends the plugin system with full host API access. While v1 plugins are limited to tool definitions and invocations, v2 plugins can interact with the entire Osaurus runtime.
 
+The host API is **append-only**: v2 established the full base set, and v3–v6 each appended one optional capability without changing the existing struct layout — so a plugin built against any version keeps loading on a newer host.
+
+| ABI | Adds on top of the previous version |
+|---|---|
+| **v3** | `complete_cancel(stream_id)` — cancel an in-flight streaming completion from any thread |
+| **v4** | `get_active_agent_id()` — learn which agent invoked the current callback; the host also enforces agent scope on plugin-initiated work |
+| **v5** | `log_structured(level, message, payload)` — emit JSON fields that become searchable in Insights |
+| **v6** | `free_string(ptr)` — a host-owned, allocator-stable free path for strings the host returned |
+
+Because a newer slot is `NULL` on an older host, always guard a newer call against `host->version`:
+
+```c
+if (host->version >= 5 && host->log_structured) {
+    host->log_structured(2, "event", "{\"key\":\"value\"}");
+} else {
+    host->log(2, "event {key=value}");  // fallback
+}
+```
+
 ### v2 Capabilities
 
 | Capability | Manifest key | Description |
@@ -362,6 +381,9 @@ The dispatch task ID and the persisted session ID are intentionally the same UUI
 
 - Use **v1** for simple tools that respond to invocations — file utilities, API wrappers, data transformers
 - Use **v2** when your plugin needs persistent state, background processing, web UIs, or cross-agent communication
+- Target a **higher version (v3–v6)** only for the specific slot you need — streaming cancellation (v3), agent-context introspection (v4), structured logging (v5), or the host-side `free_string` (v6) — and keep a defensive `host->version` check so your plugin still runs on older hosts
+
+For the complete callback reference and migration notes, see the upstream [Host API](https://github.com/osaurus-ai/osaurus/blob/main/docs/plugins/HOST_API.md) and [ABI Versioning](https://github.com/osaurus-ai/osaurus/blob/main/docs/plugins/ABI_VERSIONS.md) docs.
 
 Specify the ABI version in your manifest:
 

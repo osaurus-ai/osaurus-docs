@@ -1,7 +1,7 @@
 ---
 title: Security & Privacy
 sidebar_label: Security & Privacy
-description: What we do to keep your data yours — encryption at rest, signed identity, sandboxed execution, no telemetry, no backdoors. And why open source means trust.
+description: What we do to keep your data yours — encryption at rest, signed identity, sandboxed execution, on-device PII redaction, no backdoors. And why open source means trust.
 ---
 
 # Security & Privacy
@@ -67,14 +67,15 @@ We owe you an honest list:
 
 | Feature | What can leave | How to control it |
 |---|---|---|
-| **Cloud provider model** | The prompts and conversation context you send to that provider | Stick with local models or `foundation`; don't connect a cloud provider |
+| **Cloud provider model** | The prompts and conversation context you send to that provider | Stick with local models or `foundation`; or turn on the [Privacy Filter](/privacy-filter) to redact sensitive content before it's sent |
 | **Relay** | Inbound HTTPS for one specific agent via `agent.osaurus.ai` | Per-agent toggle in **Server → Relays**; off by default; revoke any time |
 | **Sandbox network** | Outbound HTTP from the Linux VM | Set `network: "none"` in `~/.osaurus/config/sandbox.json` |
 | **Voice** | **Nothing** — fully on-device via FluidAudio | Always local |
 | **Memory distillation** | **Nothing** — runs through your Core Model on your Mac | Always local |
-| **Telemetry / analytics** | **Nothing** — we don't have any | We don't collect any metrics, ever |
+| **Usage analytics** | Anonymous, aggregated product metrics — **never** your chats, prompts, keys, or file contents | Opt-out in **Settings → Privacy → Share Anonymous Usage Data**; off entirely in source builds. [Details →](/telemetry) |
+| **Crash reports** | Crash and hang diagnostics with no personal information | Opt-out in **Settings → Privacy → Send Crash Reports**; off entirely in source builds. [Details →](/telemetry) |
 
-When you connect a remote provider, the **Insights** tab shows you exactly what was sent and received for every request. There's no hidden traffic.
+When you connect a remote provider, the **Insights** tab shows you exactly what was sent and received for every request — there's no hidden traffic. If you enable the [Privacy Filter](/privacy-filter), Insights also captures the exact post-redaction bytes that left your Mac, so you can confirm sensitive values were actually scrubbed.
 
 ---
 
@@ -83,6 +84,7 @@ When you connect a remote provider, the **Insights** tab shows you exactly what 
 A short, plain-language tour of the things we've built in:
 
 - **At-rest encryption** — All sensitive SQLite databases are SQLCipher-encrypted with a 32-byte key in your Keychain. Large attachments are AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
+- **On-device PII redaction** — The optional [Privacy Filter](/privacy-filter) scrubs names, emails, secrets, and more from cloud-bound prompts before they leave, using an on-device classifier. It's fail-closed (a detected leak blocks the send) and verifiable in Insights.
 - **Signed and replay-protected requests** — Every authenticated call carries a per-device monotonic counter the server checks. Replays get `401`.
 - **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
 - **Pairings expire** — Bonjour-paired devices get **agent-scoped, 90-day** access keys by default. Permanent keys are explicit opt-in.
@@ -101,7 +103,7 @@ A security claim is only as good as your ability to verify it. Osaurus is **MIT-
 - **You can read the code.** Every line of Osaurus is on [GitHub](https://github.com/osaurus-ai/osaurus). The handler that processes your prompt, the function that writes a memory entry, the routine that signs every request — all auditable.
 - **You can build it yourself.** [Building from Source](/developer) takes about 10 minutes. Reproducible builds: SPM dependencies are pinned to commits; CI is pinned to a specific Xcode version. The binary you run can match the binary you compile.
 - **You can fork it.** If we ever did something you disagreed with, you could fork it and keep the version you trust. We can't.
-- **No telemetry.** We don't run analytics, ping a server on launch, or count active users. We don't know what models you run, what plugins you install, or what you ask. This is verifiable: search the repo for `URLSession.*shared` and audit every call.
+- **Telemetry is anonymous, optional, and fully documented.** Osaurus collects anonymous, aggregated usage analytics and crash reports — both opt-out, both off in source builds, and **never** including your chats, prompts, keys, file contents, agent names, or any per-user identifier. Every event we send is enumerated in the [Telemetry](/telemetry) reference, and because the code is open you can verify exactly what leaves.
 - **Public security policy.** Vulnerability reporting goes through [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories). Acknowledgement within 72 hours.
 - **No backdoors, no escrow keys.** There's no master key the maintainers hold. If you wipe your Mac without a backup, even *we* can't recover your data — that's the trade-off, and it's intentional. [More on key recovery →](/storage#limitations)
 
@@ -118,9 +120,9 @@ To be very explicit:
 - The **contents of your conversations** — they're encrypted at rest with the storage key
 - The **text of your voice input** — it's transcribed locally and never written
 - The **names of agents** you've created, the **skills** you've imported, or the **plugins** you've installed
-- **Anything else, basically.** The codebase has no "phone home"
+- **Anything that could identify you.** The only data that ever leaves automatically is anonymous, aggregated usage analytics and crash diagnostics — both opt-out, both off in source builds, and never tied to you. See [Telemetry](/telemetry).
 
-The only data we ever see is what *you choose* to put in a public GitHub issue, Discord message, or email. That's the entire surface area.
+Beyond that anonymous telemetry, the only data we ever see is what *you choose* to put in a public GitHub issue, Discord message, or email.
 
 ---
 

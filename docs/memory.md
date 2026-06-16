@@ -105,5 +105,6 @@ Curious about the pipeline, the consolidation math, the HTTP API, or the search 
 **Related:**
 
 - [Agents](/agents) — memory is scoped per agent
+- [Agent DB & Self-Scheduling](/agent-db) — per-agent structured storage, separate from conversational memory
 - [Storage & Encryption](/storage) — how the SQLite databases are encrypted
 - [Memory Internals](/memory-internals) — the developer-facing deep dive
