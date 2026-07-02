@@ -1,7 +1,7 @@
 ---
 title: Memory
 sidebar_label: Memory
-description: Your AI remembers what matters and forgets the noise — privately, on your Mac. Identity facts, pinned takeaways, and per-session digests, all encrypted at rest.
+description: Your AI remembers what matters and forgets the noise — privately, on your Mac. Identity facts, pinned takeaways, and per-session digests, never leaving your machine.
 sidebar_position: 7
 ---
 
@@ -90,7 +90,7 @@ Each agent has its own memory. Your Code Assistant doesn't carry over context fr
 
 Everything stays on your Mac:
 
-- The memory database is **encrypted at rest** with SQLCipher; the key lives in your macOS Keychain.
+- The memory database lives only on your Mac, protected at rest by FileVault — with opt-in SQLCipher encryption if you want more. See [Storage](/storage).
 - The "extract memory from this session" step runs through your **Core Model** — by default, Apple's on-device `foundation` on macOS 26+, which means even that step never touches the network.
 - Set a remote model as your Core Model only if you explicitly want memory distillation to use it.
 
@@ -106,5 +106,5 @@ Curious about the pipeline, the consolidation math, the HTTP API, or the search 
 
 - [Agents](/agents) — memory is scoped per agent
 - [Agent DB & Self-Scheduling](/agent-db) — per-agent structured storage, separate from conversational memory
-- [Storage & Encryption](/storage) — how the SQLite databases are encrypted
+- [Storage & Encryption](/storage) — how the SQLite databases are protected
 - [Memory Internals](/memory-internals) — the developer-facing deep dive

@@ -10,7 +10,7 @@ Osaurus includes built-in developer tools for debugging, monitoring, and testing
 
 ## Insights
 
-The **Insights** tab provides real-time monitoring of every API request flowing through Osaurus.
+The **Insights** tab shows every API request flowing through Osaurus in real time.
 
 ### Request log
 
@@ -210,7 +210,7 @@ The Insights log grows over time. Use **Clear** to reset when debugging a specif
 
 Filter by source to distinguish between:
 
-- **Chat** — Requests from the built-in chat UI
+- **Chat** — Requests from the built-in chat
 - **HTTP** — Requests from external applications
 
 ### Copy responses
@@ -223,7 +223,7 @@ Server Explorer requires the server to be running. If endpoints are disabled, st
 
 ## CI testing conventions
 
-For contributors. How CI runs the Osaurus test suite, and the hooks that exist to debug it when it goes sideways.
+For contributors: how CI runs the Osaurus test suite, and the hooks for debugging it when it goes sideways.
 
 ### Reproduce CI locally
 

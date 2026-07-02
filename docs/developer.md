@@ -19,8 +19,6 @@ Osaurus is built with **native Swift**—not Python, not Electron, not wrapped w
 | **Memory**      | 50MB+ baseline                  | Minimal footprint               |
 | **Integration** | Bridging required               | Native macOS APIs               |
 
-Contributing to Osaurus means building **production-quality tools** that developers actually want to use daily.
-
 ## Getting Started
 
 ### Prerequisites
@@ -152,7 +150,7 @@ refactor: Simplify router implementation
 
 ## Building Plugins
 
-Osaurus has a powerful plugin system for extending AI agent capabilities. Plugins are native binaries that expose tools via the MCP protocol.
+Plugins extend agent capabilities. They are native binaries that expose tools via the MCP protocol.
 
 ### Quick Start
 

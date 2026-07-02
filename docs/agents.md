@@ -18,6 +18,7 @@ An agent is a saved configuration with its own:
 - **Capabilities** — its own enabled set of tools and skills, plus an *Auto-discover* toggle (more below)
 - **Memory** — pinned facts, episode digests, and identity overrides are stored per-agent
 - **Sandbox autonomy** — optional `autonomous_exec` config that controls what the agent can do in the [Linux Sandbox](/agent-loop)
+- **Subagents** — per-agent delegation settings: spawnable agents/models, the `image` tool, Computer Use, and AppleScript, all off by default (see [Subagents](/subagents))
 - **Quick actions** — per-agent prompt templates shown in the chat empty state, separate lists for Chat and Work modes
 - **Plugin instructions** — optional per-plugin instruction overrides
 - **Bonjour discovery** — opt-in flag that advertises the agent on your local network so connector apps can find it
@@ -167,6 +168,10 @@ These are per-chat power-ups, not per-agent settings:
 The agent's `autonomous_exec` config (set when you created the agent, editable later) controls how much capability it has *if the Sandbox is on*. Read-only sandbox tools (`sandbox_read_file`, `sandbox_search_files`) are always available; write/exec/install/secret tools require `autonomous_exec.enabled = true`.
 
 [Tasks →](/agent-loop) · [Sandbox Internals →](/sandbox)
+
+## Subagents per agent
+
+Each agent's **Subagents** tab controls what it can delegate: spawning other agents and models, generating images inline, driving macOS apps with Computer Use, and running AppleScript. Everything ships disabled — an agent can't delegate until you grant it. [Subagents →](/subagents) · [Computer Use →](/computer-use) · [Image Generation →](/image-generation)
 
 ## Memory per agent
 

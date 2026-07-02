@@ -1,7 +1,7 @@
 ---
 title: Methods
 sidebar_label: Methods
-description: Learned workflows that agents save after successful runs — YAML sequences of tool calls, scored by recency-weighted success rate, auto-loaded by the same RAG search that picks skills and tools.
+description: Learned workflows agents save after successful runs — YAML tool-call sequences scored by success rate and loaded by the same RAG search as skills and tools.
 ---
 
 # Methods
@@ -65,7 +65,7 @@ Loading a method through `capabilities_load` automatically loads its referenced 
 
 ## Storage
 
-Methods live in `~/.osaurus/methods/methods.sqlite` (encrypted with SQLCipher since 0.17.7).
+Methods live in `~/.osaurus/methods/methods.sqlite` (SQLCipher-encrypted if you've opted in to [storage encryption](/storage)).
 
 ## Browsing methods
 

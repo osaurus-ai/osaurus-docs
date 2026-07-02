@@ -1,17 +1,20 @@
 ---
 title: Privacy Filter
 sidebar_label: Privacy Filter
-description: On-device redaction for cloud-bound prompts. An Apache-2.0 classifier plus regex rules scrub names, emails, secrets, and more before anything leaves your Mac — fail-closed and verifiable in Insights.
+description: On-device redaction for cloud-bound prompts. Regex rules work out of the box; an optional on-device AI classifier catches names, addresses, and secrets — fail-closed and verifiable in Insights.
 ---
 
 # Privacy Filter
 
 When you talk to a local model, nothing leaves your Mac. But the moment you send a prompt to a cloud provider, your words travel to someone else's servers. The **Privacy Filter** is a redaction gate that sits between the chat and any cloud provider: it detects sensitive content on the way out, lets you review it, swaps it for placeholders, sends the scrubbed version, and restores the originals locally when the reply streams back.
 
-The detector runs **entirely on your Mac** — OpenAI's [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter) (Apache-2.0), served through the MLX conversion [`mlx-community/openai-privacy-filter-bf16`](https://huggingface.co/mlx-community/openai-privacy-filter-bf16) (~2.8 GB). No third-party model ever sees your raw text, not even to *decide* what counts as sensitive.
+Detection runs as **two independent layers**:
+
+- **Deterministic regex** — built-in patterns, opt-in presets, and your custom rules. Works immediately with **zero download**, and is all most users need.
+- **On-device AI classifier** *(opt-in)* — catches the fuzzy shapes regex can't model: names, addresses, dates, free-form secrets. Choose between two models; nothing is downloaded unless you turn AI detection on, and the model runs entirely on your Mac — no third-party model ever sees your raw text, not even to *decide* what counts as sensitive.
 
 :::info[Experimental]
-The Privacy Filter is an experimental feature. The on-device classifier catches common shapes (names, emails, phones, URLs, addresses, dates, account numbers, free-form secrets) and the regex layer covers deterministic ones (SSN, credit cards, IBAN, AWS keys, GitHub tokens, passports, driver's licenses). Always review the redaction sheet for messages that contain things you genuinely care about.
+The Privacy Filter is an experimental feature. The regex layer covers deterministic shapes (email, URL, phone, SSN, credit cards, IBAN, AWS keys, GitHub tokens, passports, driver's licenses); AI detection adds names, addresses, dates, and secrets. Always review the redaction sheet for messages that contain things you genuinely care about.
 :::
 
 ## The gate
@@ -22,20 +25,24 @@ The pipeline is a one-way street with a checkpoint:
 detect → review → scrub → send → stream back → unscrub → render
 ```
 
-It is **fail-closed** on every send. If the model isn't available, if scrubbing produced no changes, or if a post-scrub re-scan finds anything that leaked, the send is **blocked** and you're told why — Osaurus never silently falls back to sending the original. You are never the last line of defense.
+It is **fail-closed** on every send. If scrubbing produced no changes, or a post-scrub re-scan finds anything that leaked, the send is **blocked** and you're told why — Osaurus never silently falls back to sending the original. Fail-closed holds per layer: with AI detection **on**, a missing or corrupt model blocks the send; with AI detection **off**, the regex layer runs on its own and never blocks on a model.
 
 ## Getting started
 
-1. Open the Management window (`⌘ ⇧ M`) → **Privacy**.
-2. On first launch you'll see an install screen. Click **Install** — the ~2.8 GB model bundle streams from Hugging Face and is SHA-256 verified file-by-file before the filter can be enabled.
-3. Once verified, the surface flips to four tabs (**Overview**, **Rules**, **Providers**, **Model**). Turn on **Enable Privacy Filter** in Overview.
-4. Send a chat message containing personal info to a cloud provider. A **review sheet** appears showing each detected entity, its surrounding context, and a side-by-side scrubbed preview. Approve, and the scrubbed message sends; the reply streams back with placeholders restored inline.
+1. Open the Management window (`⌘ ⇧ M`) → **Privacy**. All four tabs (**Overview**, **Rules**, **Providers**, **Model**) are available immediately — no download required.
+2. Turn on **Enable Privacy Filter** in Overview. The regex layer is now active.
+3. *(Optional)* To also catch names, addresses, and free-form secrets, open the **Model** tab, install an AI model, and turn on **AI detection** in Overview. The toggle stays disabled until a model is installed and verified.
+4. Send a chat message containing personal info to a cloud provider. A **review sheet** appears showing each detected entity and a side-by-side scrubbed preview. Approve, and the scrubbed message sends; the reply streams back with placeholders restored inline.
 
-The master toggle is sticky — it persists synchronously, so quitting Osaurus right after toggling can't lose the setting.
+Both toggles persist synchronously, so quitting Osaurus right after toggling can't lose the setting.
+
+:::tip[Test before you trust]
+The **Rules** tab has a built-in **dry-run tester** — paste sample text and see every entity your live rule set (plus the AI model, when it's on) would redact, with the placeholder each one gets.
+:::
 
 ## What it detects
 
-Three detector layers run in sequence and their results are merged, so overlapping hits from different layers collapse to a single entity in the review sheet.
+Detection results from all layers are merged, so overlapping hits collapse to a single entity in the review sheet.
 
 ### Built-in patterns
 
@@ -62,11 +69,23 @@ Opt-in patterns for common secrets and IDs, shipped **disabled**. Enable them in
 
 ### Custom rules
 
-Your own regex, added under **Privacy → Rules → Custom Rules**. Patterns are validated before they're saved, so a broken regex never makes it to disk (and a rule that later fails to compile is dropped rather than crashing the pipeline). Patterns are capped at 512 characters.
+Your own rules, added under **Privacy → Rules → Custom Rules**. The editor has two modes:
 
-### On-device classifier
+- **Simple** — a no-regex builder. Pick a match type and type the terms; Osaurus generates a valid pattern for you, so a malformed rule is impossible. Match types: exact word, any of a list of terms, starts with, ends with, contains, a digit run of a given length, or everything between two markers.
+- **Regex** — a raw pattern for full control. Validated before save, so a broken regex never reaches disk. Patterns are capped at 512 characters.
 
-Beyond the regex layers, the `openai/privacy-filter` model reads each message and tags entities the patterns can't — most importantly the things with no fixed shape: **people's names**, **postal addresses**, **dates**, and **free-form secrets**. It's a 1.5B-parameter sparse mixture-of-experts classifier (only ~50M parameters fire per token, which is what makes it practical to run on every outbound request). It emits eight categories — `person`, `email`, `phone`, `url`, `address`, `date`, `accountNumber`, `secret` — and adjacent tokens are stitched into single spans, so `John Doe` becomes one `person`, not two.
+Both modes support case-insensitive matching and a custom placeholder label — mint `[CUSTOMER_1]` instead of the default `[SECRET_1]`. A live test panel shows what your rule matches as you type.
+
+### On-device AI classifier (opt-in)
+
+AI detection is **off by default** and downloads nothing until you turn it on. It adds the categories regex can't model: `person`, `address`, `date`, and `secret`. Two models are available in the **Model** tab:
+
+| Model | Size | Notes |
+|---|---|---|
+| [`openai/privacy-filter`](https://huggingface.co/openai/privacy-filter) (Apache-2.0), served as [`mlx-community/openai-privacy-filter-bf16`](https://huggingface.co/mlx-community/openai-privacy-filter-bf16) | ~2.8 GB | A 1.5B-parameter sparse mixture-of-experts token classifier (~50M active per token). The most accurate option. |
+| **Rampart** ([`OsaurusAI/rampart-mlx`](https://huggingface.co/OsaurusAI/rampart-mlx)) | ~37 MB | A lightweight BERT token classifier. Fast to download, minimal memory footprint. |
+
+Both are SHA-256 verified file-by-file at install. Adjacent tokens are stitched into single spans, so `John Doe` becomes one `person`, not two.
 
 ## Placeholders
 
@@ -93,12 +112,12 @@ Prefer not to review every turn? Turn on **Always Approve by Default** in Overvi
 
 ## It blocks rather than leak
 
-Because the pipeline is fail-closed, a send can be stopped instead of risking a leak. The cases you may see:
+Because the pipeline is fail-closed, a send can be stopped instead of risking a leak:
 
 | Situation | What happens |
 |---|---|
 | You dismiss the review sheet | "Privacy Filter: review canceled." Nothing is sent. |
-| The model bundle is missing or failed to load | The send is blocked with a pointer to **Settings → Privacy** to re-download or disable. |
+| AI detection is on but the model is missing or failed to load | The send is blocked, pointing at **Settings → Privacy** to reinstall or turn AI detection off. Regex-only sends never hit this. |
 | Approved redactions didn't apply | The send is blocked and asks you to report it (this almost always indicates a bug). |
 | A post-scrub re-scan still finds PII | The send is blocked, with per-category counts of what leaked (never the raw values). |
 
@@ -118,13 +137,14 @@ If you see `[EMAIL_3]` in the Server Request body while your local message reads
 
 | Setting | Default | Description |
 |---|---|---|
-| **Enable Privacy Filter** | off | Master toggle. When off, detection never runs. |
+| **Enable Privacy Filter** | off | Master toggle. Turns on the regex layer — no model required. |
+| **AI detection** | off | Opt into the on-device classifier. Requires an installed model; fails closed if the model goes missing. |
+| **AI model** | OpenAI | Which backend AI detection uses: `openai/privacy-filter` (~2.8 GB) or Rampart (~37 MB). |
 | **Skip Code Blocks** | on | Skip fenced and inline code spans. |
 | **Always Approve by Default** | off | Still redact, but skip the review sheet for the session. |
-| **Confidence Threshold** | 0.5 | Reserved for the classifier; persisted for future model versions. |
 | Detection Patterns | all on | Per-category built-in toggles (controls detection **and** leak check). |
 | Preset Rules | all off | Opt-in preset patterns. |
-| Custom Rules | none | Your own validated regex. |
+| Custom Rules | none | Your own rules — Simple builder or regex. |
 | Provider overrides | enabled | Per-provider enable/disable. |
 
 ## Where things live
@@ -132,15 +152,15 @@ If you see `[EMAIL_3]` in the Server Request body while your local message reads
 | Path | Contents |
 |---|---|
 | `~/.osaurus/config/privacy-filter.json` | Your settings (plaintext, atomic write) |
-| `~/.osaurus/aux-models/openai-privacy-filter-bf16-v1/` | The model bundle |
-| `~/.osaurus/aux-models/openai-privacy-filter-bf16-v1/osaurus-manifest.json` | Local SHA-256 manifest used by **Re-verify** |
+| `~/.osaurus/aux-models/openai-privacy-filter-bf16-v1/` | The OpenAI model bundle, when installed |
+| `~/.osaurus/aux-models/rampart/` | The Rampart model bundle, when installed |
 
 Placeholder maps live in memory only — they don't persist across restarts, and each chat session keeps its own. **Forget Redactions in Every Conversation** (Overview) clears them immediately; the next send mints fresh placeholders.
 
 ## Limitations
 
 - **English-leaning.** Non-English names and addresses get lower confidence and are easier to miss. The regex layer is locale-agnostic for shape-based categories (email, URL, IBAN, AWS keys) but can't catch names.
-- **No semantic redaction.** "My medical history" passes through unchanged — the model classifies tokens, not topics. Keep the review sheet on for sensitive conversations.
+- **No semantic redaction.** "My medical history" passes through unchanged — the classifier tags tokens, not topics. Keep the review sheet on for sensitive conversations.
 - **Images and audio are not scanned.** Only text is inspected — message text, the text parts of multimodal content, tool-call arguments, and reasoning traces. PII inside a screenshot, scan, or audio clip that a cloud model can read is *not* redacted. Strip the attachment or disable the relevant provider if this matters.
 - **Local models bypass the filter by design.** Apple Foundation Models and local MLX models never leave your Mac, so the filter only attaches to cloud (remote provider) requests.
 - **Very long messages are chunked.** Text beyond ~8,000 characters is split before the classifier sees it, so an entity straddling a chunk boundary may register as two partial matches.
@@ -152,7 +172,7 @@ Placeholder maps live in memory only — they don't persist across restarts, and
 
 **The review sheet appeared but the send looks unscrubbed.** Check **Insights → Server Request** for placeholders. If you see raw PII in the wire body, file an issue and attach the request log — the wire capture is the evidence.
 
-**"Privacy Filter is enabled but the on-device model isn't available."** Open **Privacy → Model** and click **Re-verify**. If it reports mismatches, delete `~/.osaurus/aux-models/openai-privacy-filter-bf16-v1/` and re-install from the **Privacy** tab.
+**"Privacy Filter is enabled but the on-device model isn't available."** You have AI detection on but the model isn't installed or failed to verify. Either turn AI detection off in **Privacy → Overview** (the regex layer keeps working), or open **Privacy → Model** and click **Re-verify**. If it reports mismatches, delete the model folder and reinstall.
 
 **A send keeps getting blocked.** The post-scrub leak check re-scans the same categories as detection. If a legitimate string matches an enabled preset (e.g. something shaped like an AWS key that isn't one), disable that preset or tighten it with a custom rule.
 
@@ -161,7 +181,7 @@ Placeholder maps live in memory only — they don't persist across restarts, and
 **Related:**
 
 - [Security & Privacy](/security) — the overall trust story and how to report a privacy bug
-- [Remote Providers](/remote-providers) — cloud providers the filter applies to; per-provider overrides live alongside provider records
+- [Remote Providers](/remote-providers) — cloud providers the filter applies to
 - [Developer Tools](/developer-tools) — the Insights surface used to verify wire-level redaction
 - [Memory](/memory) — what Osaurus *keeps* about your conversations (separate from what gets scrubbed on send)
 - [Telemetry](/telemetry) — what anonymous analytics Osaurus collects, and what it never does

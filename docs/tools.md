@@ -21,7 +21,7 @@ Osaurus tools are pure native **Swift and Rust** implementations—not Python sc
 | **Startup**      | Virtual environment + interpreter load (~200ms)     | Binary loads in under 10ms                       |
 | **Dependencies** | Requires Python runtime, pip packages               | Self-contained binary, zero dependencies         |
 
-For AI agents executing dozens of tool calls per session, these differences compound significantly.
+For agents that make dozens of tool calls per session, these differences compound.
 
 ## Official System Tools
 
@@ -217,7 +217,7 @@ Once installed, AI agents can interact with your Emacs instance:
 
 ## Remote MCP Providers
 
-Osaurus can connect to external MCP servers and aggregate their tools into your local instance. This lets you use tools from remote MCP endpoints alongside your locally installed plugins.
+Osaurus can connect to external MCP servers and aggregate their tools into your local instance, alongside your locally installed plugins.
 
 ### Adding a Remote MCP Provider
 
@@ -277,7 +277,7 @@ The native plugin host API is **append-only**. It has grown from v1 through **v6
 | **v1** | Tools only — define tool schemas and handle invocations, with no host callbacks |
 | **v2** | Full host API — register HTTP routes, serve web apps, persist data in SQLite, dispatch agent tasks, and call inference through any model |
 
-v2 plugins have access to the full Osaurus runtime, enabling rich integrations that go beyond simple tool calls. Versions v3–v6 add capabilities on top of v2 without breaking anything:
+v2 plugins get the full Osaurus runtime, enabling integrations that go beyond simple tool calls. Versions v3–v6 add capabilities on top of v2 without breaking anything:
 
 | ABI | Adds |
 | --- | ---- |

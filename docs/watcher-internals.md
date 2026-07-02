@@ -1,7 +1,7 @@
 ---
 title: Watcher Internals
 sidebar_label: Watcher Internals
-description: How a watcher actually fires — FSEvents detection, debounce, Merkle fingerprinting, dispatch, and the convergence loop that keeps watchers from triggering themselves.
+description: How a watcher fires — FSEvents detection, debounce, Merkle fingerprinting, dispatch, and the convergence loop that stops watchers from triggering themselves.
 ---
 
 # Watcher Internals

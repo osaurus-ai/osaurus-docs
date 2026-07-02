@@ -7,9 +7,7 @@ sidebar_position: 8
 
 # Skills
 
-Skills are reusable packages of expertise. Think of them as on-demand specialists you can attach to your AI: a research methodology, a debugging framework, a creative writing style. When you ask a relevant question, the right skill loads itself — you don't have to remember what to enable.
-
-Osaurus picks the right skills automatically before each message, so you mostly just enable the ones you want and forget about it.
+Skills are reusable packages of expertise — on-demand specialists you attach to your AI: a research methodology, a debugging framework, a creative writing style. Osaurus picks the relevant skills automatically before each message, so you enable the ones you want and forget about them.
 
 ## Quick start
 
@@ -34,7 +32,7 @@ To get started:
 
 Before every message, Osaurus runs a quick search across your enabled skills (and tools, and methods — see below) and picks the most relevant ones for the question you just asked. The matching skill's instructions are added to the system prompt for that turn.
 
-You don't configure which skills to load per-chat. You just enable them once; the right ones surface when they're needed.
+There's no per-chat configuration — enable a skill once and it surfaces when needed.
 
 If you'd rather see them all every turn (predictable but heavier on context), each agent has an **Auto-discover vs Manual** toggle in its Capabilities tab. [Agents → Capabilities](/agents#capabilities)
 

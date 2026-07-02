@@ -1,13 +1,13 @@
 ---
 title: Tasks
 sidebar_label: Tasks
-description: What happens when you ask Osaurus to *do* something — a live to-do list, real tool calls, generated files in the chat. Plus working folders and the Sandbox toggle that unlock more capability.
+description: What happens when you ask Osaurus to do something — a live to-do list, real tool calls, artifact cards — plus the working folder and Sandbox power-ups.
 sidebar_position: 5
 ---
 
 # Tasks
 
-This is the part that makes Osaurus more than a chat box. When you ask the AI to *do* something — not just explain something — it doesn't reply with a long paragraph and stop. It writes a plan, calls the tools it needs, runs them, surfaces the results, and finishes with a verified summary.
+This is what makes Osaurus more than a chat box. Ask the AI to *do* something — not just explain it — and it doesn't reply with a long paragraph and stop. It writes a plan, calls the tools it needs, surfaces the results, and finishes with a verified summary.
 
 ## What it looks like
 
@@ -19,7 +19,7 @@ When you give the agent a real task, here's what you'll see:
 - **A "Completed" summary** at the end with what was done and how it was verified
 - **The agent only pauses to ask** when a question genuinely changes the outcome — otherwise it runs straight through
 
-Every chat in Osaurus has this capability built in. The same chat window handles a quick question or a multi-step task — there are no modes to switch.
+Every chat has this built in. The same chat window handles a quick question or a multi-step task — no modes to switch.
 
 ## The loop in one glance
 
@@ -37,7 +37,7 @@ Every chat in Osaurus has this capability built in. The same chat window handles
                                      loop ends
 ```
 
-Three special tools drive that experience: a "todo" tool publishes the live checklist, a "clarify" tool pauses to ask one critical question, and a "complete" tool ends the run with a verified summary. You don't configure any of this — it just happens. (For the formal schemas, see [Tool Contract → Loop tools](/tool-contract#loop-tools).)
+Three special tools drive that experience: a "todo" tool publishes the live checklist, a "clarify" tool pauses to ask one critical question, and a "complete" tool ends the run with a verified summary. None of this needs configuration. (For the formal schemas, see [Tool Contract → Loop tools](/tool-contract#loop-tools).)
 
 ## Power-ups: working folder and Sandbox
 
@@ -83,7 +83,7 @@ Read-only sandbox tools are always available. Write, exec, install, and secret t
 
 ## Sharing artifacts
 
-If the agent generates a file — image, chart, website, report, code — it surfaces it in the chat as an **artifact card**. The user does not see arbitrary files written to disk or to the sandbox; this card is how the result reaches the chat thread.
+When the agent generates a file — image, chart, website, report, code — it surfaces in the chat as an **artifact card**. Files written to disk or the sandbox don't appear in the chat on their own; the card is how results reach the thread.
 
 Artifacts are persisted under `~/.osaurus/artifacts/{session}/` and rendered inline.
 

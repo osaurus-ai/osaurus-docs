@@ -115,9 +115,9 @@ System Settings → Privacy & Security → scroll to the security message → **
 
 See the link/PATH steps in [Verify the CLI](#verify-the-cli).
 
-### Storage migration "failed" notice
+### A store won't open after upgrading or migrating Macs
 
-If the first-launch migration shows a partial failure, the originals are kept at `~/.osaurus/.pre-encryption-backup/`. Open **Settings → Storage** for recovery options. [Full guide →](/storage)
+Osaurus never deletes data on a failed open — the affected store is listed under **Settings → Storage → Stores needing attention** with Retry and Reset actions, and anything reset is quarantined (moved, not deleted) to `~/.osaurus/quarantine/`. [Full guide →](/storage)
 
 ## Uninstall
 
@@ -134,11 +134,12 @@ rm -rf ~/MLXModels
 rm -rf ~/.osaurus
 
 # Optional: remove the storage encryption key from Keychain
+# (only present if you opted in to storage encryption)
 security delete-generic-password -s com.osaurus.storage -a data-encryption-key
 ```
 
 :::warning
-Removing `~/.osaurus` and the Keychain entry is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep your chats and memory.
+Removing `~/.osaurus` is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep your chats and memory.
 :::
 
 ---

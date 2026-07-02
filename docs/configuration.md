@@ -6,7 +6,7 @@ description: Environment variables, server flags, defaults knobs, and where ever
 
 # Server Settings
 
-Osaurus is designed to work out of the box with sensible defaults. This page covers the knobs you can turn.
+Osaurus works out of the box with sensible defaults. This page covers the knobs you can turn.
 
 ## Environment variables
 
@@ -120,9 +120,7 @@ Changes require a container restart. [Sandbox Internals →](/sandbox)
 
 ## Storage encryption
 
-Since 0.17.7, every Osaurus SQLite database is encrypted at rest with SQLCipher. The data-encryption key lives in your macOS Keychain. **Settings → Storage** is where you back up, rotate, and recover.
-
-You don't normally configure anything — it just works. [Storage & Encryption →](/storage)
+Local data is plaintext SQLite by default, protected at rest by FileVault. Turn on whole-database SQLCipher encryption in **Settings → Storage** if your threat model calls for it — the same panel handles backups, key rotation, and recovery. [Storage & Encryption →](/storage)
 
 ## API path prefixes
 
@@ -154,10 +152,10 @@ Oversized requests return `413 Payload Too Large`.
 | App data root | `~/.osaurus/` | not configurable |
 | Plugin install root | `~/.osaurus/Tools/<plugin_id>/<version>/` | not configurable |
 | Voice models | `~/Library/Application Support/FluidAudio/Models/` | not configurable |
-| Memory | `~/.osaurus/memory/memory.sqlite` (encrypted) + `vectura/{agent}/` | not configurable |
-| Chat history | `~/.osaurus/chat-history/history.sqlite` (encrypted) + `blobs/*.osec` | not configurable |
-| Methods | `~/.osaurus/methods/methods.sqlite` (encrypted) | not configurable |
-| Tool index | `~/.osaurus/tool-index/tool_index.sqlite` (encrypted) | not configurable |
+| Memory | `~/.osaurus/memory/memory.sqlite` + `vectura/{agent}/` | not configurable |
+| Chat history | `~/.osaurus/chat-history/history.sqlite` + `blobs/` | not configurable |
+| Methods | `~/.osaurus/methods/methods.sqlite` | not configurable |
+| Tool index | `~/.osaurus/tool-index/tool_index.sqlite` | not configurable |
 | Schedules | `~/.osaurus/schedules/{uuid}.json` | not configurable |
 | Watchers | `~/.osaurus/watchers/{uuid}.json` | not configurable |
 | Skills | `~/.osaurus/skills/{name}/SKILL.md` | not configurable |
@@ -165,7 +163,7 @@ Oversized requests return `413 Payload Too Large`.
 | Sandbox plugins | `~/.osaurus/sandbox-plugins/` | not configurable |
 | Sandbox container | `~/.osaurus/container/` | not configurable |
 | Configs | `~/.osaurus/config/*.json` | edit directly |
-| Encryption key | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
+| Encryption key (opt-in encryption only) | macOS Keychain (`com.osaurus.storage`) | see [Storage](/storage) |
 | Identity master key | iCloud Keychain | see [Identity](/identity) |
 
 ## Per-request configuration

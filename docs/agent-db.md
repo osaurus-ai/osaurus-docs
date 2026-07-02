@@ -1,14 +1,14 @@
 ---
 title: Agent DB & Self-Scheduling
 sidebar_label: Agent DB & Self-Scheduling
-description: Give an agent its own private, encrypted SQLite database and a single self-scheduled next run — structured memory plus the ability to wake itself up and act.
+description: Give an agent its own private SQLite database and a single self-scheduled next run — structured memory plus the ability to wake itself up and act.
 ---
 
 # Agent DB & Self-Scheduling
 
-Any Osaurus agent can opt into two capabilities that turn it from a stateless chat into something that remembers structured data across runs and can wake itself up to act on it:
+Any Osaurus agent can opt into two capabilities that let it remember structured data across runs and wake itself up to act on it:
 
-- **Agent DB** — a private, encrypted SQLite database the agent designs and queries through dedicated tools.
+- **Agent DB** — a private SQLite database the agent designs and queries through dedicated tools.
 - **Self-scheduling** — a single "next run" slot the agent can set to wake itself at a chosen time.
 
 Together they're a journal that can also set its own alarm.
@@ -23,7 +23,7 @@ Turn on **Database** in an agent's **Configure → Features**. That does three t
 
 1. Five database tabs appear in the agent detail view — **Home**, **Schema**, **Data**, **Views**, **Activity**.
 2. The agent gains the `db_*` tools (they're hidden from the model when the database is off).
-3. The agent gets a fresh, empty encrypted database on its first write — nothing is created on disk until it's actually used.
+3. The agent gets a fresh, empty database on its first write — nothing is created on disk until it's actually used.
 
 ## How the agent uses it
 
@@ -48,7 +48,7 @@ Every mutation is also appended to a hidden changelog (who changed what, and dur
 | Per-agent database | `~/.osaurus/agents/<uuid>/db.sqlite` |
 | Self-schedule slots (all agents) | `~/.osaurus/scheduler.sqlite` |
 
-Both files are encrypted with your device-scoped storage key via SQLCipher — the same stack as chat history and memory. See [Storage & Encryption](/storage) for key management.
+Both files go through the same storage stack as chat history and memory — plaintext by default, SQLCipher-encrypted when you've opted in. See [Storage & Encryption](/storage).
 
 Each agent has its own storage quota: writes are rejected once the file exceeds the limit (the error tells the model to delete or migrate older rows), and a banner warns you when usage crosses ~80%.
 
@@ -107,4 +107,4 @@ The **Next Run** banner has a pause menu — 1 hour, 4 hours, until tomorrow, a 
 - [Schedules](/schedules) — app-level recurring runs on a clock
 - [Agents](/agents) — per-agent features and configuration
 - [Tasks](/agent-loop) — the agent loop the `db_*` and scheduling tools run inside
-- [Storage & Encryption](/storage) — how the encrypted databases are keyed
+- [Storage & Encryption](/storage) — how the databases are protected

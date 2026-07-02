@@ -1,12 +1,12 @@
 ---
 title: Architecture
 sidebar_label: Architecture
-description: The system view — how the chat overlay, management window, HTTP API, agent loop, inference backends, plugins, and foundations fit together.
+description: The system view — how the chat overlay, Management window, HTTP API, agent loop, inference backends, plugins, and foundations fit together.
 ---
 
 # Architecture
 
-If you're building on top of Osaurus — writing plugins, scripts, or integrations — this page is the orientation. It maps the user-facing surfaces (chat overlay, management window, HTTP API) to the components underneath, and points to the deeper pages for each layer.
+If you're building on top of Osaurus — writing plugins, scripts, or integrations — this page is the orientation. It maps the user-facing surfaces (chat overlay, Management window, HTTP API) to the components underneath, and points to the deeper pages for each layer.
 
 ## The harness
 
@@ -16,7 +16,7 @@ Osaurus presents three entry points:
 - **The Management window** (`⌘ ⇧ M`) — settings, agents, models, plugins, tools, memory, themes, automation
 - **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP
 
-All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **encrypted storage** (SQLCipher), and **relay** (public tunnels).
+All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
 
 ## How the pieces fit together
 
@@ -84,7 +84,7 @@ flowchart TB
 | **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
 | **Tools** | 20+ native plugins (Mail, Calendar, Browser, Git, …), remote MCP aggregation, the Linux Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
-| **Foundations** | Identity (signed requests, `osk-v1` keys), encrypted storage (SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
+| **Foundations** | Identity (signed requests, `osk-v1` keys), local storage (opt-in SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
 
 ## Entry points
 
@@ -141,7 +141,7 @@ Every tool — built-in, folder, sandbox, plugin, MCP-aggregated — returns the
 The trust layer underneath everything:
 
 - **Identity** — secp256k1 master key in iCloud Keychain (biometric-gated), deterministic per-agent child keys, Apple App Attest device assertion, `osk-v1` access keys for external callers (scoped, expirable, revocable).
-- **Encrypted Storage** — SQLCipher across chat history, memory, methods, tool index, and plugin databases. Large attachments spilled to AES-GCM `.osec` blobs. Key in macOS Keychain, device-bound.
+- **Storage** — SQLite across chat history, memory, methods, tool index, and plugin databases; FileVault covers at-rest protection by default, with opt-in SQLCipher whole-database encryption (key in macOS Keychain, device-bound). Large attachments spill to content-addressed blobs.
 - **Public Links** — secure WebSocket tunnels through `agent.osaurus.ai` per agent. The agent's cryptographic address is the routing key. No port forwarding.
 
 These are the boundaries. See [Security & Privacy](/security) for the user-facing summary, [Identity Cryptography](/identity-internals) and [Storage & Encryption](/storage) for the specs.
@@ -160,6 +160,6 @@ Understand a piece:
 
 - [Inference Runtime](/inference-runtime) — `BatchEngine`, KV cache, model leases
 - [Identity Cryptography](/identity-internals) — full crypto spec
-- [Storage & Encryption](/storage) — SQLCipher migration, key rotation, recovery
+- [Storage & Encryption](/storage) — the plaintext default, opt-in SQLCipher, recovery
 - [Developer Tools](/developer-tools) — Insights and Server Explorer in the Management window
 - [Building from Source](/developer) — clone, build, test, contribute

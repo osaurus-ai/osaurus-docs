@@ -30,7 +30,7 @@ Osaurus is the AI harness for macOS. It sits between you and any model — local
 Works fully offline with local models. Connect to any cloud provider when you want more power. Nothing leaves your Mac unless you choose. Native Swift on Apple Silicon. No Electron. MIT licensed.
 
 :::tip[Your data, your Mac]
-Encrypted at rest, signed at every boundary, never sent anywhere unless you explicitly choose a cloud provider. We can't read your conversations and there are no backdoors — see [Security & Privacy](/security).
+Stored only on your Mac, signed at every boundary, never sent anywhere unless you explicitly choose a cloud provider. We can't read your conversations and there are no backdoors — see [Security & Privacy](/security).
 :::
 
 ---
@@ -46,6 +46,9 @@ A short tour of the things you can do once Osaurus is installed.
 - **Skills that load themselves.** Packaged expertise — research, debugging, writing styles — that surface automatically when the task calls for them.
 - **Working folders.** Point a chat at a folder and the agent gets safe file, search, and git tools — scoped to just that directory.
 - **A Linux Sandbox** *(macOS 26+)*. Toggle it on and the agent can run real code — shell, Python, Node — in an isolated VM with zero risk to your Mac.
+- **Computer Use** *(experimental)*. Let an agent drive real macOS apps — fill forms, flip settings, extract on-screen text — with every action gated by a safe-by-default confirmation policy.
+- **Image generation, fully offline.** Install a local image model and create or edit pictures right in the chat — nothing is sent to a server.
+- **Subagents.** Delegate a bounded task to another model or a saved agent mid-conversation and get a compact result back — local models hand off memory automatically.
 - **Schedules and Watchers.** Run an agent on a timer, or whenever a folder changes. Useful for daily journals, screenshot organizers, end-of-day commits.
 - **Voice input.** Dictate in chat, talk to an agent hands-free with a wake word, or hold a hotkey to dictate into any app — all on-device.
 - **A Privacy Filter for cloud prompts** *(experimental)*. An on-device classifier scrubs names, emails, and secrets out of anything you send to a cloud provider — you review what's redacted, and it blocks the send rather than leak.
@@ -64,7 +67,7 @@ Osaurus is also a local server. It speaks **OpenAI**, **Anthropic**, **Open Resp
 - [HTTP API](/api) — endpoint reference, streaming, function calling
 - [SDK Examples](/sdk-examples) — Python, JavaScript, Anthropic SDK, Open Responses
 - [CLI](/cli) — `osaurus serve`, `osaurus tools install/dev/create`, `osaurus mcp`
-- [Tools & Plugins](/tools) — 20+ native plugins (Mail, Calendar, Vision, Browser, Git, …) and v1/v2 ABI for building your own
+- [Tools & Plugins](/tools) — 20+ native plugins (Mail, Calendar, Vision, Browser, Git, …) and a stable v1–v6 ABI for building your own
 - [Apple Intelligence](/models/apple-intelligence) — using `foundation` with zero setup on macOS 26+
 
 For the system view of how everything fits together, see [Architecture](/architecture).

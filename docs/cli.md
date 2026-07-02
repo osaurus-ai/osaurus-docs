@@ -1,12 +1,12 @@
 ---
 title: CLI
 sidebar_label: CLI
-description: Complete command-line interface for the Osaurus server, models, MCP, and plugins.
+description: Command-line control of the Osaurus server, models, MCP, and plugins.
 ---
 
 # CLI
 
-The Osaurus CLI provides command-line control over your local LLM server, MCP tools, and model management.
+The Osaurus CLI controls your local LLM server, MCP tools, and models from the terminal.
 
 ## Quick Start
 
@@ -26,7 +26,7 @@ osaurus run gemma-4-e2b-it-4bit
 
 ## Installation
 
-The CLI is embedded in the Osaurus application bundle. When installed via Homebrew, it's automatically linked.
+The CLI ships inside the Osaurus application bundle. Homebrew installs link it automatically.
 
 ### Manual Setup
 
@@ -57,6 +57,8 @@ osaurus serve [options]
 | -------------- | ------------------------------------------ | ------- |
 | `--port`, `-p` | Server port number                         | 1337    |
 | `--expose`     | Enable LAN access (bind to all interfaces) | false   |
+| `--supervise`  | Keep the server alive — probe health and relaunch it whenever it goes down | false |
+| `--interval`   | Health-probe interval in seconds (with `--supervise`) | 15 |
 
 **Examples:**
 
@@ -69,11 +71,33 @@ osaurus serve --port 8080
 
 # Enable LAN access
 osaurus serve --expose
+
+# Keep-alive loop that survives app quits and crashes
+osaurus serve --supervise
 ```
 
 :::tip[Environment Variable]
 Set `OSU_PORT` to override the default port globally.
 :::
+
+#### Supervise mode
+
+Plain `osaurus serve` is a one-shot command: it launches the app, starts the server, and exits. If the app later quits or crashes, nothing brings the server back.
+
+`--supervise` never exits — it probes `/health` every `--interval` seconds and relaunches the server whenever it's down. Pair it with a `launchd` LaunchAgent for quit/crash/logout/reboot resilience:
+
+```xml
+<!-- ~/Library/LaunchAgents/ai.osaurus.serve.plist -->
+<dict>
+  <key>Label</key>            <string>ai.osaurus.serve</string>
+  <key>ProgramArguments</key> <array>
+      <string>/opt/homebrew/bin/osaurus</string>
+      <string>serve</string><string>--supervise</string>
+  </array>
+  <key>RunAtLoad</key> <true/>
+  <key>KeepAlive</key> <true/>
+</dict>
+```
 
 ### osaurus stop
 
@@ -85,7 +109,7 @@ osaurus stop
 
 ### osaurus status
 
-Check server status and display running configuration.
+Check server status and show the running configuration.
 
 ```bash
 osaurus status
@@ -160,7 +184,7 @@ Path:           ~/MLXModels/gemma-4-e2b-it-4bit
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-This is useful for inspecting model details like architecture, parameter count, quantization level, and context window size.
+Useful for inspecting architecture, parameter count, quantization level, and context window size.
 
 ### osaurus run
 
@@ -186,7 +210,7 @@ Start MCP stdio transport for connecting MCP clients.
 osaurus mcp
 ```
 
-This command proxies MCP protocol over stdio to the running Osaurus server. If the server isn't running, it auto-launches.
+Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed.
 
 **Use with MCP clients:**
 
@@ -284,7 +308,7 @@ Run a plugin in development mode with hot reload.
 osaurus tools dev com.acme.my-plugin
 ```
 
-Watches the plugin directory for changes and automatically reloads the plugin when files are modified. Useful for rapid iteration during plugin development.
+Watches the plugin directory and reloads the plugin when files change — useful for rapid iteration.
 
 #### tools package
 

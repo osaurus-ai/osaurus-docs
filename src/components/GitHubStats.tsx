@@ -93,14 +93,14 @@ export default function GitHubStats() {
   }, []);
 
   function displayValue(key: keyof Stats): string {
-    if (!stats) return "…";
+    if (!stats) return "—";
     const v = stats[key];
     if (key === "stars" || key === "downloads") return formatNum(v as number);
     return v as string;
   }
 
   return (
-    <p style={{ textAlign: "center", margin: "0 0 4px" }}>
+    <p style={{ textAlign: "center", margin: "0 0 4px" }} aria-busy={!stats}>
       {badges.map(({ key, label, href }) => (
         <a
           key={key}
@@ -108,9 +108,12 @@ export default function GitHubStats() {
           target="_blank"
           rel="noopener noreferrer"
           style={styles.badge}
+          aria-label={`${label}: ${stats ? displayValue(key) : "loading"} (opens GitHub in a new tab)`}
         >
           <span style={styles.left}>{label}</span>
-          <span style={styles.right}>{displayValue(key)}</span>
+          <span style={styles.right} aria-hidden="true">
+            {displayValue(key)}
+          </span>
         </a>
       ))}
     </p>
@@ -132,14 +135,14 @@ const styles: Record<string, React.CSSProperties> = {
     verticalAlign: "middle",
   },
   left: {
-    background: "#555",
-    color: "#fff",
+    background: "#4a4a4a",
+    color: "#ffffff",
     padding: "0 6px",
     whiteSpace: "nowrap" as const,
   },
   right: {
-    background: "#111",
-    color: "#fff",
+    background: "#111111",
+    color: "#ffffff",
     padding: "0 6px",
     whiteSpace: "nowrap" as const,
     fontWeight: 600,

@@ -85,7 +85,7 @@ ToolEnvelope.successPayload(result)    // returns the `result` dict for a succes
 ToolEnvelope.failureMessage(result)    // returns `message` (falls back to the input)
 ```
 
-These also recognise the legacy `[REJECTED]` / `[TIMEOUT]` prefixes and the legacy `ToolErrorEnvelope` JSON shape so partial migrations don't mis-classify.
+These also recognize the legacy `[REJECTED]` / `[TIMEOUT]` prefixes and the legacy `ToolErrorEnvelope` JSON shape so partial migrations don't mis-classify.
 
 ## Writing a tool
 

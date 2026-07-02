@@ -1,7 +1,7 @@
 ---
 title: Telemetry & Crash Reports
 sidebar_label: Telemetry
-description: Exactly what anonymous analytics Osaurus collects and what it never does, plus the separate crash-reporting switch. Both are controllable in Settings and disabled in source builds.
+description: What anonymous analytics Osaurus collects and never collects, plus the separate crash-reporting switch. Both controllable in Settings; off in source builds.
 ---
 
 # Telemetry & Crash Reports

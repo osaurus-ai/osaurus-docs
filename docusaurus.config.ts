@@ -62,6 +62,18 @@ const config: Config = {
     ],
   ],
 
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        indexBlog: false,
+        docsRouteBasePath: "/",
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
+
   plugins: [
     [
       "vercel-analytics",
@@ -187,8 +199,8 @@ const config: Config = {
   themeConfig: {
     colorMode: {
       defaultMode: "light",
-      respectPrefersColorScheme: false,
-      disableSwitch: true,
+      respectPrefersColorScheme: true,
+      disableSwitch: false,
     },
     // Replace with your project's social card
     image: "img/og-image.png",

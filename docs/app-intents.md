@@ -1,7 +1,7 @@
 ---
 title: Shortcuts, Spotlight & Siri
 sidebar_label: Shortcuts & Siri
-description: Osaurus ships App Intents, so "Ask Osaurus" and "Run Osaurus Agent" work system-wide the moment you install — from Shortcuts, Spotlight, and Siri, with zero setup.
+description: Osaurus ships App Intents, so "Ask Osaurus" and "Run Osaurus Agent" work from Shortcuts, Spotlight, and Siri the moment you install — zero setup.
 ---
 
 # Shortcuts, Spotlight & Siri

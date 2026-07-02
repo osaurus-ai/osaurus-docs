@@ -6,7 +6,7 @@ description: OpenAI, Anthropic, Open Responses, Ollama, MCP, and Memory endpoint
 
 # HTTP API
 
-Osaurus serves four well-known chat APIs side-by-side at the same port — OpenAI, Anthropic, Open Responses, Ollama — plus MCP server endpoints, the Memory API, and a few Osaurus-specific paths. Pick whichever your SDK already speaks.
+Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP server endpoints, the Memory API, and a few Osaurus-specific paths. Use whichever your SDK already speaks.
 
 ## Compatible APIs
 
@@ -39,9 +39,21 @@ Override the port with the `OSU_PORT` environment variable.
 | `/v1/models` | GET | List available models (OpenAI) |
 | `/v1/tags` | GET | List available models (Ollama) |
 | `/v1/chat/completions` | POST | Chat completion (OpenAI) |
+| `/v1/completions` | POST | Text completion, including fill-in-middle (OpenAI) |
 | `/v1/responses` | POST | Responses (Open Responses) |
 | `/anthropic/v1/messages` | POST | Chat completion (Anthropic) |
 | `/api/chat` | POST | Chat completion (Ollama) |
+
+### Image endpoints
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/v1/images/generations` | POST | Text-to-image with a local image model |
+| `/v1/images/edits` | POST | Image editing (edit-capable models) |
+| `/v1/images/cancel` | POST | Cancel an in-flight image job |
+| `/images/models` | GET | List installed image models with capabilities |
+
+See [Image Generation](/image-generation) for model setup and examples.
 
 ### Memory Endpoints
 
@@ -241,7 +253,7 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 
 ### POST /agents/&#123;id&#125;/run
 
-Server-side autonomous tool loop. Use this when you want Osaurus to execute tools on your behalf, manage the iteration budget, stream tool-execution hints, and only return when the model is done. (This is the path the in-app chat UI uses.)
+Server-side autonomous tool loop. Osaurus executes tools on your behalf, manages the iteration budget, streams tool-execution hints, and returns only when the model is done. (This is the path the in-app chat uses.)
 
 - Each pending `tool_call` is executed against the registered `ToolRegistry` (sandbox, folder, MCP, plugin tools — everything the agent has access to)
 - Independent tool calls within a single model turn run **in parallel**
@@ -288,9 +300,23 @@ Create a chat completion using Ollama format.
 }
 ```
 
+### POST /v1/completions
+
+OpenAI-style text completion, including **fill-in-middle (FIM)** fields for code-completion clients. Prompt and prefix-only requests run through the raw generation path; a request with a separate suffix or middle context returns an explicit OpenAI-shaped unsupported error rather than being silently ignored.
+
+**Request Body:**
+
+```json
+{
+  "model": "gemma-4-e2b-it-4bit",
+  "prompt": "def fibonacci(n):",
+  "max_tokens": 128
+}
+```
+
 ### POST /v1/responses
 
-Create a response using the Open Responses format. This endpoint provides multi-provider interoperability, allowing you to use the same request format across different AI providers.
+Create a response using the Open Responses format. The same request shape works across AI providers.
 
 **Request Body:**
 
@@ -400,7 +426,7 @@ curl http://127.0.0.1:1337/v1/responses \
 
 ### POST /anthropic/v1/messages
 
-Create a chat completion using Anthropic format. This endpoint is compatible with the Anthropic Claude API. Also available at `/messages` for backwards compatibility.
+Create a chat completion using the Anthropic Messages format. Also available at `/messages` for backwards compatibility.
 
 **Request Body:**
 
@@ -613,7 +639,7 @@ Execute an MCP tool.
 
 ## Memory API
 
-Osaurus exposes its [memory system](/memory) through the HTTP API, so any OpenAI-compatible client can benefit from persistent, on-device personalization.
+Osaurus exposes its [memory system](/memory) through the HTTP API, so any OpenAI-compatible client gets persistent, on-device personalization.
 
 ### Memory Context Injection — `X-Osaurus-Agent-Id`
 

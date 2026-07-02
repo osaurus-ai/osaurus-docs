@@ -20,7 +20,7 @@ Osaurus is model-agnostic. Run a fast 2B local model on the train, switch to GPT
 
 ## Local models (MLX)
 
-MLX is Apple's array framework with first-class GPU support via unified memory. Local models on Osaurus run through MLX with optimizations for Apple Silicon.
+Local models run through MLX, Apple's array framework with first-class GPU support via unified memory, optimized for Apple Silicon.
 
 ### Downloading
 
@@ -40,6 +40,15 @@ export OSU_MODELS_DIR=/Volumes/External/MLXModels
 ```
 
 To remove a model: **Models → Downloaded → Delete**.
+
+### Reusing models you already have
+
+Osaurus discovers models downloaded by other tools, so you never fetch the same weights twice:
+
+- **Hugging Face cache** — the standard locations (`HF_HUB_CACHE`, `HF_HOME/hub`, `~/.cache/huggingface/hub`) are scanned automatically, and you can point Osaurus at a **custom cache path** in Settings (text field, folder picker, and a reset).
+- **LM Studio** — models in LM Studio's directory are discovered too.
+
+Osaurus also runs a **compatibility preflight** on local models and hides ones the MLX engine can't load, so the picker only offers models that will actually run.
 
 ### Curated lineup on Hugging Face
 
@@ -166,6 +175,7 @@ Connect to cloud providers when you need more power. Each provider's models appe
 | **Anthropic** | Claude family via Anthropic Messages |
 | **Gemini** | Google Gemini |
 | **xAI / Grok** | xAI's Grok — API key or browser sign-in |
+| **Mistral** | Mistral models, with a reasoning-effort control for adjustable reasoning |
 | **DeepSeek** | DeepSeek V-series via OpenAI-compatible endpoint |
 | **MiniMax** | MiniMax M-series models |
 | **Venice AI** | Privacy-focused, uncensored, no data retention |
@@ -224,7 +234,7 @@ Recommended temperature ranges:
 
 ## Context length
 
-Each model has its own context limit, which Osaurus picks sane defaults for automatically. Multi-turn caching is also automatic — repeating the same system prompt across messages is cheap. For tunables, see [Inference Runtime](/inference-runtime).
+Osaurus picks a sane default for each model's context limit automatically. Multi-turn caching is also automatic — repeating the same system prompt across messages is cheap. For tunables, see [Inference Runtime](/inference-runtime).
 
 ## Troubleshooting
 
@@ -253,6 +263,10 @@ Each model has its own context limit, which Osaurus picks sane defaults for auto
 - Reduce `max_tokens`
 - Consider a smaller model (drop from MoE-large to `gemma-4-e2b-it-4bit`)
 - Switch to **Strict (One Model)** eviction policy if you have multiple loaded
+
+## Image models
+
+Chat models aren't the only kind — Osaurus also runs local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) for fully offline image generation and editing. They're installed from **Settings → Images** and covered separately: [Image Generation →](/image-generation)
 
 ## Under the hood
 

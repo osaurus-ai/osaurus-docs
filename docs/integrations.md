@@ -98,7 +98,7 @@ curl -X POST http://127.0.0.1:1337/mcp/call \
 
 ## Remote Providers
 
-Osaurus can connect to cloud AI providers, giving you access to remote models alongside your local ones through a unified API.
+Connect Osaurus to cloud AI providers to use remote models alongside your local ones through one API.
 
 ### Adding a Provider
 
@@ -140,7 +140,7 @@ When adding a custom provider:
 
 ### Using Remote Models
 
-Once connected, remote models appear alongside local models in the Model Manager and Chat UI. Use them via the API:
+Once connected, remote models appear alongside local models in the Model Manager and chat. Use them via the API:
 
 ```bash
 # Use a remote OpenAI model
@@ -152,7 +152,7 @@ curl http://127.0.0.1:1337/v1/chat/completions \
   }'
 ```
 
-Remote models are available to all connected MCP clients and integrate seamlessly with tool calling.
+Remote models are available to all connected MCP clients and work with tool calling.
 
 ## OpenAI SDK Integration
 
@@ -400,7 +400,7 @@ export async function POST(request) {
 
 ## Authentication with Access Keys
 
-By default, Osaurus does not require authentication for local requests. When exposing your server to external clients — especially via [Public Links](/relay) — you should use access keys to protect API endpoints.
+Osaurus does not require authentication for local requests. If you expose your server to external clients — especially via [Public Links](/relay) — protect API endpoints with access keys.
 
 Access keys use the `osk-v1` format and are created through the [Identity](/identity) system. Pass them as a Bearer token:
 

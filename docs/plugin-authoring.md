@@ -325,7 +325,7 @@ pub extern "C" fn plugin_free_string(s: *mut c_char) {
 
 ## v2 Plugin ABI
 
-The v2 ABI extends the plugin system with full host API access. While v1 plugins are limited to tool definitions and invocations, v2 plugins can interact with the entire Osaurus runtime.
+The v2 ABI adds full host API access. Where v1 plugins only define and handle tools, v2 plugins can interact with the entire Osaurus runtime.
 
 The host API is **append-only**: v2 established the full base set, and v3–v6 each appended one optional capability without changing the existing struct layout — so a plugin built against any version keeps loading on a newer host.
 
@@ -404,7 +404,7 @@ Use `osaurus tools dev` for rapid iteration during plugin development:
 osaurus tools dev com.example.myplugin
 ```
 
-This watches your plugin directory for changes and automatically reloads the plugin when files are modified — no manual reinstall required.
+This watches your plugin directory and reloads the plugin when files change — no manual reinstall required.
 
 ## Publishing to the Registry
 

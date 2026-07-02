@@ -7,16 +7,16 @@ slug: /models/apple-intelligence
 
 # Apple Intelligence Integration
 
-Osaurus integrates seamlessly with Apple Foundation Models when available on your system, giving you access to the system's default on-device language model with zero configuration.
+On macOS 26+, Osaurus exposes Apple's on-device Foundation model as `foundation` — no downloads, no configuration. Send a request with `model: "foundation"` and it works.
 
 ## Overview
 
-Apple Foundation Models provide:
+Apple Foundation Models give you:
 
-- **System-integrated AI** — Uses the same models as system features
-- **Hardware acceleration** — Optimized for Apple Neural Engine (ANE)
-- **Zero setup** — No downloads or configuration needed
-- **Privacy-first** — All processing happens on-device
+- **System-integrated AI** — the same model that powers system features
+- **Hardware acceleration** — optimized for the Apple Neural Engine (ANE)
+- **Zero setup** — no downloads or configuration
+- **Privacy** — all processing happens on-device
 
 ## Requirements
 
@@ -39,7 +39,7 @@ While Osaurus itself runs on macOS 15.5+, Apple Foundation Models specifically r
 curl -s http://127.0.0.1:1337/v1/models | jq '.data[] | select(.id=="foundation")'
 ```
 
-If you see a `foundation` entry, you're ready to use Apple's models!
+If you see a `foundation` entry, you're ready.
 
 ## Using Foundation Models
 
@@ -59,7 +59,7 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
 
 ### Using the Alias
 
-You can also use `model: "default"` which maps to Foundation Models when available:
+`model: "default"` also maps to Foundation Models when available:
 
 ```bash
 curl -s http://127.0.0.1:1337/v1/chat/completions \
@@ -72,7 +72,7 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
 
 ### Streaming Responses
 
-Foundation Models support streaming for real-time output:
+Streaming works as usual:
 
 ```bash
 curl -N http://127.0.0.1:1337/v1/chat/completions \
@@ -112,15 +112,11 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
   }'
 ```
 
-**Key Points:**
-
-- Tools work identically to MLX models
-- Streaming emits OpenAI-style `tool_calls` deltas
-- Your existing tool-calling code works unchanged
+Tools work identically to MLX models: streaming emits OpenAI-style `tool_calls` deltas, and your existing tool-calling code works unchanged.
 
 ### System Prompts
 
-Foundation Models respect system prompts for consistent behavior:
+Foundation Models respect system prompts:
 
 ```python
 from openai import OpenAI
@@ -140,16 +136,16 @@ response = client.chat.completions.create(
 
 ### Advantages
 
-- **Instant loading** — No model initialization required
-- **ANE acceleration** — Leverages dedicated neural hardware
-- **Memory efficient** — Shared with system services
-- **Consistent quality** — Same model as system features
+- **Instant loading** — no model initialization
+- **ANE acceleration** — dedicated neural hardware
+- **Memory efficient** — shared with system services
+- **Consistent quality** — the same model as system features
 
 ### Considerations
 
-- **Fixed model** — Cannot choose different sizes/versions
-- **System dependent** — Requires specific macOS version
-- **Limited configuration** — Less control than MLX models
+- **Fixed model** — no choice of size or version
+- **System dependent** — requires macOS 26+
+- **Limited configuration** — less control than MLX models
 
 ## Detection and Fallback
 
@@ -199,10 +195,9 @@ async function getBestModel() {
 
 ## Privacy and Security
 
-- **100% on-device** — No data leaves your Mac
-- **No network calls** — Apple Foundation Models run entirely locally; inference never leaves your Mac
-- **Sandboxed** — Runs within macOS security boundaries
-- **No API keys** — No authentication or tracking
+- **100% on-device** — Apple Foundation Models run entirely locally; inference never leaves your Mac
+- **Sandboxed** — runs within macOS security boundaries
+- **No API keys** — no authentication or tracking
 
 ## Troubleshooting
 
@@ -275,11 +270,11 @@ async function getBestModel() {
 
 ## Best Practices
 
-1. **Prefer Foundation Models when available** — Better integration and performance
-2. **Implement fallback logic** — Handle systems without Apple Intelligence
+1. **Prefer Foundation Models when available** — better integration and performance
+2. **Implement fallback logic** — handle systems without Apple Intelligence
 3. **Use streaming** — Foundation Models excel at streaming responses
-4. **Test on both** — Ensure your app works with and without Foundation Models
-5. **Monitor availability** — Models may be temporarily unavailable during system updates
+4. **Test on both** — make sure your app works with and without Foundation Models
+5. **Monitor availability** — models may be temporarily unavailable during system updates
 
 ## Related
 

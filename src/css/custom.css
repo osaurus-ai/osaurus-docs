@@ -1,10 +1,14 @@
 /**
  * Osaurus Documentation — Brand Theme
- * Aligned with osaurus.ai website design system
+ * Aligned with osaurus.ai website design system.
+ *
+ * Light and dark palettes share the same variable names; the dark values
+ * are defined under [data-theme='dark']. All text colors meet WCAG AA
+ * (>= 4.5:1) against their backgrounds.
  */
 
 :root {
-  /* Brand palette */
+  /* Brand palette — light */
   --color-bg:            #ffffea;
   --color-bg-secondary:  #f5f5d6;
   --color-bg-tertiary:   #eeeec8;
@@ -12,8 +16,8 @@
   --color-border-light:  rgba(33, 64, 153, 0.2);
 
   --color-text:          #214099;
-  --color-text-secondary:#214099cc;
-  --color-text-tertiary: rgba(33, 64, 153, 0.5);
+  --color-text-secondary:#3c5497; /* 7.1:1 on --color-bg */
+  --color-text-tertiary: #55689f; /* 5.3:1 on --color-bg */
 
   --color-primary:       #214099;
   --color-primary-hover: #1a3380;
@@ -66,6 +70,55 @@
   --doc-sidebar-width:     260px;
 
   --docusaurus-highlighted-code-line-bg: var(--color-primary-light);
+
+  /* Admonition tints — light */
+  --admonition-info-bg:      rgba(33, 64, 153, 0.07);
+  --admonition-info-border:  rgba(33, 64, 153, 0.25);
+  --admonition-warn-bg:      #fffbeb;
+  --admonition-warn-border:  #e0b53a;
+  --admonition-danger-bg:    rgba(255, 91, 50, 0.08);
+  --admonition-danger-border:rgba(255, 91, 50, 0.35);
+  --admonition-tip-bg:       rgba(104, 215, 53, 0.1);
+  --admonition-tip-border:   rgba(84, 175, 43, 0.6);
+}
+
+/* Dark palette — navy inversion of the brand */
+[data-theme="dark"] {
+  --color-bg:            #12172b;
+  --color-bg-secondary:  #1a2038;
+  --color-bg-tertiary:   #232a47;
+  --color-border:        #8fa5e8;
+  --color-border-light:  rgba(198, 208, 245, 0.18);
+
+  --color-text:          #e6e9f7; /* 13.9:1 on --color-bg */
+  --color-text-secondary:#c3cbe8; /* 9.6:1 */
+  --color-text-tertiary: #9aa6d1; /* 5.9:1 */
+
+  --color-primary:       #8fa5e8;
+  --color-primary-hover: #aabbf0;
+  --color-primary-light: rgba(143, 165, 232, 0.12);
+
+  --ifm-color-primary:         var(--color-primary);
+  --ifm-color-primary-dark:    #7b93e2;
+  --ifm-color-primary-darker:  #6884dc;
+  --ifm-color-primary-darkest: #5271d0;
+  --ifm-color-primary-light:   #a3b6ee;
+  --ifm-color-primary-lighter: #b7c6f2;
+  --ifm-color-primary-lightest:#cbd6f6;
+
+  --ifm-background-color:      var(--color-bg);
+  --ifm-background-surface-color: var(--color-bg-secondary);
+  --ifm-font-color-base:       var(--color-text);
+
+  /* Admonition tints — dark */
+  --admonition-info-bg:      rgba(143, 165, 232, 0.12);
+  --admonition-info-border:  rgba(143, 165, 232, 0.4);
+  --admonition-warn-bg:      rgba(224, 181, 58, 0.12);
+  --admonition-warn-border:  rgba(224, 181, 58, 0.5);
+  --admonition-danger-bg:    rgba(255, 91, 50, 0.14);
+  --admonition-danger-border:rgba(255, 91, 50, 0.5);
+  --admonition-tip-bg:       rgba(104, 215, 53, 0.12);
+  --admonition-tip-border:   rgba(104, 215, 53, 0.45);
 }
 
 /* Base */
@@ -75,8 +128,24 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background-color: var(--color-bg);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
@@ -119,13 +188,13 @@ p {
    ============================================ */
 
 ::selection {
-  background: var(--color-green);
-  color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-bg);
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -134,8 +203,7 @@ p {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-primary);
-  border-radius: 3px;
-  opacity: 0.5;
+  border-radius: 4px;
 }
 
 /* Focus ring */
@@ -158,7 +226,7 @@ hr {
 
 .navbar {
   background: var(--color-bg);
-  border-bottom: 1px solid var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
   box-shadow: none;
   height: var(--ifm-navbar-height);
   padding: 0 24px;
@@ -186,6 +254,11 @@ hr {
   margin-right: 8px;
 }
 
+/* Keep the wordmark legible on the dark background */
+[data-theme="dark"] .navbar__logo {
+  filter: brightness(0) invert(0.92);
+}
+
 .navbar__link {
   font-size: 0.9375rem;
   font-weight: 450;
@@ -202,6 +275,12 @@ hr {
 .navbar__link--active {
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* Theme toggle inherits brand colors */
+.navbar [class*="colorModeToggle"] button,
+.clean-btn {
+  color: var(--color-text-secondary);
 }
 
 /* ============================================
@@ -332,7 +411,7 @@ article {
 }
 
 .table-of-contents__link:hover {
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -392,13 +471,14 @@ article {
 
 .markdown a {
   color: var(--color-primary);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-light);
+  text-underline-offset: 3px;
   font-weight: 600;
 }
 
 .markdown a:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: currentColor;
 }
 
 /* Breadcrumbs */
@@ -415,8 +495,6 @@ nav.theme-doc-breadcrumbs {
 }
 
 /* Mobile TOC */
-.tocCollapsible_node_modules-\@docusaurus-theme-classic-lib-theme-TOCCollapsible-styles-module,
-button.tocCollapsibleButton_node_modules-\@docusaurus-theme-classic-lib-theme-TOCCollapsible-CollapseButton-styles-module,
 .theme-doc-toc-mobile {
   background: var(--color-bg-secondary) !important;
   border: 1px solid var(--color-border-light) !important;
@@ -443,7 +521,7 @@ div.theme-code-block pre {
 
 :not(pre) > code {
   background: var(--color-bg-tertiary);
-  color: var(--color-primary);
+  color: var(--color-text);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.875em;
@@ -510,6 +588,7 @@ div[class*="admonition"] {
   border-radius: 6px !important;
   border: 1px solid !important;
   box-shadow: none !important;
+  color: var(--color-text) !important;
 }
 
 div[class*="admonition"] > div,
@@ -531,6 +610,7 @@ div[class*="admonition"] [class*="admonitionHeading"] {
   align-items: center !important;
   gap: 6px !important;
   font-family: var(--font-sans) !important;
+  color: var(--color-text) !important;
 }
 
 div[class*="admonition"] [class*="admonitionContent"] {
@@ -542,40 +622,40 @@ div[class*="admonition"] [class*="admonitionContent"] > p {
   margin: 0 !important;
 }
 
-/* Info / Note — blue-toned */
+/* Info / Note */
 .alert--info,
 div[class*="admonition_info"],
 div[class*="admonition-info"],
 div[class*="admonition_note"],
 div[class*="admonition-note"] {
-  background: rgba(33, 64, 153, 0.07) !important;
-  border-color: rgba(33, 64, 153, 0.25) !important;
+  background: var(--admonition-info-bg) !important;
+  border-color: var(--admonition-info-border) !important;
 }
 
-/* Warning / Caution — amber */
+/* Warning / Caution */
 .alert--warning,
 div[class*="admonition_warning"],
 div[class*="admonition-warning"],
 div[class*="admonition_caution"],
 div[class*="admonition-caution"] {
-  background: #fffbeb !important;
-  border-color: #fde68a !important;
+  background: var(--admonition-warn-bg) !important;
+  border-color: var(--admonition-warn-border) !important;
 }
 
-/* Danger — brand red */
+/* Danger */
 .alert--danger,
 div[class*="admonition_danger"],
 div[class*="admonition-danger"] {
-  background: rgba(255, 91, 50, 0.08) !important;
-  border-color: rgba(255, 91, 50, 0.35) !important;
+  background: var(--admonition-danger-bg) !important;
+  border-color: var(--admonition-danger-border) !important;
 }
 
-/* Tip — brand green */
+/* Tip */
 .alert--success,
 div[class*="admonition_tip"],
 div[class*="admonition-tip"] {
-  background: rgba(104, 215, 53, 0.1) !important;
-  border-color: rgba(104, 215, 53, 0.45) !important;
+  background: var(--admonition-tip-bg) !important;
+  border-color: var(--admonition-tip-border) !important;
 }
 
 /* ============================================
@@ -635,7 +715,7 @@ a.pagination-nav__link--next {
 
 footer.footer {
   background: var(--color-bg-secondary) !important;
-  border-top: 1px solid var(--color-primary) !important;
+  border-top: 1px solid var(--color-border) !important;
   padding: 40px 24px 32px !important;
   margin-top: 48px !important;
 }
@@ -728,6 +808,20 @@ footer.footer {
 }
 
 /* ============================================
+   SEARCH
+   ============================================ */
+
+.navbar__search-input {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+}
+
+.navbar__search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================
    MOBILE
    ============================================ */
 
@@ -756,16 +850,12 @@ footer.footer {
     padding: 24px 16px 0 16px !important;
   }
 
+  /* Tables scroll horizontally but cells may still wrap for readability */
   .markdown table {
     display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .markdown table th,
-  .markdown table td {
-    white-space: nowrap;
   }
 }
 
@@ -788,13 +878,6 @@ footer.footer {
 /* ============================================
    UTILITIES
    ============================================ */
-
-/* Hide external link icons */
-.navbar__link svg,
-.menu__link svg,
-.footer__link-item svg {
-  display: none;
-}
 
 /* Doc version badge */
 .theme-doc-version-badge {

@@ -49,7 +49,7 @@ Enabling a public link makes the agent's API endpoints reachable from the public
 
 ### Per-agent toggles
 
-Each agent can be exposed independently. Enable or disable per-agent without affecting other agents.
+Each agent can be exposed independently — enabling one doesn't affect the others.
 
 ### Persistent settings
 
@@ -57,11 +57,11 @@ Your link configuration survives app restarts. When the server starts, previousl
 
 ### Auto-reconnect
 
-If your network connection drops, the tunnel reconnects with backoff. No manual intervention needed after transient interruptions.
+If your network drops, the tunnel reconnects with backoff — no manual intervention needed.
 
 ### Concurrent traffic
 
-Multiple requests are handled in parallel. The tunnel doesn't bottleneck on a single connection.
+The tunnel handles multiple requests in parallel — no bottleneck on a single connection.
 
 ## When public links are useful
 

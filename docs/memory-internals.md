@@ -1,7 +1,7 @@
 ---
 title: Memory Internals
 sidebar_label: Memory Internals
-description: How memory actually works under the hood — the write pipeline, the read gate, consolidation passes, settings, the HTTP API, and the search backend.
+description: How memory works under the hood — the write pipeline, the read gate, consolidation passes, settings, the HTTP API, and the search backend.
 ---
 
 # Memory Internals
@@ -184,11 +184,11 @@ When VecturaKit isn't available (e.g. embedding model not downloaded yet), Osaur
 
 ## Storage layout
 
-All memory data lives in a local SQLite database with WAL mode, **encrypted at rest with SQLCipher** since 0.17.7. The encryption key lives in your macOS Keychain. [Storage → Encryption →](/storage)
+All memory data lives in a local SQLite database with WAL mode — plaintext by default (protected at rest by FileVault), or SQLCipher-encrypted if you've opted in. [Storage & Encryption →](/storage)
 
 | Path | Contents |
 |---|---|
-| `~/.osaurus/memory/memory.sqlite` | Encrypted SQLCipher database |
+| `~/.osaurus/memory/memory.sqlite` | Memory database (SQLite; SQLCipher when encryption is on) |
 | `~/.osaurus/memory/vectura/{agent}/` | Per-agent vector index (rebuilt from SQLite as needed) |
 | `~/.osaurus/config/memory.json` | Plaintext config |
 
@@ -197,5 +197,5 @@ All memory data lives in a local SQLite database with WAL mode, **encrypted at r
 **Related:**
 
 - [Memory](/memory) — the user-facing view
-- [Storage & Encryption](/storage) — how the SQLite databases are encrypted
+- [Storage & Encryption](/storage) — how the SQLite databases are protected
 - [HTTP API](/api) — full endpoint reference

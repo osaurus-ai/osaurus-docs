@@ -6,7 +6,7 @@ description: Hosted, OpenAI-compatible inference tied to your Osaurus identity. 
 
 # Osaurus Router
 
-Osaurus Router is the **hosted inference path** for Osaurus accounts. It's an OpenAI-compatible remote provider that Osaurus wires up for you automatically once you have an [identity](/identity) — so you can reach hosted models from the same model picker, chat, and [agent loop](/agent-loop) as everything else, without pasting an API key.
+Osaurus Router is the **hosted inference path** for Osaurus accounts. It's an OpenAI-compatible remote provider that Osaurus wires up automatically once you have an [identity](/identity). You reach hosted models from the same model picker, chat, and [agent loop](/agent-loop) as everything else — no API key to paste.
 
 Think of it as the batteries-included cloud option:
 
@@ -18,7 +18,11 @@ Your agents, memory, and tools work the same across all three.
 
 ## How it connects
 
-Router availability follows your local Osaurus identity. When an identity is present, the Router provider is injected into your remote provider list and becomes eligible for the same model picker and chat paths as any other provider. Connection stays automatic:
+Router availability follows your local Osaurus identity. When an identity is present, Osaurus adds the Router provider to your remote provider list, where it behaves like any other provider in the model picker and chat.
+
+Router is **available by default**. Onboarding offers a one-time, permanent opt-out — decline it there and it stays off. You can also disable the Router provider at any time from **Management → Providers**.
+
+Connection stays automatic:
 
 - It connects on app launch alongside your other auto-connect providers.
 - Signing in or changing identity reconnects Router automatically — no manual refresh.
@@ -39,7 +43,7 @@ A couple of reliability details Osaurus handles for you:
 Router is metered, so a few things are tracked — but **only metadata, never your content**. Prompt text, responses, tool arguments, and tool results are never written to billing records.
 
 - **Retries are de-duplicated.** A reconnect or automatic retry won't double-bill the same logical step; a Retry you initiate starts a fresh run.
-- **Local, encrypted ledger.** Router charges are also recorded on your Mac at `~/.osaurus/billing/ledger.sqlite`, encrypted with your storage key (SQLCipher), keeping the newest 10,000 rows for up to 365 days. This lets support debug "I was charged but saw nothing" reports without any transcripts ever leaving your machine. Each row carries correlation data (request id, model, token counts, cost, status, and how the turn rendered) — no prompt or response text. You can export a metadata-only diagnostic from the Dashboard.
+- **Local ledger.** Router charges are also recorded on your Mac at `~/.osaurus/billing/ledger.sqlite` (encrypted with your storage key when you've opted in to [storage encryption](/storage)), keeping the newest 10,000 rows for up to 365 days. This lets support debug "I was charged but saw nothing" reports without any transcripts ever leaving your machine. Each row carries correlation data (request id, model, token counts, cost, status, and how the turn rendered) — no prompt or response text. You can export a metadata-only diagnostic from the Dashboard.
 
 ## Related
 

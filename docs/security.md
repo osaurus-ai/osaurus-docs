@@ -1,7 +1,7 @@
 ---
 title: Security & Privacy
 sidebar_label: Security & Privacy
-description: What we do to keep your data yours — encryption at rest, signed identity, sandboxed execution, on-device PII redaction, no backdoors. And why open source means trust.
+description: What we do to keep your data yours — local-first storage, opt-in encryption, signed identity, sandboxed execution, on-device PII redaction, no backdoors.
 ---
 
 # Security & Privacy
@@ -18,7 +18,7 @@ Osaurus is **local-first** — and that's not a marketing line. The chat overlay
 
 When you opt in to a cloud provider (OpenAI, Anthropic, etc.), only the prompts you send to *that turn* leave. Your memory, your stored chats, your identity, your voice — those stay on your device, encrypted, regardless of which model you're talking to.
 
-We've designed Osaurus so that even **we** — the maintainers — couldn't read your data if we wanted to. The encryption key is on your Mac. The master identity key is in *your* iCloud Keychain, gated by *your* biometrics. The codebase is fully open and auditable. There are no backdoors, and we have no way to add one without you noticing in the next git pull.
+We've designed Osaurus so that even **we** — the maintainers — couldn't read your data if we wanted to. Your data lives only on your Mac. The master identity key is in *your* iCloud Keychain, gated by *your* biometrics. The codebase is fully open and auditable. There are no backdoors, and we have no way to add one without you noticing in the next git pull.
 
 ---
 
@@ -26,16 +26,16 @@ We've designed Osaurus so that even **we** — the maintainers — couldn't read
 
 | Your data | Where it lives | How it's protected |
 |---|---|---|
-| Chat history | `~/.osaurus/chat-history/` | **Encrypted** (SQLCipher + AES-GCM blobs) |
-| Memory (your facts and history) | `~/.osaurus/memory/` | **Encrypted** (SQLCipher) |
-| Methods, tool index, plugin databases | `~/.osaurus/` | **Encrypted** (SQLCipher) |
-| Storage encryption key | macOS Keychain | Device-bound, never copied off |
+| Chat history | `~/.osaurus/chat-history/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Memory (your facts and history) | `~/.osaurus/memory/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Methods, tool index, plugin databases | `~/.osaurus/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Storage encryption key (when opted in) | macOS Keychain | Device-bound, never copied off |
 | Master identity key | iCloud Keychain | Biometric-gated, syncs only across your Apple devices |
 | Cloud provider API keys | macOS Keychain | Never in plain-text config files |
 | Voice transcription | Memory only | **Never written to disk** |
 | Models you've downloaded | `~/MLXModels/` | Local files (model weights aren't sensitive on their own) |
 
-Storage encryption has been on by default since 0.17.7 — first launch shows a brief migration overlay, and from then on every byte of your conversations and memory is at-rest-encrypted with a per-device key. [Storage details →](/storage)
+Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest by macOS FileVault — the most reliable setup, with no app-managed key that can go missing. If you share the Mac account or don't run FileVault, turn on whole-database encryption in **Settings → Storage**. [Storage details →](/storage)
 
 ---
 
@@ -83,7 +83,7 @@ When you connect a remote provider, the **Insights** tab shows you exactly what 
 
 A short, plain-language tour of the things we've built in:
 
-- **At-rest encryption** — All sensitive SQLite databases are SQLCipher-encrypted with a 32-byte key in your Keychain. Large attachments are AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
+- **At-rest protection** — FileVault covers everything by default. Opt in to SQLCipher and every database is encrypted with a 32-byte key in your Keychain, with large attachments AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
 - **On-device PII redaction** — The optional [Privacy Filter](/privacy-filter) scrubs names, emails, secrets, and more from cloud-bound prompts before they leave, using an on-device classifier. It's fail-closed (a detected leak blocks the send) and verifiable in Insights.
 - **Signed and replay-protected requests** — Every authenticated call carries a per-device monotonic counter the server checks. Replays get `401`.
 - **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
@@ -105,7 +105,7 @@ A security claim is only as good as your ability to verify it. Osaurus is **MIT-
 - **You can fork it.** If we ever did something you disagreed with, you could fork it and keep the version you trust. We can't.
 - **Telemetry is anonymous, optional, and fully documented.** Osaurus collects anonymous, aggregated usage analytics and crash reports — both opt-out, both off in source builds, and **never** including your chats, prompts, keys, file contents, agent names, or any per-user identifier. Every event we send is enumerated in the [Telemetry](/telemetry) reference, and because the code is open you can verify exactly what leaves.
 - **Public security policy.** Vulnerability reporting goes through [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories). Acknowledgement within 72 hours.
-- **No backdoors, no escrow keys.** There's no master key the maintainers hold. If you wipe your Mac without a backup, even *we* can't recover your data — that's the trade-off, and it's intentional. [More on key recovery →](/storage#limitations)
+- **No backdoors, no escrow keys.** There's no master key the maintainers hold. If you turn on storage encryption and lose the key without a backup, even *we* can't recover your data — that's the trade-off, and it's intentional. [More on key recovery →](/storage#limitations)
 
 This is what "your AI" actually means. Not just "private" — **verifiable**.
 
@@ -116,8 +116,8 @@ This is what "your AI" actually means. Not just "private" — **verifiable**.
 To be very explicit:
 
 - Your **master identity key** — it's in *your* iCloud Keychain, gated by *your* biometrics
-- Your **storage encryption key** — it's in *your* macOS Keychain, device-bound, never synced off
-- The **contents of your conversations** — they're encrypted at rest with the storage key
+- Your **storage encryption key** (if you opted in) — it's in *your* macOS Keychain, device-bound, never synced off
+- The **contents of your conversations** — they live only on your Mac and never leave it
 - The **text of your voice input** — it's transcribed locally and never written
 - The **names of agents** you've created, the **skills** you've imported, or the **plugins** you've installed
 - **Anything that could identify you.** The only data that ever leaves automatically is anonymous, aggregated usage analytics and crash diagnostics — both opt-out, both off in source builds, and never tied to you. See [Telemetry](/telemetry).
@@ -141,7 +141,7 @@ We acknowledge within 72 hours and work on a fix. Reporters who wish to be ackno
 
 For the technical references behind this page:
 
-- [Storage & Encryption](/storage) — SQLCipher migration, key rotation, plaintext export, key-mismatch recovery
+- [Storage & Encryption](/storage) — the plaintext default, opt-in SQLCipher, migration, recovery
 - [Identity Cryptography](/identity-internals) — secp256k1, App Attest, the `osk-v1` spec, request signing
 - [Sandbox Internals](/sandbox) — VM isolation, vsock bridge auth, artifact integrity pinning
 - [Identity](/identity) — managing your own access keys (everyday view)

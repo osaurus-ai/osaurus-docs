@@ -68,6 +68,21 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "subagents",
+          label: "Subagents",
+        },
+        {
+          type: "doc",
+          id: "image-generation",
+          label: "Image Generation",
+        },
+        {
+          type: "doc",
+          id: "computer-use",
+          label: "Computer Use",
+        },
+        {
+          type: "doc",
           id: "voice",
           label: "Voice",
         },
@@ -151,6 +166,16 @@ const sidebars: SidebarsConfig = {
           type: "doc",
           id: "relay",
           label: "Public Links",
+        },
+        {
+          type: "doc",
+          id: "secure-channel",
+          label: "Secure Channel",
+        },
+        {
+          type: "doc",
+          id: "agent-channels",
+          label: "Agent Channels",
         },
       ],
     },

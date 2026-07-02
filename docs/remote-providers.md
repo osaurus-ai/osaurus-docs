@@ -1,18 +1,18 @@
 ---
 title: Remote Providers
 sidebar_label: Remote Providers
-description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, DeepSeek, MiniMax, Venice, OpenRouter, Ollama, and any custom OpenAI-compatible endpoint — by API key or browser sign-in.
+description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, and any OpenAI-compatible endpoint — by API key or browser sign-in.
 ---
 
 # Remote Providers
 
-Remote Providers let you connect Osaurus to external inference APIs (OpenAI, Anthropic, Open Responses, and compatible endpoints), giving you cloud models alongside your local MLX models — all behind the same Osaurus URL.
+Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, Open Responses, and compatible endpoints), so cloud models sit alongside your local MLX models — all behind the same Osaurus URL.
 
 ## Why this matters
 
-- One client connection (your script's OpenAI SDK pointed at Osaurus) gets access to **every** model — local and cloud — by name
-- API keys are stored in the macOS Keychain, never in plain-text config files
-- Switch backends without touching client code; same memory and agent context follows you across providers
+- One client connection (your script's OpenAI SDK pointed at Osaurus) reaches **every** model — local and cloud — by name
+- API keys live in the macOS Keychain, never in plain-text config files
+- Switch backends without touching client code; memory and agent context follow you across providers
 
 ## Adding a provider
 
@@ -27,7 +27,7 @@ Remote Providers let you connect Osaurus to external inference APIs (OpenAI, Ant
 
 ### Provider presets
 
-Osaurus ships first-class presets for the providers below — pick one and you only fill in a key (or sign in). The OAuth-capable providers are listed first because a browser sign-in is the lowest-friction path.
+Osaurus ships first-class presets for the providers below — pick one and you only fill in a key (or sign in). OAuth-capable providers are listed first.
 
 | Preset | Host | Port | Base path | API format | Auth |
 |---|---|---|---|---|---|
@@ -38,6 +38,7 @@ Osaurus ships first-class presets for the providers below — pick one and you o
 | **Google (Gemini)** | `generativelanguage.googleapis.com` | 443 | `/v1beta` | Gemini | API key |
 | **Azure OpenAI Foundry** | your resource host | 443 | `/openai/v1` | OpenAI | API key |
 | **AtlasCloud** | `api.atlascloud.ai` | 443 | `/v1` | OpenAI-compatible | API key |
+| **Mistral** | `api.mistral.ai` | 443 | `/v1` | OpenAI-compatible | API key |
 | **DeepSeek** | `api.deepseek.com` | 443 | `/v1` | OpenAI-compatible | API key |
 | **MiniMax** | `api.minimax.io` | 443 | `/v1` | OpenAI-compatible | API key |
 | **Venice AI** | `api.venice.ai` | 443 | `/api/v1` | OpenAI-compatible | API key |
@@ -48,7 +49,7 @@ Need something else? Use **Custom** for LM Studio or any other OpenAI-compatible
 
 ### Signing in with OAuth
 
-**OpenAI**, **xAI**, and **OpenRouter** support a **browser sign-in** instead of an API key: pick the provider, click **Sign in**, and authorize in your browser. For OpenAI you can sign in with your **ChatGPT / Codex** account or paste a Platform API key — either works. These providers are surfaced first in the picker because OAuth is the quickest way to connect.
+**OpenAI**, **xAI**, and **OpenRouter** support a **browser sign-in** instead of an API key: pick the provider, click **Sign in**, and authorize in your browser. For OpenAI you can sign in with your **ChatGPT / Codex** account or paste a Platform API key — either works.
 
 ### API format types
 
@@ -88,14 +89,14 @@ Need something else? Use **Custom** for LM Studio or any other OpenAI-compatible
 
 #### Custom headers
 
-You can add custom HTTP headers for specialized authentication or configuration:
+Add custom HTTP headers for specialized authentication or configuration:
 
 ```
 X-Custom-Header: value
 Authorization: Bearer token
 ```
 
-For headers containing secrets, mark them as "secret" to store values in the Keychain rather than in plain-text configuration.
+Mark headers containing secrets as "secret" to store their values in the Keychain rather than in plain-text configuration.
 
 ## Using remote models
 
@@ -163,7 +164,7 @@ Base:     /v1
 Auth:     API key (platform.openai.com) or browser sign-in
 ```
 
-Sign in with your **ChatGPT / Codex** account for the lowest-friction setup, or paste a Platform API key — either works.
+Sign in with your **ChatGPT / Codex** account, or paste a Platform API key.
 
 ### xAI
 
@@ -234,6 +235,17 @@ Auth:     API key (atlascloud.ai)
 ```
 
 OpenAI-compatible access to DeepSeek, Qwen, GLM, Kimi, and MiniMax models.
+
+### Mistral
+
+```
+Host:     api.mistral.ai
+Protocol: HTTPS
+Base:     /v1
+Auth:     API key (console.mistral.ai)
+```
+
+Mistral's adjustable reasoning models get a **reasoning effort** control (none / low / medium / high) in the chat settings.
 
 ### DeepSeek
 
