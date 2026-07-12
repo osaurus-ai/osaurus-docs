@@ -19,7 +19,7 @@ Five minutes from a fresh Mac to a working AI you own. Here's the whole flow.
 
 Grab the DMG from [osaurus.ai](https://osaurus.ai/), drag it into your Applications folder, and launch it from Spotlight (`⌘ Space` → "Osaurus"). That's it.
 
-If macOS shows a security dialog on first open, **right-click** Osaurus.app and choose **Open** — you only do this once. Full guide: [Installation](/installation).
+The app is signed and notarized, so it opens without security warnings. Full guide: [Installation](/installation).
 
 ## 2. Walk through onboarding
 
@@ -49,7 +49,7 @@ You can always add more later from **Management → Models** or **Management →
 
 ### Set up identity
 
-Osaurus creates a key for you (and your future agents) the first time it runs. It lives in your iCloud Keychain, gated by Face ID / Touch ID. A one-time **recovery code** is shown — **write this down somewhere safe**, it's the only thing that can recover your identity if you lose access to your Mac.
+Osaurus creates a key for you (and your future agents) the first time it runs — silently, nothing to write down. It lives in your iCloud Keychain, gated by Face ID / Touch ID. When you have a minute, save your **24-word recovery phrase** from **Management → Identity → View recovery phrase** — it's what restores your identity on a new Mac.
 
 This step is skippable but recommended — it unlocks access keys and Public Links later. [Identity →](/identity)
 

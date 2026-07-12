@@ -93,7 +93,7 @@ curl http://127.0.0.1:1337/mcp/tools | jq
 ```bash
 curl -X POST http://127.0.0.1:1337/mcp/call \
   -H "Content-Type: application/json" \
-  -d '{"name": "current_time", "arguments": {}}'
+  -d '{"name": "get_current_time", "arguments": {}}'
 ```
 
 ## Remote Providers
@@ -102,7 +102,7 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 
 ### Adding a Provider
 
-1. Open the Management window (⌘⇧M)
+1. Open the Management window (⌘,)
 2. Navigate to **Providers**
 3. Click **Add Provider**
 4. Choose a preset or configure a custom endpoint
@@ -116,8 +116,9 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 | **xAI**        | Grok models                                                         |
 | **OpenRouter** | Access multiple providers (Anthropic, Google, etc.) through one API |
 | **Ollama**     | Connect to a local or remote Ollama instance                        |
-| **LM Studio**  | Use LM Studio as a backend                                          |
 | **Custom**     | Any OpenAI-compatible endpoint                                      |
+
+LM Studio isn't a provider preset — instead, Osaurus [discovers models already downloaded by LM Studio](/models#reusing-models-you-already-have) and runs them directly with its own MLX engine.
 
 ### Features
 

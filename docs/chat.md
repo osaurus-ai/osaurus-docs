@@ -18,7 +18,7 @@ This page covers the chat overlay, multi-window mode, sessions, and every keyboa
 | Open the chat overlay | `⌘;` |
 | Dismiss the overlay | `⌘;` again, or `Esc`, or click outside |
 | Open a new chat window | `⌘ N` |
-| Open the Management window | `⌘ ⇧ M` |
+| Open the Management window | `⌘ ,` |
 
 The hotkey is configurable: Settings → General → Global Hotkey if `⌘;` collides with another app.
 
@@ -29,7 +29,7 @@ The hotkey is configurable: Settings → General → Global Hotkey if `⌘;` col
 | **Input bar** | Type or paste your message. `Enter` to send, `Shift + Enter` for a new line. |
 | **Folder picker** | Click to point this chat at a working folder. Gives the agent file/search/git tools scoped to that folder. See [Tasks](/agent-loop). |
 | **Sandbox toggle** *(macOS 26+)* | Gives the agent shell access in an isolated Linux VM. |
-| **Microphone** | Click for voice input. Long-press the global hotkey for [Transcription Mode](/voice#transcription-mode) into any app. |
+| **Microphone** | Click for voice input. [Transcription Mode](/voice#transcription-mode) has its own configurable hotkey for typing into any app. |
 | **Model selector** | Switch between local models, Apple Foundation, and any cloud providers you've connected. |
 | **Agent selector** | Switch the active agent. Theme, prompt, and memory swap with it. |
 
@@ -68,8 +68,8 @@ The badge filter rail across the top lets you narrow by source. It hides itself 
 |---|---|
 | Search | Type in the search field at the top of the sidebar |
 | Delete a session | Right-click → **Delete** |
-| Clear current chat | `⌘ K` |
-| Wipe everything | Settings → Storage → **Clear chat history** |
+| Clear current chat | Type `/clear` in the input bar |
+| Wipe everything | Delete sessions from the sidebar, or Settings → General → **Factory Reset** (removes all app data) |
 
 Wiping is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep them. [Storage details →](/storage)
 
@@ -103,7 +103,6 @@ Click the pin icon in the title bar to keep a window floating above all other ap
 |---|---|
 | `⌘ N` | New window |
 | `⌘ W` | Close current window |
-| `⌘ \`` | Cycle between Osaurus windows |
 | Drag titlebar | Move |
 | Drag corner | Resize |
 
@@ -133,25 +132,16 @@ Hover over any message to reveal a copy button.
 
 If a response is heading the wrong direction, click **Stop** to interrupt streaming, edit your prompt, and try again.
 
-## Settings inside the overlay
+## Chat settings
 
-Click the gear icon in the chat header for the most-used per-session settings:
-
-| Setting | What it does |
-|---|---|
-| **System prompt** | Default instructions sent with every message in this session |
-| **Temperature** | 0.0 (focused) → 1.0 (creative) |
-| **Max tokens** | Cap on the response length |
-| **Stream responses** | On by default; flip off if you want to wait for the whole response at once |
-
-Per-agent versions of these live in the agent's settings (Management → Agents). [Agents →](/agents)
+Generation settings — system prompt, temperature, max tokens — live in the Management window under **Chat**. Per-agent overrides live in the agent's settings (Management → Agents). [Agents →](/agents)
 
 ## Menu bar icon
 
 The Osaurus menu bar icon stays out of your way. Click it to:
 
 - Start/stop the server
-- Open the Management window (`⌘ ⇧ M`)
+- Open the Management window (`⌘ ,`)
 - See server status
 - Toggle VAD listening on/off
 
@@ -170,7 +160,7 @@ A small dot on the icon means VAD is on:
 | Shortcut | Action |
 |---|---|
 | `⌘;` | Toggle chat overlay |
-| `⌘ ⇧ M` | Open Management window |
+| `⌘ ,` | Open Management window |
 | *(custom)* | Transcription Mode (set in Voice settings) |
 | *(custom)* | VAD wake phrase (set in Voice settings) |
 
@@ -180,11 +170,10 @@ A small dot on the icon means VAD is on:
 |---|---|
 | `⌘ N` | New window |
 | `⌘ W` | Close current window |
-| `⌘ \`` | Cycle between Osaurus windows |
 | `Enter` | Send message |
 | `Shift + Enter` | New line |
 | `Esc` | Dismiss the overlay |
-| `⌘ K` | Clear current conversation |
+| `/clear` | Clear current conversation (slash command) |
 
 ### Management window
 

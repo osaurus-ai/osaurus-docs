@@ -13,27 +13,30 @@ Where [Watchers](/watchers) react to file changes, schedules run on a clock.
 
 ## Quick start
 
-1. Open the Management window (`⌘ ⇧ M`) → **Schedules**
+1. Open the Management window (`⌘ ,`) → **Schedules**
 2. Click **Create Schedule**
 3. Fill in:
    - **Name** — what this schedule is for
-   - **Frequency** — once, daily, weekly, monthly, or yearly
+   - **Frequency** — once, minutes, hourly, daily, weekly, monthly, yearly, or a cron expression
    - **Time** — when it runs (for recurring schedules)
    - **Agent** — which agent handles the task
    - **Instructions** — the prompt to send when it fires
 4. Click **Save**
 
-The schedule is now active. Review past runs anytime via **View Last Run**.
+The schedule is now active. Review past runs anytime via **History**.
 
 ## Frequency options
 
 | Frequency | What it does | Example |
 |---|---|---|
 | **Once** | Single run at a specific date | One-time reminder |
+| **Minutes** | Every N minutes | Frequent polling tasks |
+| **Hourly** | Every hour (or every N hours) | Inbox sweeps |
 | **Daily** | Every day at a set time | Morning journaling |
 | **Weekly** | Once a week on a chosen day | Weekly progress reports |
 | **Monthly** | Once a month on a chosen date | Monthly goal reviews |
 | **Yearly** | Once a year on a chosen date | Annual reflection |
+| **Cron Expression** | Full cron syntax for anything else | `0 9 * * 1-5` (weekday mornings) |
 
 For recurring schedules, configure the time (24-hour) and the day-of-week (weekly) or day-of-month (monthly).
 
@@ -120,7 +123,7 @@ Useful for testing new schedules, running outside the normal time, or catching u
 After a schedule fires, you can see exactly what happened:
 
 1. Click on the schedule
-2. Click **View Last Run**
+2. Click **History**
 
 The full conversation opens — your instructions, the agent's response, any tool calls or actions taken.
 
@@ -186,15 +189,14 @@ Each run is also saved as a chat session tagged `schedule` (visible as a badge i
 
 - **Review the instructions** — Ambiguous prompts lead to inconsistent results
 - **Check the agent** — Make sure the right agent is assigned
-- **Inspect what tools fired** — Open Insights (`⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
+- **Inspect what tools fired** — Open Insights (Management `⌘ ,` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
 
 ### Missed schedules
 
 If Osaurus wasn't running at the scheduled time:
 
-- The schedule runs on next app launch (if configured for catch-up)
-- Or waits until the next scheduled time
-- Use "Run Now" to trigger manually
+- Missed schedules run automatically on the next app launch
+- Use "Run Now" to trigger manually anytime
 
 ---
 

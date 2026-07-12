@@ -13,7 +13,7 @@ Osaurus ships **App Intents**, Apple's framework for exposing app actions to the
 | Action | What it does |
 |---|---|
 | **Ask Osaurus** | Sends a prompt to your **currently active** agent and returns (or speaks) the reply. It waits for the answer, so it's best for quick questions. |
-| **Run Osaurus Agent** | Kicks off one of your custom agents **in the background**. It returns immediately; progress and results show up in Osaurus itself (Tasks and notifications). Best for longer, tool-heavy work. |
+| **Run Osaurus Agent** | Kicks off one of your custom agents **in the background**. Takes the **Agent** to run plus an optional **Input** text parameter passed to the run. It returns immediately; progress and results show up in Osaurus itself (Tasks and notifications). Best for longer, tool-heavy work. |
 
 ### Example phrases
 
@@ -24,7 +24,7 @@ Each phrase must contain the app name:
 
 ## How to use it
 
-- **Shortcuts app** — add "Ask Osaurus" or "Run Osaurus Agent" to a shortcut, fill in the parameters, and run it. "Run Osaurus Agent" shows a dropdown of your custom agents.
+- **Shortcuts app** — add "Ask Osaurus" or "Run Osaurus Agent" to a shortcut, fill in the parameters, and run it. "Run Osaurus Agent" shows a dropdown of your custom agents and an optional **Input** field you can wire to earlier shortcut steps.
 - **Spotlight** — press `⌘ Space`, type "Ask Osaurus", and go.
 - **Siri** — say "Ask Osaurus" or "Run *\<agent>* in Osaurus".
 

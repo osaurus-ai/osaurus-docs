@@ -22,11 +22,11 @@ Imported plugins live in the **Plugins** management tab alongside Osaurus's nati
 | `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Management → Providers (MCP) |
 | `CLAUDE.md`, `CONNECTORS.md`, `README.md` | Reference files | Attached to every imported skill |
 
-Once imported, skills, references, slash commands, and MCP tools are selected automatically through the same RAG search used for built-in [skills](/skills) — there's nothing extra to wire up. `SKILL.md` bodies that point at `${CLAUDE_PLUGIN_ROOT}/…` paths or relative links are rewritten at import time to the local files Osaurus bundled.
+Once imported, skills, references, slash commands, and MCP tools are discovered and loaded on demand through the same capability discovery used for built-in [skills](/skills) — there's nothing extra to wire up. `SKILL.md` bodies that point at `${CLAUDE_PLUGIN_ROOT}/…` paths or relative links are rewritten at import time to the local files Osaurus bundled.
 
 ## Importing a plugin
 
-1. Open Management (`⌘ ⇧ M`) → **Plugins**.
+1. Open Management (`⌘ ,`) → **Plugins**.
 2. Click **Import** in the header.
 3. Enter the repository (`owner/repo` or a full URL).
 4. Choose which plugins — and which artifacts within each — to install.
@@ -87,7 +87,7 @@ Skill-local scripts (Python helpers, etc.) are attached so the model can read th
 
 **Related:**
 
-- [Skills](/skills) — the skill format and how RAG selection works
+- [Skills](/skills) — the skill format and how capability discovery works
 - [Remote MCP Providers](/remote-mcp-providers) — manual MCP setup and transports
 - [Schedules](/schedules) — recurring runs that imported agents map to
 - [Agents](/agents) — agents that use the imported skills and tools

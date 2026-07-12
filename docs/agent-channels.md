@@ -18,9 +18,10 @@ Every channel connection exposes the same verbs through the `agent_channel_*` to
 
 | Action | What it does |
 |---|---|
+| `list_connections` | Enumerate the channel connections available to this agent |
 | `diagnostics` | Validate a connection's configuration without touching the network |
 | `list_spaces` / `list_rooms` | Discover servers and channels the connection can see |
-| `read_messages` / `search_messages` | Read or search allowlisted rooms |
+| `read_messages` / `read_thread` / `search_messages` | Read a room, follow a thread, or search allowlisted rooms |
 | `draft_message` | A local dry run — shows what would be sent, sends nothing |
 | `send_message` / `reply_thread` | Post to an allowlisted room, always requiring explicit confirmation |
 
@@ -39,12 +40,14 @@ Channels are built so an agent — or someone messaging your agent from outside 
 
 ## Discord
 
-Discord is the first native connection. The bot token lives in your macOS **Keychain** — the JSON configuration stores only non-secret ids and policy:
+Discord is the first native connection. The bot token lives in your macOS **Keychain** — the JSON configuration stores only non-secret ids and policy. Discord connections use their own field names:
 
 - `configuredGuildIds` — which servers the connection may inspect
 - `readableChannelIds` — rooms it may read and search
 - `writableChannelIds` — rooms it may post to
 - `writeEnabled` — the master write switch; sends still require per-message confirmation
+
+(Custom JSON channels use the generic `readRoomAllowlist` / `writeRoomAllowlist` names instead — see below.)
 
 ## Custom JSON channels
 

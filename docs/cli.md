@@ -55,7 +55,7 @@ osaurus serve [options]
 
 | Option         | Description                                | Default |
 | -------------- | ------------------------------------------ | ------- |
-| `--port`, `-p` | Server port number                         | 1337    |
+| `--port`       | Server port number                         | 1337    |
 | `--expose`     | Enable LAN access (bind to all interfaces) | false   |
 | `--supervise`  | Keep the server alive — probe health and relaunch it whenever it goes down | false |
 | `--interval`   | Health-probe interval in seconds (with `--supervise`) | 15 |
@@ -109,7 +109,7 @@ osaurus stop
 
 ### osaurus status
 
-Check server status and show the running configuration.
+Check whether the server is running.
 
 ```bash
 osaurus status
@@ -118,23 +118,20 @@ osaurus status
 **Example output:**
 
 ```
-Osaurus Server Status
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Status:     Running
-Port:       1337
-PID:        12345
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+running (port 1337)
 ```
+
+Prints `stopped` when the server isn't running.
 
 ### osaurus ui
 
-Open the Osaurus graphical interface.
+Open the Osaurus menu-bar popover.
 
 ```bash
 osaurus ui
 ```
 
-Launches the app if not already running and brings it to the foreground.
+Launches the app if not already running and opens its menu-bar popover (not a full app window).
 
 ### osaurus list
 
@@ -147,14 +144,12 @@ osaurus list
 **Example output:**
 
 ```
-Available Models
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-gemma-4-e2b-it-4bit            1.5 GB
-gemma-4-26b-a4b-it-jang_4m     8.2 GB
-qwen3.6-35b-a3b-jangtq2        8.7 GB
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total: 18.4 GB
+gemma-4-e2b-it-4bit
+gemma-4-26b-a4b-it-jang_4m
+qwen3.6-35b-a3b-jangtq2
 ```
+
+One model ID per line. Use `osaurus show <model>` for size and metadata.
 
 ### osaurus show
 
@@ -200,7 +195,7 @@ osaurus run <model>
 osaurus run gemma-4-e2b-it-4bit
 ```
 
-Starts an interactive REPL where you can chat with the model. Type `/exit` or press Ctrl+C to quit.
+Starts an interactive REPL where you can chat with the model. Type `exit` or press Ctrl+C to quit.
 
 ### osaurus mcp
 
@@ -236,7 +231,7 @@ osaurus version
 **Example output:**
 
 ```
-Osaurus 0.9.7
+Osaurus 0.22.1
 ```
 
 ### osaurus tools
@@ -255,7 +250,8 @@ Install a plugin from the registry or local directory.
 # From registry
 osaurus tools install osaurus.browser
 
-# From local directory (must contain manifest.json)
+# From local directory (must contain osaurus-plugin.json,
+# manifest.json, or plugin.json)
 osaurus tools install .
 osaurus tools install /path/to/plugin
 ```
@@ -290,14 +286,14 @@ osaurus tools search filesystem
 Scaffold a new plugin project.
 
 ```bash
-osaurus tools create MyPlugin --swift
-osaurus tools create MyPlugin --rust
+osaurus tools create MyPlugin --language swift
+osaurus tools create MyPlugin --language rust
 ```
 
 Creates a directory with:
 
 - `Package.swift` or `Cargo.toml`
-- `manifest.json`
+- `osaurus-plugin.json` (the plugin manifest)
 - Source file template
 
 #### tools dev
@@ -316,10 +312,13 @@ Package a plugin for distribution.
 
 ```bash
 cd MyPlugin
-osaurus tools package
+osaurus tools package <plugin_id> <version> [dylib_path]
+
+# Example
+osaurus tools package com.example.mytool 1.0.0
 ```
 
-Creates a zip file with the built `.dylib` and `manifest.json`.
+Creates a zip file with the built `.dylib` and the plugin manifest.
 
 ## Environment Variables
 
@@ -373,7 +372,7 @@ osaurus serve
 
 ```bash
 # Create a new plugin
-osaurus tools create MyTool --swift
+osaurus tools create MyTool --language swift
 cd MyTool
 
 # Build and test

@@ -1,7 +1,7 @@
 ---
 title: Installation
 sidebar_label: Installation
-description: Download Osaurus for macOS in under a minute. Native Apple Silicon, signed, free.
+description: Download Osaurus for macOS in under a minute. Native Apple Silicon, signed and notarized, free.
 sidebar_position: 2
 ---
 
@@ -31,7 +31,7 @@ The [Sandbox](/agent-loop) (running agent code in an isolated Linux VM) and [App
 2. **Open** the DMG and drag Osaurus into your **Applications** folder
 3. **Eject** the DMG and launch Osaurus from Spotlight (`⌘ Space` → "Osaurus")
 
-The first time you open it, macOS may show a security dialog because the app is signed but not yet notarized — **right-click** Osaurus.app and choose **Open**, then click **Open** in the dialog. You only need to do this once.
+Osaurus is Developer ID signed and notarized by Apple, so it opens without any security warnings.
 
 That's it. Updates auto-install via Sparkle when you launch the app — no need to come back here.
 
@@ -109,7 +109,7 @@ curl http://127.0.0.1:1337/health
 
 ### "Cannot be opened" error
 
-System Settings → Privacy & Security → scroll to the security message → **Open Anyway**.
+This shouldn't normally happen — releases are signed and notarized. If you see it, the download was likely corrupted or came from an unofficial mirror: delete the app, re-download the DMG from [osaurus.ai](https://osaurus.ai/) or [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest), and reinstall. As a last resort, System Settings → Privacy & Security → scroll to the security message → **Open Anyway**.
 
 ### `osaurus` command not found
 

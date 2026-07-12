@@ -1,7 +1,7 @@
 ---
 title: SDK Examples
 sidebar_label: SDK Examples
-description: Code examples for using Osaurus from Python, JavaScript, Swift, Rust, Go, Ruby — plus Anthropic SDK, Open Responses, and the memory header.
+description: Code examples for using Osaurus from Python, JavaScript, Swift, Rust, Go, Ruby — plus Anthropic SDK, Open Responses, and the agent header.
 ---
 
 # SDK Examples
@@ -247,7 +247,7 @@ print(bot.chat("Name 3 famous landmarks there"))  # Continues context
 
 ### Anthropic SDK
 
-Use the Anthropic Python SDK directly — Osaurus speaks the Messages API at `/anthropic/v1/messages`.
+Use the Anthropic Python SDK directly — Osaurus speaks the Messages API at `/v1/messages`.
 
 ```bash
 pip install anthropic
@@ -257,7 +257,7 @@ pip install anthropic
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url="http://127.0.0.1:1337/anthropic",
+    base_url="http://127.0.0.1:1337",
     api_key="osaurus",  # or an osk-v1 key
 )
 
@@ -312,9 +312,9 @@ resp = requests.post(
 ).json()
 ```
 
-### Memory injection (`X-Osaurus-Agent-Id`)
+### Agent attribution (`X-Osaurus-Agent-Id`)
 
-Add the header to any chat request and Osaurus prepends relevant memory automatically.
+Add the header to a chat completion request to attribute the session — chat history and memory *recording* group under that agent. Note that `/v1/chat/completions` is a passthrough: memory is **not** injected into the prompt on this path. For memory-enriched requests, use `POST /agents/{id}/run`.
 
 ```python
 from openai import OpenAI
@@ -322,7 +322,8 @@ from openai import OpenAI
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
     api_key="osaurus",
-    default_headers={"X-Osaurus-Agent-Id": "my-agent"},
+    # Use an agent UUID from GET /agents
+    default_headers={"X-Osaurus-Agent-Id": "9A2B4C6D-1122-3344-5566-77889900AABB"},
 )
 
 response = client.chat.completions.create(
@@ -331,7 +332,7 @@ response = client.chat.completions.create(
 )
 ```
 
-The header value is an arbitrary string — typically the agent ID you got from `GET /agents`. When the header is missing, the request runs without memory injection. [Memory →](/memory)
+Use a real agent UUID from `GET /agents`. When the header is missing, the request runs without agent attribution. [Memory →](/memory)
 
 ### Bulk memory ingestion
 
@@ -370,7 +371,7 @@ Anthropic SDK uses `x-api-key` instead of `Authorization`, but the SDK handles t
 
 ```python
 client = anthropic.Anthropic(
-    base_url="http://your-mac.local:1337/anthropic",
+    base_url="http://your-mac.local:1337",
     api_key="osk-v1.eyJpc3M…",
 )
 ```

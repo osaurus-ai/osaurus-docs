@@ -13,7 +13,7 @@ Your access keys still protect everything. Public Links only handles transport; 
 
 ## How it works
 
-1. You enable a public link for an agent in the Management window (**⌘⇧M**) → **Server** → **Relays**
+1. You enable a public link for an agent in the Management window (**⌘,**) → **Server** → **Relays**
 2. Osaurus authenticates with the relay service using the agent's signature
 3. The agent gets a public URL: `https://<address>.agent.osaurus.ai`
 4. Incoming requests are forwarded to your local server over a WebSocket tunnel
@@ -35,7 +35,7 @@ Remote Client                    Relay Service                    Your Mac
 
 ## Enabling a public link
 
-1. Open the Management window (**⌘⇧M**) → **Server** → **Relays**
+1. Open the Management window (**⌘,**) → **Server** → **Relays**
 2. Find the agent you want to expose
 3. Toggle the public link switch
 4. Confirm in the dialog that the agent will be publicly accessible

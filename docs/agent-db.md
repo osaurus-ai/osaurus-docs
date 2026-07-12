@@ -35,6 +35,8 @@ The agent works the database entirely through typed `db_*` tools — it never wr
 
 **Reads & saved views:** `db_query` (read-only SELECT, capped with a `truncated` flag), `db_define_view` / `db_run_view` / `db_list_views` / `db_drop_view`, and an `db_execute` escape hatch restricted by host policy.
 
+**Import & export:** `db_import` (bulk-load rows, e.g. from CSV/JSON) and `db_export` (dump table or view contents).
+
 ### Soft deletes
 
 Every table the agent creates gets three reserved columns: `_created_at`, `_updated_at`, and `_deleted_at`. `db_delete` is a **soft delete** — it stamps `_deleted_at` rather than removing the row, and `db_restore` clears it. Reads hide soft-deleted rows by default. In the **Data** tab, the `Active` / `Deleted` / `All` filter maps directly to that flag. There's no hard-delete tool — purging a row is a host-side action the model can't take.
@@ -78,10 +80,10 @@ Pass **either** `scheduled_at` or `in_seconds`, not both.
 | `in_seconds` | integer | Relative offset from now |
 | `instructions` | string (required) | The "wake-up brief" the agent reads when it fires |
 | `context_views` | string[] | Saved-view names to prefetch into the prompt before the run |
-| `priority` | `normal` \| `low` | `low` skips the run if you're mid-conversation when it's due |
+| `priority` | `normal` \| `low` | Stored intent hint (a mid-conversation skip for `low` is not currently enforced) |
 | `on_miss` | `skip` \| `run_once` \| `run_catchup` | What to do if the wake-up time already passed (e.g. the Mac was asleep) |
 
-`cancel_next_run` clears the slot. A requested time is clamped to the agent's **schedule mode** bounds before it's saved; if it's clamped, the tool result says why.
+`cancel_next_run` clears the slot, and `notify` lets the agent post a user-facing notification without scheduling anything. A requested time is clamped to the agent's **schedule mode** bounds before it's saved; if it's clamped, the tool result says why.
 
 ### Schedule modes
 

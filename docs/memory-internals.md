@@ -72,7 +72,7 @@ The gate picks at most one section, the planner fits it under the token budget, 
 
 | Step | What it does |
 |---|---|
-| **Decay** | `salience *= exp(-Δdays / 30)` for pinned facts and episodes |
+| **Decay** | `salience *= 0.5^(Δdays / 30)` — a 30-day half-life — for pinned facts and episodes |
 | **Merge** | Collapse near-duplicate episodes (Jaccard ≥ 0.9 over summary+topics) within the same agent |
 | **Promote** | Boost salience on pinned facts whose content overlaps ≥ 3 recent episodes |
 | **Evict** | Delete pinned facts below `salienceFloor` and idle 30+ days |
@@ -108,13 +108,13 @@ Open **Management → Memory** for the UI, or edit `~/.osaurus/config/memory.jso
 | `salienceFloor` | `0.2` | 0.0 – 1.0 | Pinned facts below this and idle 30+ days are evicted |
 | `episodeRetentionDays` | `365` | 0 – 3,650 | How long episodes / transcript are kept (0 = forever) |
 
-That's the entire surface — eight knobs total.
+That's the entire surface — ten settings total.
 
 ## HTTP API
 
-### Per-request memory: `X-Osaurus-Agent-Id`
+### Agent attribution: `X-Osaurus-Agent-Id`
 
-Add the `X-Osaurus-Agent-Id` header to any `POST /v1/chat/completions` request. Osaurus runs the gate, picks at most one memory section, and prepends it to your message:
+Add the `X-Osaurus-Agent-Id` header to a `POST /v1/chat/completions` request to attribute the session — chat history and memory *recording* group under that agent. Memory is **not injected** into the prompt on this passthrough path; memory-enriched requests go through `POST /agents/{id}/run` (the path the in-app chat uses), where the gate picks at most one section and prepends it under the token budget:
 
 ```python
 from openai import OpenAI
@@ -122,7 +122,8 @@ from openai import OpenAI
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
     api_key="osaurus",
-    default_headers={"X-Osaurus-Agent-Id": "my-agent"},
+    # Use an agent UUID from GET /agents
+    default_headers={"X-Osaurus-Agent-Id": "9A2B4C6D-1122-3344-5566-77889900AABB"},
 )
 
 response = client.chat.completions.create(
@@ -131,7 +132,7 @@ response = client.chat.completions.create(
 )
 ```
 
-The header value is an arbitrary string identifying which agent's memory to use.
+Use a real agent UUID from `GET /agents` as the header value.
 
 ### Bulk ingest: `POST /memory/ingest`
 

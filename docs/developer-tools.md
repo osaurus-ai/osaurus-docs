@@ -6,7 +6,7 @@ description: Real-time API request inspection (Insights) and an interactive endp
 
 # Developer Tools
 
-Osaurus includes built-in developer tools for debugging, monitoring, and testing your integration. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
+Osaurus includes built-in developer tools for debugging, monitoring, and testing your integration. Open the Management window (`⌘ ,`) and click **Insights** or **Server**.
 
 ## Insights
 
@@ -256,7 +256,7 @@ Currently env-gated:
 The `test-core` job caches `~/Library/Developer/Xcode/DerivedData` keyed on Swift sources, manifests, resources, the pinned Xcode version, and a manual `CACHE_SALT`. Two recovery levers:
 
 1. **One-shot cold build** — trigger CI manually via the **Run workflow** button and check `clear_cache`. Skips the restore for that one run.
-2. **Permanent bust** — bump `CACHE_SALT` (currently `v1`) at the top of `.github/workflows/ci.yml` to `v2` and merge. Every cache key invalidates immediately.
+2. **Permanent bust** — bump `CACHE_SALT` (currently `v2-vmlx-5b84387`) at the top of `.github/workflows/ci.yml` and merge. Every cache key invalidates immediately.
 
 The cache only **saves** on `main` pushes — PRs read from it but never overwrite, so a half-baked branch can't poison everyone.
 
@@ -267,7 +267,7 @@ The full xcodebuild output is collapsed into expandable groups by `xcbeautify`. 
 - A short failure summary at the top of the GitHub Actions run page
 - The raw `Tests.xcresult` bundle as a downloadable artifact (`test-core-xcresult-N`, 7-day retention)
 
-A passing run produces ~1–2k log lines instead of the historical ~30k. Individual tests that hang are killed in ~2 min by `-test-timeouts-enabled YES` (default 60s, max 120s per test). The whole `test-core` job is also capped at 15 minutes via `timeout-minutes`.
+A passing run produces ~1–2k log lines instead of the historical ~30k. Individual tests that hang are killed in ~2 min by `-test-timeouts-enabled YES` (default 60s, max 120s per test). The whole `test-core` job is also capped at 45 minutes via `timeout-minutes` (headroom for the cold-cache rebuild path).
 
 ---
 

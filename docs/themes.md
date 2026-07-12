@@ -11,7 +11,7 @@ Make Osaurus look the way you want. Pick from the built-in light and dark themes
 
 ## Quick start
 
-1. Open the Management window (`⌘ ⇧ M`) → **Themes**
+1. Open the Management window (`⌘ ,`) → **Themes**
 2. Click any theme to apply it
 3. Click **Edit** on a custom theme to tweak it (built-in themes are read-only)
 4. Click **Create** to start a new theme from scratch (or duplicate an existing one)

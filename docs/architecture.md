@@ -13,7 +13,7 @@ If you're building on top of Osaurus — writing plugins, scripts, or integratio
 Osaurus presents three entry points:
 
 - **The chat overlay** (`⌘;`) — the daily driver
-- **The Management window** (`⌘ ⇧ M`) — settings, agents, models, plugins, tools, memory, themes, automation
+- **The Management window** (`⌘ ,`) — settings, agents, models, plugins, tools, memory, themes, automation
 - **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP
 
 All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
@@ -24,7 +24,7 @@ All three funnel into the same **agent loop**, which talks to your **memory**, *
 flowchart TB
     User[You]
     Chat[Chat Overlay - ⌘;]
-    Mgmt[Management Window - ⌘ ⇧ M]
+    Mgmt[Management Window - ⌘ ,]
     HTTP[HTTP API on :1337]
 
     User --> Chat
@@ -80,7 +80,7 @@ flowchart TB
 
 | Layer | What it does | Reference |
 |---|---|---|
-| **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
+| **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ,`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
 | **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
 | **Tools** | 20+ native plugins (Mail, Calendar, Browser, Git, …), remote MCP aggregation, the Linux Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
@@ -96,7 +96,7 @@ The overlay is also where voice input lives: the microphone in the input bar, pl
 
 ### Management window
 
-`⌘ ⇧ M`. Tabs for everything that isn't a single chat: Models, Providers, Agents, Plugins, Sandbox, Tools, Skills, Commands, Memory, Schedules, Watchers, Voice, Themes, Insights, Server, Permissions, Identity, Storage, Settings.
+`⌘ ,`. Tabs for everything that isn't a single chat: Models, Providers, Agents, Plugins, Sandbox, Tools, Skills, Commands, Memory, Schedules, Watchers, Voice, Themes, Insights, Server, Permissions, Identity, Storage, Settings.
 
 ### HTTP API
 
@@ -108,7 +108,7 @@ The harness is what makes Osaurus more than a thin SDK shim:
 
 - **Agent Loop** — every chat is an agent loop. The model writes a markdown todo list, calls tools, iterates, and ends with a verified summary or pauses to ask one critical question.
 - **Memory** — persistent on-device memory with three layers (identity, pinned facts, episodes) plus a transcript fallback. Distillation runs once per session, gated on a configured Core Model.
-- **Skills & Methods** — reusable capabilities. [Skills](/skills) are markdown packages of expertise; [Methods](/methods) are scored YAML workflows the agent saved from past runs. Both are auto-selected via RAG preflight.
+- **Skills & Methods** — reusable capabilities. [Skills](/skills) are markdown packages of expertise; [Methods](/methods) are scored YAML workflows the agent saved from past runs. Both are discovered and loaded on demand via `capabilities_discover` / `capabilities_load`.
 - **Schedules & Watchers** — automation. Schedules run on a clock; watchers react to file system changes via FSEvents.
 
 Plugins, schedules, watchers, and the HTTP API all dispatch through the same agent loop — same engine, same loop tools, same intercepts. Sessions are tagged with their source (`chat` / `plugin` / `http` / `schedule` / `watcher`) so you can audit what spawned each conversation in the chat sidebar.

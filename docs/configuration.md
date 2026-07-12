@@ -46,20 +46,11 @@ When you `--expose`, anyone on your network can reach your Osaurus. Use access k
 
 ## Capabilities (auto-selection)
 
-Tools, skills, and methods are auto-selected via RAG before each turn. Configure the search width in **Management → Settings → Capabilities**:
-
-| Mode | Methods | Tools | Skills |
-|---|---|---|---|
-| `off` | 0 | 0 | 0 |
-| `narrow` | 1 | 2 | 1 |
-| `balanced` (default) | 3 | 5 | 2 |
-| `wide` | 5 | 8 | 4 |
-
-Higher modes give the agent more tools to choose from at the cost of larger system prompts. [Skills →](/skills) · [Methods →](/methods)
+Each agent has a tool mode in its **Capabilities** settings. In **Auto** mode (the default), the model starts with a small always-loaded set and pulls in more of your enabled tools, skills, and methods on demand via `capabilities_discover` / `capabilities_load`. In **Manual** mode, all enabled capabilities are sent every turn at the cost of larger system prompts. [Skills →](/skills) · [Methods →](/methods)
 
 ## Memory
 
-Memory is on by default, with eight settings. Edit them in **Management → Memory** or in `~/.osaurus/config/memory.json`:
+Memory is on by default, with ten settings. Edit them in **Management → Memory** or in `~/.osaurus/config/memory.json`:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -78,7 +69,7 @@ Memory is on by default, with eight settings. Edit them in **Management → Memo
 
 ## Local inference
 
-**Settings → Local Inference → Model Management:**
+**Management → Server → Settings → Model Memory:**
 
 | Setting | Description |
 |---|---|

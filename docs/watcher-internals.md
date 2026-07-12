@@ -42,7 +42,7 @@ Each watcher operates as a small state machine:
 | Debouncing | Coalescing rapid events | "Watching" (green) |
 | Processing | Agent task running | "Running" (accent + spinner) |
 | Settling | Waiting for self-caused FSEvents to flush | "Watching" (green) |
-| Disabled | Manually paused | "Paused" (gray) |
+| Disabled | Manually paused | "Paused" (orange) |
 
 ## Why fingerprinting is fast
 

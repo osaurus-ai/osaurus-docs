@@ -24,7 +24,7 @@ Local models run through MLX, Apple's array framework with first-class GPU suppo
 
 ### Downloading
 
-1. Open the Management window (`⌘ ⇧ M`) → **Models**
+1. Open the Management window (`⌘ ,`) → **Models**
 2. Browse or search the catalog
 3. Click **Download** on a model
 4. Watch progress in the queue
@@ -48,7 +48,7 @@ Osaurus discovers models downloaded by other tools, so you never fetch the same 
 - **Hugging Face cache** — the standard locations (`HF_HUB_CACHE`, `HF_HOME/hub`, `~/.cache/huggingface/hub`) are scanned automatically, and you can point Osaurus at a **custom cache path** in Settings (text field, folder picker, and a reset).
 - **LM Studio** — models in LM Studio's directory are discovered too.
 
-Osaurus also runs a **compatibility preflight** on local models and hides ones the MLX engine can't load, so the picker only offers models that will actually run.
+The chat picker filters out local bundles that aren't in MLX format and embedding-only models. MLX models that fail the runtime compatibility check may still appear but will error at load time.
 
 ### Curated lineup on Hugging Face
 
@@ -129,7 +129,7 @@ Pick a quantization that leaves room for the rest of your work and your Core Mod
 
 ### Loaded models and eviction
 
-Configure how local models are cached in **Settings → Local Inference → Model Management**:
+Configure how local models are cached in **Management → Server → Settings → Model Memory**:
 
 | Policy | Behavior |
 |---|---|
@@ -266,7 +266,7 @@ Osaurus picks a sane default for each model's context limit automatically. Multi
 
 ## Image models
 
-Chat models aren't the only kind — Osaurus also runs local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) for fully offline image generation and editing. They're installed from **Settings → Images** and covered separately: [Image Generation →](/image-generation)
+Chat models aren't the only kind — Osaurus also runs local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) for fully offline image generation and editing. They're installed from the **Images** tab in the Management window and covered separately: [Image Generation →](/image-generation)
 
 ## Under the hood
 

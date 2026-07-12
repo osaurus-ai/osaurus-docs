@@ -42,7 +42,7 @@ Delegation works in any direction — local to local, local to remote, remote to
 | Local → different local model (handoff off) | Rejected up front — nothing is evicted |
 | Local ↔ remote, remote ↔ remote | Runs in place |
 
-The **Local Orchestrator Handoff** toggle (on by default) lives in **Settings → Subagents**, next to the RAM-safety preflight and the image load policy. With handoff on, two large models never fight for memory; with it off, Osaurus refuses the delegation cleanly instead of erroring mid-run.
+The **Local Orchestrator Handoff** toggle (on by default) lives in **Management → General**. With handoff on, two large models never fight for memory; with it off, Osaurus refuses the delegation cleanly instead of erroring mid-run.
 
 ## Per-agent configuration
 

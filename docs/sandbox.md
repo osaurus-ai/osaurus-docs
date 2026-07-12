@@ -90,11 +90,11 @@ Always prefer the dedicated tool over a shell command:
 |---|---|
 | `cat`/`head`/`tail` in `sandbox_exec` | `sandbox_read_file` |
 | `grep`/`rg`/`find`/`ls` in `sandbox_exec` | `sandbox_search_files` (`target="content"` for rg, `target="files"` for glob) |
-| `sed`/`awk` | `sandbox_edit_file` |
+| `sed`/`awk` | `sandbox_write_file` with `old_string` + `new_string` (in-place edit) |
 | `echo`/heredoc | `sandbox_write_file` |
 | `&` / `nohup` / `disown` | `sandbox_exec(background:true)` + `sandbox_process` |
 
-Reserve `sandbox_exec` for builds, installs, processes, network calls, and any work without a dedicated tool. For ≥3 tool calls with logic between them, `sandbox_execute_code` runs a Python script that imports the same tools as helpers.
+Reserve `sandbox_exec` for builds, installs, processes, network calls, and any work without a dedicated tool. For multi-step logic, write a script with `sandbox_write_file` and run it with `sandbox_exec` (e.g. `python3 script.py`).
 
 ### Read-only (always available)
 
@@ -107,29 +107,25 @@ Reserve `sandbox_exec` for builds, installs, processes, network calls, and any w
 
 | Tool | Description |
 |---|---|
-| `sandbox_write_file` | Write content to a file (creates parent directories) |
-| `sandbox_edit_file` | Edit a file by exact string replacement (`old_string` must match exactly once) |
-| `sandbox_exec` | Run a shell command. Foreground (default, max 300s) **or** `background:true` for servers/long tasks (returns `pid` + `log_file` immediately) |
-| `sandbox_process` | Manage background jobs from `sandbox_exec(background:true)` — `action="poll"`, `"wait"`, `"kill"` |
-| `sandbox_execute_code` | Run a Python script that imports `read_file` / `write_file` / `edit_file` / `search_files` / `terminal` / `share_artifact` from `osaurus_tools`. 5-min timeout, 50KB stdout cap, 50 tool calls per script. |
-| `sandbox_install` | Install system packages via `apk` (runs as root). Auto-refreshes the package index; serializes globally on a single apk lock. |
-| `sandbox_pip_install` | Install Python packages into the agent's venv at `~/.venv/`. 240s timeout, runs with `--disable-pip-version-check --no-input`. |
-| `sandbox_npm_install` | Install Node packages into the agent's project workspace at `~/.osaurus/node_workspace/`. 240s timeout, runs with `--no-audit --no-fund --no-update-notifier`. |
+| `sandbox_write_file` | Write content to a file (creates parent directories), **or** edit in place: pass `old_string` + `new_string` for an exact-match string replacement |
+| `sandbox_exec` | Run a shell command. Foreground by default with an optional idle `timeout` parameter, **or** `background:true` for servers/long tasks (returns `pid` + `log_file` immediately; requires the agent's background-process opt-in) |
+| `sandbox_process` | Manage background jobs from `sandbox_exec(background:true)` — `action="poll"`, `"wait"` (default 60s, max 300s), `"kill"` |
+| `sandbox_install` | Install packages — `manager` selects `apk` (system, runs as root), `pip` (agent venv at `~/.venv/`), or `npm` (agent workspace at `~/.osaurus/node_workspace/`) |
 | `sandbox_secret_check` | Check whether a secret exists (never reveals the value) |
 | `sandbox_secret_set` | Store a secret directly (`value`) or prompt the user (omit `value`) |
 | `sandbox_plugin_register` | Register an agent-created plugin (requires `pluginCreate`) |
 
 `share_artifact` is a [global built-in](/agent-loop#sharing-artifacts) registered on `ToolRegistry`. It's available everywhere, not just in sandbox mode, so it doesn't appear in this sandbox-specific table.
 
-The previously-discrete `sandbox_list_directory`, `sandbox_find_files`, `sandbox_move`, `sandbox_delete`, `sandbox_exec_background`, and `sandbox_run_script` tools were dropped. Their behavior now comes from a flag (`background:true` on `sandbox_exec`, `target` on `sandbox_search_files`) or a direct shell invocation (`mv` / `rm` in `sandbox_exec`). `sandbox_run_script`'s use case — multi-step Python orchestration — moved to `sandbox_execute_code`.
+The previously-discrete `sandbox_list_directory`, `sandbox_find_files`, `sandbox_move`, `sandbox_delete`, `sandbox_exec_background`, `sandbox_edit_file`, `sandbox_pip_install`, `sandbox_npm_install`, `sandbox_run_script`, and `sandbox_execute_code` tools were consolidated. Their behavior now comes from a flag or parameter (`background:true` on `sandbox_exec`, `target` on `sandbox_search_files`, `old_string` on `sandbox_write_file`, `manager` on `sandbox_install`) or a direct shell invocation (`mv` / `rm` in `sandbox_exec`). Multi-step Python orchestration is now: write the script with `sandbox_write_file`, run it with `sandbox_exec`.
 
 ### Install hardening
 
-The three install tools share a hardening pipeline:
+The three install managers share a hardening pipeline:
 
 | Layer | Behavior |
 |---|---|
-| **Per-agent serialization** | `SandboxInstallLock` queues install ops behind each other per agent. apk's lock is container-wide so `sandbox_install` calls serialize **globally across every agent**. npm/pip are per-agent and run concurrently across agents. |
+| **Per-agent serialization** | `SandboxInstallLock` queues install ops behind each other per agent. apk's lock is container-wide so `manager:"apk"` installs serialize **globally across every agent**. npm/pip are per-agent and run concurrently across agents. |
 | **Auto-recovery** | If the first attempt fails AND output matches a known stale-state signature (`Tracker "idealTree" already exists`, `EEXIST`, `ELOCKED`, `Could not install packages due to an OSError`, `ReadTimeoutError`, `temporary error`, `unable to lock database`), the tool runs cleanup and retries once. The result envelope sets `retried: true`. |
 | **Cleanup actions** | npm: `rm -rf node_modules/.package-lock.json && npm cache clean --force`. pip: `pip cache purge`. apk: `apk update`. Same exec context as the install. |
 | **Workspace isolation** | npm in `~/.osaurus/node_workspace/`; pip in agent's venv at `~/.venv/`; both bin/ on PATH from any cwd. |
@@ -145,8 +141,7 @@ Every sandbox tool returns a [ToolEnvelope](/tool-contract) JSON string. Success
 - Exec foreground: `{stdout, stderr, exit_code, cwd}`
 - Exec background: `{pid, log_file, cwd, background:true}`
 - Process management: `{pid, alive|exited|killed, log_file, log_tail, ...}`
-- `sandbox_execute_code`: `{stdout, stderr, exit_code, tool_calls, cwd}`
-- Install family: `{installed, exit_code, output}` on success, plus `retried: true` when auto-recovery ran. Failures use `kind: execution_error` and may carry `cleanup_failed: true`.
+- Install: `{installed, exit_code, output}` on success, plus `retried: true` when auto-recovery ran. Failures use `kind: execution_error` and may carry `cleanup_failed: true`.
 
 Path failures use `kind: invalid_args` with `field` pointing at the offending argument so the model can self-correct. The path sanitizer returns structured rejection reasons (empty, traversal, null byte, dangerous character, outside allowed roots).
 
@@ -237,7 +232,7 @@ The `run` field is a shell command executed as the agent's Linux user with the w
 
 ## Agent-authored plugins (Sandbox Plugin Creator)
 
-Agents can author, package, and register new sandbox plugins at runtime. The model-facing skill is named **Sandbox Plugin Creator** and is auto-injected when an autonomous agent has no other plugin/MCP tools available.
+Agents can author, package, and register new sandbox plugins at runtime. The model-facing guidance is injected when the agent has `pluginCreate` enabled and the sandbox is available.
 
 Both the in-process `sandbox_plugin_register` tool and the host-API `POST /api/plugin/create` endpoint funnel through one shared registration pipeline (`SandboxPluginRegistration.register`) so they cannot drift.
 
@@ -245,7 +240,7 @@ Both the in-process `sandbox_plugin_register` tool and the host-API `POST /api/p
 
 - `autonomousExec.enabled = true` on the agent
 - `autonomousExec.pluginCreate = true` (the default)
-- The **Sandbox Plugin Creator** skill enabled (default)
+- The sandbox running
 
 **Workflow:**
 

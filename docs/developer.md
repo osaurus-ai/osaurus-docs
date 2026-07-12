@@ -51,7 +51,7 @@ brew install lefthook
 lefthook install
 ```
 
-This installs a `pre-push` hook that runs `swift-format` over the `Packages/` directory before each push.
+This installs a `pre-push` hook that runs `swift-format lint --strict` over the `Packages/` and `App/` directories before each push (fix issues with `swift-format format --in-place --recursive Packages App`).
 
 ### Project structure
 
@@ -110,7 +110,7 @@ See [`CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CON
 └─────────────────────────────────────────────────────┘
 ```
 
-Most features are accessible through the Management window (`⌘ ⇧ M`).
+Most features are accessible through the Management window (`⌘ ,`).
 
 ## Contributing
 
@@ -156,7 +156,7 @@ Plugins extend agent capabilities. They are native binaries that expose tools vi
 
 ```bash
 # Scaffold a new Swift plugin
-osaurus tools create MyPlugin --swift
+osaurus tools create MyPlugin --language swift
 cd MyPlugin
 
 # Build
@@ -241,6 +241,8 @@ xcrun xctrace record --template "Time Profiler" --launch osaurus
 
 ## Key Components
 
+The snippets below are **illustrative sketches** of each component's role, not literal declarations from the codebase — check the source for the real signatures.
+
 ### MLXService
 
 Handles model loading and inference:
@@ -265,10 +267,10 @@ class PluginManager {
 
 ### HTTPHandler
 
-Processes API requests:
+Processes API requests (a class in the real codebase):
 
 ```swift
-struct HTTPHandler: ChannelInboundHandler {
+final class HTTPHandler: ChannelInboundHandler {
     func channelRead(context: ChannelHandlerContext, data: NIOAny)
 }
 ```
@@ -315,7 +317,7 @@ Logger.shared.level = .trace
 
 ## Developer tools
 
-Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
+Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ,`) and click **Insights** or **Server**.
 
 [Full Developer Tools guide →](/developer-tools)
 

@@ -8,7 +8,7 @@ description: The canonical success/failure envelope every Osaurus tool returns. 
 
 Every Osaurus tool — global built-in, folder tool, sandbox tool, plugin tool, MCP-aggregated tool — returns a JSON string in exactly one of two shapes. This page is the one-stop reference for tool authors.
 
-The type lives at `Tools/ToolEnvelope.swift` in the osaurus repo.
+The type lives at `Packages/OsaurusCore/Tools/ToolEnvelope.swift` in the osaurus repo.
 
 ## Success envelope
 
@@ -108,7 +108,7 @@ func execute(argumentsJSON: String) async throws -> String {
 }
 ```
 
-Sandbox tools have `requirePath(_:home:tool:)` on top that routes through `SandboxPathSanitizer` and turns a rejection into an `invalid_args` envelope with the specific reason (path traversal, dangerous character, outside allowed roots, etc.).
+The sandbox tool helpers (in `BuiltinSandboxTools.swift`) add `requirePath(_:home:tool:)` on top, which routes through `SandboxPathSanitizer` and turns a rejection into an `invalid_args` envelope with the specific reason (path traversal, dangerous character, outside allowed roots, etc.).
 
 ### Thrown errors
 
@@ -143,7 +143,7 @@ Empty-string filler in optional fields (`content: ""`, `filename: ""`) is treate
 
 ### `sandbox_exec` background flag
 
-Foreground (default): returns `{stdout, stderr, exit_code, cwd}` when the command finishes (capped by `timeout`, max 300s). Pass `background:true` to spawn a detached process — the tool returns `{pid, log_file, cwd, background:true}` as soon as the spawn shim returns. Manage the resulting job through `sandbox_process` (poll/wait/kill).
+Foreground (default): returns `{stdout, stderr, exit_code, cwd}` when the command finishes. The optional `timeout` parameter is an **idle** timeout — the command is killed if it produces no output for that many seconds; when omitted, it runs to completion (the user can terminate from the chat card). Pass `background:true` to spawn a detached process — the tool returns `{pid, log_file, cwd, background:true}` as soon as the spawn shim returns. Manage the resulting job through `sandbox_process` (poll/wait/kill).
 
 ## Loop tools
 

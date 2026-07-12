@@ -20,7 +20,7 @@ Your agents, memory, and tools work the same across all three.
 
 Router availability follows your local Osaurus identity. When an identity is present, Osaurus adds the Router provider to your remote provider list, where it behaves like any other provider in the model picker and chat.
 
-Router is **available by default**. Onboarding offers a one-time, permanent opt-out — decline it there and it stays off. You can also disable the Router provider at any time from **Management → Providers**.
+Router is **on by default**. Turn it off anytime with the toggle in **Management → Credits**, or disable the Router provider from **Management → Providers**.
 
 Connection stays automatic:
 

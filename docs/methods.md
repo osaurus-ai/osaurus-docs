@@ -1,21 +1,21 @@
 ---
 title: Methods
 sidebar_label: Methods
-description: Learned workflows agents save after successful runs — YAML tool-call sequences scored by success rate and loaded by the same RAG search as skills and tools.
+description: Learned workflows agents save after successful runs — YAML tool-call sequences scored by success rate and loaded on demand alongside skills and tools.
 ---
 
 # Methods
 
-A **method** is a learned workflow. When an agent finishes a multi-step task, it can save the sequence of tool calls as a YAML body that future tasks reuse. Methods sit alongside [Skills](/skills) and [Tools](/tools) in the same RAG index — the preflight search picks all three together.
+A **method** is a learned workflow. When an agent finishes a multi-step task, it can save the sequence of tool calls as a YAML body that future tasks reuse. Methods sit alongside [Skills](/skills) and [Tools](/tools) in the same capability index — the agent discovers and loads all three through the same mechanism.
 
-This page is the developer reference: what's in a method, how scoring works, where they're stored, and how the auto-selection mechanics around methods/tools/skills are tuned.
+This page is the developer reference: what's in a method, how scoring works, where they're stored, and how capability discovery around methods/tools/skills works.
 
 ## What's in a method
 
 | Property | Description |
 |---|---|
 | `name` | Display name |
-| `description` | Brief description (used by RAG search) |
+| `description` | Brief description (used by capability discovery) |
 | `triggerText` | Optional phrases that activate this method ("deploy to staging", "publish post") |
 | `body` | The YAML workflow — step-by-step tool calls with logic between them |
 | `toolsUsed` / `skillsUsed` | Auto-extracted from `body` so loading the method auto-loads its dependencies |
@@ -35,31 +35,18 @@ recencyWeight = 1.0 / (1.0 + daysSinceUsed / 30.0)
 
 Each time a method is used, the system records a `MethodEvent` (`loaded`, `succeeded`, `failed`) and recalculates the score. High-quality, recently-used methods rank higher in search results — so the workflows that actually work float to the top automatically.
 
-## Auto-selection mechanics (preflight search)
+## How capabilities are selected
 
-Before every chat message, a **preflight RAG search** runs across all enabled skills, methods, and tools. It uses hybrid BM25 + vector matching to find items relevant to the user's query, then injects matching skill instructions and method bodies into the system prompt.
-
-The search runs through the configured **Core Model** (Settings → General → Core Model), and falls back to the active chat model when Core Model is unset. A small fast Core Model (`foundation` on macOS 26+, or `gemma-4-e2b-it-4bit`) keeps preflight cheap.
-
-Search width controls how aggressively it pulls candidates per index:
-
-| Mode | Methods | Tools | Skills | Best for |
-|---|---|---|---|---|
-| `off` | 0 | 0 | 0 | Disabling auto-selection entirely |
-| `narrow` | 1 | 2 | 1 | Fastest responses, minimal context |
-| `balanced` (default) | 3 | 5 | 2 | Most cases — good coverage at moderate cost |
-| `wide` | 5 | 8 | 4 | Maximum coverage, larger prompts |
-
-Set the mode in **Management → Settings → Capabilities**.
+Each agent has a tool mode (in the agent's **Capabilities** settings). In **Auto** mode (the default), the model starts each session with a small, fixed always-loaded hot set and expands it on demand from your enabled capabilities. In **Manual** mode, all enabled capabilities are sent to the model every turn.
 
 ## Mid-conversation discovery
 
-The agent can also expand its kit while a chat is in progress via two always-on tools:
+In Auto mode, the agent expands its kit while a chat is in progress via two always-on tools:
 
 | Tool | What it does |
 |---|---|
-| `capabilities_search` | Search methods, tools, and skills across all indexes in parallel |
-| `capabilities_load` | Load a specific capability by ID into the active session |
+| `capabilities_discover` | Search enabled methods, tools, and skills in one call; returns ranked IDs like `tool/sandbox_exec` or `skill/plot-data` |
+| `capabilities_load` | Load specific capabilities by ID into the active session |
 
 Loading a method through `capabilities_load` automatically loads its referenced tools and skills.
 
@@ -69,7 +56,7 @@ Methods live in `~/.osaurus/methods/methods.sqlite` (SQLCipher-encrypted if you'
 
 ## Browsing methods
 
-There isn't a dedicated "Methods" tab in the app — methods live alongside skills in the same RAG index. To inspect what's been learned:
+There isn't a dedicated "Methods" tab in the app — methods live alongside skills in the same capability index. To inspect what's been learned:
 
 - **Management → Insights** shows when methods were loaded and whether they succeeded or failed
 - The methods database is browsable via SQLite tools if you really need to dig in
@@ -81,7 +68,7 @@ There isn't a dedicated "Methods" tab in the app — methods live alongside skil
 | **Source** | You author them or import from a marketplace | Agents save them after successful runs | Built-in plugins, native plugins, MCP providers |
 | **Content** | Markdown instructions + reference files | YAML sequences of tool calls | Code (Swift, Rust, Python via MCP) |
 | **What they do** | Add domain knowledge / methodology | Replay a known-good workflow | Take action (read files, run commands, call APIs) |
-| **Loaded by** | RAG search (preflight + on-demand) | RAG search (preflight + on-demand) | RAG search; loading a method auto-loads its tools |
+| **Loaded by** | On-demand discovery (`capabilities_discover` / `capabilities_load`) | On-demand discovery | Hot set + on-demand discovery; loading a method auto-loads its tools |
 | **Token cost** | The skill's instructions text | The method's YAML body | Just the tool's spec (description + parameters) |
 
 ---

@@ -15,7 +15,7 @@ Drop-in endpoints for existing tools and SDKs:
 | API       | Endpoint                                    |
 | --------- | ------------------------------------------- |
 | OpenAI    | http://127.0.0.1:1337/v1/chat/completions   |
-| Anthropic | http://127.0.0.1:1337/anthropic/v1/messages |
+| Anthropic | http://127.0.0.1:1337/v1/messages           |
 | Ollama    | http://127.0.0.1:1337/api/chat              |
 
 All prefixes supported (`/v1`, `/api`, `/v1/api`). Full function calling with streaming tool call deltas.
@@ -41,7 +41,7 @@ Override the port with the `OSU_PORT` environment variable.
 | `/v1/chat/completions` | POST | Chat completion (OpenAI) |
 | `/v1/completions` | POST | Text completion, including fill-in-middle (OpenAI) |
 | `/v1/responses` | POST | Responses (Open Responses) |
-| `/anthropic/v1/messages` | POST | Chat completion (Anthropic) |
+| `/v1/messages` | POST | Chat completion (Anthropic) |
 | `/api/chat` | POST | Chat completion (Ollama) |
 
 ### Image endpoints
@@ -60,7 +60,7 @@ See [Image Generation](/image-generation) for model setup and examples.
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
 | `/memory/ingest` | POST | Bulk-ingest conversation turns for memory extraction |
-| `/agents` | GET | List agents with pinned-fact counts |
+| `/agents` | GET | List custom agents with memory entry counts (episodes + active pinned facts) |
 
 ### Server-side agent loop
 
@@ -91,19 +91,25 @@ Simple status check returning plain text.
 **Response:**
 
 ```
-Osaurus is running
+Osaurus Server is running! 🦕
 ```
 
 ### GET /health
 
-Health check endpoint returning JSON status.
+Health check endpoint returning a rich JSON diagnostics payload — not just a liveness bit. Fields include loaded models, the current model, in-flight requests, memory status, and more.
 
-**Response:**
+**Response (truncated):**
 
 ```json
 {
-  "status": "ok",
-  "timestamp": "2024-03-15T10:30:45Z"
+  "status": "healthy",
+  "timestamp": "2026-07-12T10:30:45Z",
+  "loaded": ["gemma-4-e2b-it-4bit"],
+  "current_model": "gemma-4-e2b-it-4bit",
+  "inflight": {},
+  "resident_models": [],
+  "memory_enabled": true,
+  "http_inflight": 0
 }
 ```
 
@@ -191,13 +197,15 @@ If you want server-side autonomous tool loops, use `POST /agents/{id}/run` inste
 | --------- | ---- | -------- | ----------- |
 | `model` | string | Yes | Model ID to use |
 | `messages` | array | Yes | Array of message objects |
-| `max_tokens` | integer | No | Maximum tokens to generate (default: 2048) |
-| `temperature` | float | No | Sampling temperature 0-2 (default: 0.7) |
-| `top_p` | float | No | Nucleus sampling threshold (default: 0.9) |
+| `max_tokens` | integer | No | Maximum tokens to generate (default: model-dependent) |
+| `temperature` | float | No | Sampling temperature 0-2 (default: model-dependent) |
+| `top_p` | float | No | Nucleus sampling threshold (default: model-dependent) |
 | `stream` | boolean | No | Enable SSE streaming (default: false) |
 | `tools` | array | No | Function/tool definitions |
 | `tool_choice` | string/object | No | Tool selection strategy |
 | `session_id` | string | No | Reuse the same conversation's KV cache across turns (per `(model, session_id)`) |
+
+When `max_tokens`, `temperature`, or `top_p` are omitted, Osaurus defers to the model's own `generation_config.json` and engine defaults rather than inventing app-wide values.
 
 **Response (Non-streaming):**
 
@@ -249,7 +257,7 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 { "prefix_hash": "a1b2c3d4e5f67890..." }
 ```
 
-`prefix_hash` is informational only. Keep `session_id` stable per conversation so chat history and preflight bookkeeping group correctly; cache reuse itself does not depend on it.
+`prefix_hash` is informational only. Keep `session_id` stable per conversation so chat history and session bookkeeping group correctly; cache reuse itself does not depend on it.
 
 ### POST /agents/&#123;id&#125;/run
 
@@ -257,7 +265,7 @@ Server-side autonomous tool loop. Osaurus executes tools on your behalf, manages
 
 - Each pending `tool_call` is executed against the registered `ToolRegistry` (sandbox, folder, MCP, plugin tools — everything the agent has access to)
 - Independent tool calls within a single model turn run **in parallel**
-- The loop is capped at 30 iterations; if the budget is exhausted while still requesting tools, a notice is appended to the stream
+- The loop defaults to 30 iterations (configurable via the chat settings' max tool attempts, capped at 120); if the budget is exhausted while still requesting tools, a notice is appended to the stream
 - Honors client-supplied `tools` (merged with the agent's always-loaded set) and `tool_choice`
 
 ### POST /api/chat
@@ -424,9 +432,9 @@ curl http://127.0.0.1:1337/v1/responses \
 }
 ```
 
-### POST /anthropic/v1/messages
+### POST /v1/messages
 
-Create a chat completion using the Anthropic Messages format. Also available at `/messages` for backwards compatibility.
+Create a chat completion using the Anthropic Messages format. The route is registered at `/messages`; the standard `/v1` prefix is stripped, so `/v1/messages` works too.
 
 **Request Body:**
 
@@ -514,7 +522,7 @@ data: {"type":"message_stop"}
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url="http://127.0.0.1:1337/anthropic",
+    base_url="http://127.0.0.1:1337",
     api_key="osaurus"  # Any value works
 )
 
@@ -532,7 +540,7 @@ print(message.content[0].text)
 **Example with cURL:**
 
 ```bash
-curl http://127.0.0.1:1337/anthropic/v1/messages \
+curl http://127.0.0.1:1337/v1/messages \
   -H "Content-Type: application/json" \
   -H "x-api-key: osaurus" \
   -d '{
@@ -552,8 +560,7 @@ Check MCP server availability.
 
 ```json
 {
-  "status": "ok",
-  "tools_available": 12
+  "status": "ok"
 }
 ```
 
@@ -628,12 +635,17 @@ Execute an MCP tool.
 
 **Error Response:**
 
+Errors use the same MCP content envelope with `isError` set — there is no separate `error.code` object:
+
 ```json
 {
-  "error": {
-    "code": "tool_not_found",
-    "message": "Tool 'unknown_tool' not found"
-  }
+  "content": [
+    {
+      "type": "text",
+      "text": "Tool 'unknown_tool' not found"
+    }
+  ],
+  "isError": true
 }
 ```
 
@@ -641,11 +653,15 @@ Execute an MCP tool.
 
 Osaurus exposes its [memory system](/memory) through the HTTP API, so any OpenAI-compatible client gets persistent, on-device personalization.
 
-### Memory Context Injection — `X-Osaurus-Agent-Id`
+### The `X-Osaurus-Agent-Id` header
 
-Add the `X-Osaurus-Agent-Id` header to any `POST /v1/chat/completions` request. Osaurus runs the relevance gate against the latest user message, picks at most one memory section (identity, pinned facts, episodes, or transcript), and prepends it — together with always-on identity overrides — to the user message.
+Add the `X-Osaurus-Agent-Id` header to a `POST /v1/chat/completions` request to attribute the session to a specific agent — chat history and memory *recording* are grouped under that agent.
 
-The header value is an arbitrary string identifying the agent whose memory should be retrieved. When the header is absent or empty, the request is processed normally without memory injection.
+:::warning[No memory injection on chat completions]
+`/v1/chat/completions` is a passthrough: agent memory is **not** injected into the prompt on this path, even with the header set. For memory-enriched requests (relevance gate, memory sections, identity overrides), use [`POST /agents/{id}/run`](#post-agentsidrun) or the in-app chat.
+:::
+
+Use a real agent UUID from `GET /agents` as the header value.
 
 ```python
 from openai import OpenAI
@@ -653,7 +669,8 @@ from openai import OpenAI
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
     api_key="osaurus",
-    default_headers={"X-Osaurus-Agent-Id": "my-agent"},
+    # Use an agent UUID from GET /agents
+    default_headers={"X-Osaurus-Agent-Id": "9A2B4C6D-1122-3344-5566-77889900AABB"},
 )
 
 response = client.chat.completions.create(
@@ -708,7 +725,7 @@ curl http://127.0.0.1:1337/memory/ingest \
 
 ### GET /agents
 
-Returns all configured agents with their pinned-fact counts. Use this to discover valid agent IDs for the `X-Osaurus-Agent-Id` header.
+Returns your custom agents (built-in agents are excluded) with memory entry counts. `memory_entry_count` is the number of stored memory entries — distilled episodes plus active pinned facts. Use this to discover valid agent IDs for the `X-Osaurus-Agent-Id` header.
 
 **Example with cURL:**
 
@@ -716,18 +733,18 @@ Returns all configured agents with their pinned-fact counts. Use this to discove
 curl http://127.0.0.1:1337/agents
 ```
 
-**Response:**
+**Response (partial — additional fields like `avatar`, `chat_quick_actions`, `effective_model`, and `supports_thinking` are also returned):**
 
 ```json
 {
   "agents": [
     {
-      "id": "00000000-0000-0000-0000-000000000001",
-      "name": "Osaurus",
-      "description": "Default assistant",
+      "id": "9A2B4C6D-1122-3344-5566-77889900AABB",
+      "name": "Code Assistant",
+      "description": "Helps with software engineering",
       "default_model": null,
       "supports_vision": false,
-      "is_built_in": true,
+      "is_built_in": false,
       "memory_entry_count": 42,
       "created_at": "2025-01-01T00:00:00Z",
       "updated_at": "2025-01-01T00:00:00Z"
@@ -843,7 +860,7 @@ Anthropic SDK uses `x-api-key` instead of `Authorization`:
 
 ```python
 client = anthropic.Anthropic(
-    base_url="http://your-mac.local:1337/anthropic",
+    base_url="http://your-mac.local:1337",
     api_key="osk-v1.eyJpc3M..."
 )
 ```
@@ -864,34 +881,33 @@ Both servers enforce the cap with a `Content-Length` pre-check at request head a
 
 ## Error Handling
 
-Errors follow the OpenAI error format:
+Chat endpoints return errors in the OpenAI shape — a `message` and a `type` (there is no stable `code` field):
 
 ```json
 {
   "error": {
     "message": "Model not found: gpt-4",
-    "type": "invalid_request_error",
-    "code": "model_not_found"
+    "type": "invalid_request_error"
   }
 }
 ```
 
-**Common Error Codes:**
+**Common `type` values:**
 
-| Code | Description |
+| Type | Description |
 | ---- | ----------- |
-| `model_not_found` | Requested model doesn't exist |
-| `invalid_request` | Malformed request body |
-| `context_length_exceeded` | Input exceeds model's context window |
-| `tool_not_found` | MCP tool not installed |
-| `internal_server_error` | Server-side error |
+| `invalid_request_error` | Malformed request body, unknown model, or bad parameters |
+| `internal_error` | Server-side error |
+| `insufficient_resources` | Not enough memory to load or run the requested model |
+
+MCP tool errors use the MCP content envelope (`{"content":[…],"isError":true}`) instead — see [POST /mcp/call](#post-mcpcall).
 
 ## CORS Support
 
 Built-in CORS support for browser-based applications:
 
 - **Allowed Origins:** `*` (all origins)
-- **Allowed Methods:** `GET, POST, OPTIONS`
+- **Allowed Methods:** `GET, POST, OPTIONS` for the chat/API routes (admin routes additionally accept `PUT`)
 - **Allowed Headers:** `Content-Type, Authorization`
 
 ## Quick Examples
@@ -927,7 +943,7 @@ curl http://127.0.0.1:1337/v1/chat/completions \
 curl -X POST http://127.0.0.1:1337/mcp/call \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "current_time",
+    "name": "get_current_time",
     "arguments": {}
   }'
 ```

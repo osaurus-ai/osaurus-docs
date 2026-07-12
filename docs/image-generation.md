@@ -16,7 +16,7 @@ There are three ways to use it:
 
 ## Available models
 
-Install models from the Management window (`⌘ ⇧ M`) → **Settings → Images**. The catalog shows download sizes and links to each model's Hugging Face page.
+Install models from the Management window (`⌘ ,`) → **Images** → **Models**. The catalog shows download sizes and links to each model's Hugging Face page. (The **Images → Settings** sub-tab holds global image defaults.)
 
 | Model | Good at |
 |---|---|
@@ -30,7 +30,7 @@ Image models are large (several GB) and memory-hungry while loaded. Osaurus load
 
 ## Generating in chat
 
-1. Install a model from **Settings → Images**.
+1. Install a model from **Management → Images → Models**.
 2. Select it in the chat model picker. The input card gains image controls: **size**, **steps**, **guidance**, **seed**, and **negative prompt**.
 3. Describe the image and send. Progress streams in place — current step, ETA, and elapsed time — and you can cancel a generation at any point without leaving the app in a bad state.
 
@@ -56,11 +56,13 @@ OpenAI-compatible endpoints on the local server:
 
 Generation supports streaming progress events (`queued`, `loading_model`, `step=n/m`, `cancelled`). Masks are not yet supported on the edit endpoint (`501`).
 
+The `model` value is the installed bundle's directory name — get the exact ID from `GET /images/models`:
+
 ```bash
 curl http://127.0.0.1:1337/v1/images/generations \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "z-image-turbo",
+    "model": "Z-Image-Turbo-mflux-4bit",
     "prompt": "a watercolor dinosaur reading a book",
     "size": "1024x1024"
   }'

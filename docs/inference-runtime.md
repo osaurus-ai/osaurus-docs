@@ -30,13 +30,13 @@ ChatEngine (route resolution, attribution, logging)
 
 ## Continuous batching
 
-Same-model concurrent requests share a single forward pass via `BatchEngine`. The default `mlxBatchEngineMaxBatchSize` is `4`; tune with:
+Same-model concurrent requests share a single forward pass via `BatchEngine`. The default `mlxBatchEngineMaxBatchSize` is `1`. The primary control is **Server → Settings → Concurrency & Batching** (`continuousBatching` and `maxConcurrentSequences`) — when continuous batching is off, the effective batch size is pinned to `1`. The legacy defaults key still works for advanced tuning:
 
 ```bash
 defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-Clamped to `[1, 32]`. Higher values raise total throughput at the cost of wired-memory footprint and per-request latency. Defined in `InferenceFeatureFlags.swift`.
+Clamped to `[1, 32]`; values ≤ 0 fall back to `1`. Higher values raise total throughput at the cost of wired-memory footprint and per-request latency. Defined in `InferenceFeatureFlags.swift`.
 
 ## Cache management
 
@@ -58,7 +58,7 @@ Osaurus also does not call `CacheCoordinator.setHybrid(_:)`. The engine auto-det
 
 Reuse across requests is **automatic and content-addressed** — the engine delegates prefix-cache management to vmlx's `CacheCoordinator`. Two requests that share the same prefix tokens (system prompt, tools, prior turns) automatically share the cached KV blocks. There is no client-side opt-in or cache key to manage.
 
-For visibility, every response carries a `prefix_hash` field — a stable hash of the system prompt + tool names that produced this generation. `prefix_hash` is informational; passing it back has no effect. Keep `session_id` stable per conversation so chat history and preflight bookkeeping group correctly; cache reuse itself does not depend on it.
+For visibility, every response carries a `prefix_hash` field — a stable hash of the system prompt + tool names that produced this generation. `prefix_hash` is informational; passing it back has no effect. Keep `session_id` stable per conversation so chat history and session bookkeeping group correctly; cache reuse itself does not depend on it.
 
 ## Concurrency
 
@@ -77,7 +77,7 @@ When a user switches to a remote model or closes a window, a GC pass checks all 
 
 ### Eviction policy
 
-Configurable in **Settings → Local Inference → Model Management:**
+Configurable in **Management → Server → Settings → Model Memory:**
 
 | Policy | Behavior |
 |---|---|

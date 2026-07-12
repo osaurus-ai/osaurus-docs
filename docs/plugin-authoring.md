@@ -15,7 +15,7 @@ For sandbox plugins (JSON recipes that run inside the Linux VM, no compilation),
 ### 1. Scaffold a Plugin
 
 ```bash
-osaurus tools create MyPlugin --swift
+osaurus tools create MyPlugin --language swift
 cd MyPlugin
 ```
 
@@ -24,11 +24,15 @@ This creates:
 ```
 MyPlugin/
 ├── Package.swift
-├── manifest.json
+├── osaurus-plugin.json     # plugin_id + version used by `osaurus tools dev`
+├── web/                    # optional static frontend
+├── .github/workflows/release.yml
 └── Sources/
     └── MyPlugin/
-        └── Plugin.swift
+        └── Plugin.swift    # full v2-ABI plugin with host API mirror
 ```
+
+The plugin's capability manifest (tools, routes, config) is returned by `get_manifest()` in `Plugin.swift`; `osaurus-plugin.json` only stores project metadata for the CLI.
 
 ### 2. Build the Plugin
 
@@ -142,13 +146,15 @@ Packages/OsaurusCore/Tools/PluginABI/osaurus_plugin.h
 
 ### Entry Point
 
-Your plugin must export a single symbol:
+Current plugins export:
 
 ```c
-osr_plugin_api* osaurus_plugin_entry(void);
+const osr_plugin_api* osaurus_plugin_entry_v2(const osr_host_api* host);
 ```
 
-This returns a pointer to a struct with function pointers:
+Osaurus tries `osaurus_plugin_entry_v2` first and passes in the host API (callbacks for config, storage, inference, HTTP, logging, dispatch). Legacy v1 plugins that export only `osaurus_plugin_entry(void)` still load — with a deprecation log — but get no host callbacks.
+
+Either entry point returns a pointer to an `osr_plugin_api` struct whose fields are function pointers (these are struct fields, not exported symbols):
 
 | Function                         | Description                                             |
 | -------------------------------- | ------------------------------------------------------- |
@@ -170,156 +176,81 @@ Return a JSON string with the result. The host calls `free_string` to release it
 
 ## Swift Implementation
 
-Here's a minimal Swift plugin:
+The scaffold from `osaurus tools create` is the reference implementation — it ships a byte-compatible Swift mirror of the `osr_host_api` struct, host-API helper wrappers, and a fully wired `osr_plugin_api`. The skeleton looks like this (abbreviated — run the scaffold for the complete, current version):
 
 ```swift
 import Foundation
 
-// Global context
-var pluginContext: UnsafeMutableRawPointer? = nil
+// Byte-compatible Swift mirrors of the C structs from osaurus_plugin.h
+private struct osr_host_api { /* version + host callback pointers */ }
+private struct osr_plugin_api { /* version + plugin function pointers */ }
 
-// Manifest JSON
-let manifest = """
-{
-  "plugin_id": "com.example.echo",
-  "version": "1.0.0",
-  "description": "Echo plugin",
-  "capabilities": {
-    "tools": [{
-      "id": "echo",
-      "description": "Echoes back input",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "message": {"type": "string"}
-        },
-        "required": ["message"]
-      }
-    }]
-  }
-}
-"""
+private var hostAPI: UnsafePointer<osr_host_api>?
 
-@_cdecl("plugin_init")
-func pluginInit() -> UnsafeMutableRawPointer? {
-    return nil // No context needed for simple plugins
-}
-
-@_cdecl("plugin_destroy")
-func pluginDestroy(_ ctx: UnsafeMutableRawPointer?) {
-    // Cleanup if needed
-}
-
-@_cdecl("plugin_get_manifest")
-func pluginGetManifest(_ ctx: UnsafeMutableRawPointer?) -> UnsafeMutablePointer<CChar>? {
-    return strdup(manifest)
-}
-
-@_cdecl("plugin_invoke")
-func pluginInvoke(
-    _ ctx: UnsafeMutableRawPointer?,
-    _ type: UnsafePointer<CChar>?,
-    _ id: UnsafePointer<CChar>?,
-    _ payload: UnsafePointer<CChar>?
-) -> UnsafeMutablePointer<CChar>? {
-    guard let id = id, let payload = payload else { return nil }
-
-    let toolId = String(cString: id)
-    let args = String(cString: payload)
-
-    if toolId == "echo" {
-        // Parse JSON arguments
-        if let data = args.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let message = json["message"] as? String {
-            let result = ["result": "Echo: \(message)"]
-            if let resultData = try? JSONSerialization.data(withJSONObject: result),
-               let resultString = String(data: resultData, encoding: .utf8) {
-                return strdup(resultString)
-            }
-        }
+// The static API struct. Fields are C function pointers implemented as
+// Swift closures: init / destroy / get_manifest / invoke / free_string,
+// plus optional v2+ callbacks (handle_route, on_config_changed, on_task_event).
+private var api: osr_plugin_api = {
+    var api = osr_plugin_api()
+    api.version = 2
+    api.get_manifest = { ctx in
+        strdup(#"{"plugin_id":"com.example.echo","version":"1.0.0","capabilities":{"tools":[{"id":"echo","description":"Echoes back input","parameters":{"type":"object","properties":{"message":{"type":"string"}},"required":["message"],"additionalProperties":false}}]}}"#)
     }
+    api.invoke = { ctx, type, id, payload in
+        // Parse the payload JSON, do the work, return a Tool Contract envelope
+        strdup(#"{"ok":true,"tool":"echo","result":{"text":"Echo!"}}"#)
+    }
+    // ... init, destroy, free_string ...
+    return api
+}()
 
-    return strdup("{\"error\": \"Unknown tool\"}")
+// Primary entry point: receives the host API
+@_cdecl("osaurus_plugin_entry_v2")
+public func osaurus_plugin_entry_v2(_ host: UnsafePointer<osr_host_api>?) -> UnsafeRawPointer? {
+    hostAPI = host
+    return UnsafeRawPointer(&api)
 }
 
-@_cdecl("plugin_free_string")
-func pluginFreeString(_ s: UnsafeMutablePointer<CChar>?) {
-    free(s)
-}
-
-// Entry point
+// Legacy fallback for old hosts
 @_cdecl("osaurus_plugin_entry")
-func osaurusPluginEntry() -> UnsafeMutableRawPointer {
-    // Return function table (simplified)
-    // In practice, return a pointer to osr_plugin_api struct
-    return UnsafeMutableRawPointer(bitPattern: 1)!
+public func osaurus_plugin_entry() -> UnsafeRawPointer? {
+    return UnsafeRawPointer(&api)
 }
 ```
 
 ## Rust Implementation
 
-Scaffold a Rust plugin with `osaurus tools create MyPlugin --rust`, or create a `cdylib` manually:
+Scaffold a Rust plugin with `osaurus tools create MyPlugin --language rust`. The generated `cdylib` follows the same shape — a `#[repr(C)]` mirror of the ABI structs and both entry points:
 
 ```rust
-use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+// Abbreviated — the scaffold generates the full, current version.
 
-static MANIFEST: &str = r#"{
-  "plugin_id": "com.example.echo",
-  "version": "1.0.0",
-  "description": "Echo plugin",
-  "capabilities": {
-    "tools": [{
-      "id": "echo",
-      "description": "Echoes back input",
-      "parameters": {
-        "type": "object",
-        "properties": {"message": {"type": "string"}},
-        "required": ["message"]
-      }
-    }]
-  }
-}"#;
+#[repr(C)]
+pub struct OsrHostApi { /* version + host callback pointers */ }
+
+#[repr(C)]
+pub struct OsrPluginApi {
+    pub version: u32,
+    pub init: Option<extern "C" fn() -> *mut c_void>,
+    pub destroy: Option<extern "C" fn(*mut c_void)>,
+    pub get_manifest: Option<extern "C" fn(*mut c_void) -> *const c_char>,
+    pub invoke: Option<extern "C" fn(*mut c_void, *const c_char, *const c_char, *const c_char) -> *const c_char>,
+    pub free_string: Option<extern "C" fn(*const c_char)>,
+    // v2+ optional callbacks: handle_route, on_config_changed, on_task_event
+}
+
+static mut HOST: *const OsrHostApi = std::ptr::null();
+static mut API: OsrPluginApi = OsrPluginApi { /* wired to the fns above */ };
 
 #[no_mangle]
-pub extern "C" fn plugin_init() -> *mut std::ffi::c_void {
-    std::ptr::null_mut()
+pub unsafe extern "C" fn osaurus_plugin_entry_v2(host: *const OsrHostApi) -> *const OsrPluginApi {
+    HOST = host;
+    &raw const API
 }
 
 #[no_mangle]
-pub extern "C" fn plugin_destroy(_ctx: *mut std::ffi::c_void) {}
-
-#[no_mangle]
-pub extern "C" fn plugin_get_manifest(_ctx: *mut std::ffi::c_void) -> *mut c_char {
-    CString::new(MANIFEST).unwrap().into_raw()
-}
-
-#[no_mangle]
-pub extern "C" fn plugin_invoke(
-    _ctx: *mut std::ffi::c_void,
-    _type: *const c_char,
-    id: *const c_char,
-    payload: *const c_char,
-) -> *mut c_char {
-    let id = unsafe { CStr::from_ptr(id).to_str().unwrap_or("") };
-    let payload = unsafe { CStr::from_ptr(payload).to_str().unwrap_or("{}") };
-
-    let result = if id == "echo" {
-        // Parse and echo
-        format!(r#"{{"result": "Echo: {}"}}"#, payload)
-    } else {
-        r#"{"error": "Unknown tool"}"#.to_string()
-    };
-
-    CString::new(result).unwrap().into_raw()
-}
-
-#[no_mangle]
-pub extern "C" fn plugin_free_string(s: *mut c_char) {
-    if !s.is_null() {
-        unsafe { let _ = CString::from_raw(s); }
-    }
+pub unsafe extern "C" fn osaurus_plugin_entry() -> *const OsrPluginApi {
+    &raw const API
 }
 ```
 
@@ -360,15 +291,15 @@ if (host->version >= 5 && host->log_structured) {
 | Events | host API | Emit and subscribe to cross-plugin events |
 | Docs | `docs` | README, changelog, external links rendered in the plugin detail view |
 
-### Conversation grouping (`external_session_key`)
+### Conversation grouping (`session_id`)
 
-When your plugin dispatches an agent task (e.g. for an inbound Telegram message, Slack DM, GitHub webhook), pass `external_session_key` so subsequent dispatches with the same key **reattach to the same chat session** instead of creating a new row each time.
+When your plugin dispatches an agent task (e.g. for an inbound Telegram message, Slack DM, GitHub webhook), pass `session_id` so subsequent dispatches with the same key **reattach to the same chat session** instead of creating a new row each time. (The legacy `external_session_key` field name is no longer accepted.)
 
 ```json
 {
   "agent_id": "...",
   "task": "Reply to: Hi!",
-  "external_session_key": "telegram:chat:12345",
+  "session_id": "telegram:chat:12345",
   "source_plugin_id": "com.example.telegram"
 }
 ```
@@ -385,16 +316,7 @@ The dispatch task ID and the persisted session ID are intentionally the same UUI
 
 For the complete callback reference and migration notes, see the upstream [Host API](https://github.com/osaurus-ai/osaurus/blob/main/docs/plugins/HOST_API.md) and [ABI Versioning](https://github.com/osaurus-ai/osaurus/blob/main/docs/plugins/ABI_VERSIONS.md) docs.
 
-Specify the ABI version in your manifest:
-
-```json
-{
-  "plugin_id": "com.example.mytool",
-  "version": "1.0.0",
-  "abi": "v2",
-  "capabilities": { ... }
-}
-```
+There is no `"abi"` manifest key — the ABI version comes from the binary itself: which entry symbol you export and the `version` field you set on your `osr_plugin_api` struct.
 
 ### Hot Reload Development
 
@@ -547,7 +469,7 @@ The [osaurus-emacs](https://github.com/osaurus-ai/osaurus-emacs) plugin is a rea
 1. **Keep tools focused** — One tool should do one thing well
 2. **Validate inputs** — Check parameters before execution
 3. **Return Tool Contract envelopes** — Use the `success`/`failure` shape from [Tool Contract](/tool-contract) so chat UI rendering and the agent's self-correction work right
-4. **Document parameters** — Clear descriptions help the auto-selection RAG search find your tool
+4. **Document parameters** — Clear descriptions help `capabilities_discover` find your tool
 5. **Set `additionalProperties: false`** on every tool's parameter schema (the schema validator enforces this and rejects unknown args with a friendly `invalid_args` envelope)
 6. **Handle cleanup** — Free resources in `destroy()` and handle signals
 7. **Test with `osaurus tools dev`** — Hot reload makes iteration fast

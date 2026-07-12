@@ -7,11 +7,11 @@ sidebar_position: 8
 
 # Skills
 
-Skills are reusable packages of expertise — on-demand specialists you attach to your AI: a research methodology, a debugging framework, a creative writing style. Osaurus picks the relevant skills automatically before each message, so you enable the ones you want and forget about them.
+Skills are reusable packages of expertise — on-demand specialists you attach to your AI: a research methodology, a debugging framework, a creative writing style. The agent discovers and loads relevant skills on demand, so you enable the ones you want and forget about them.
 
 ## Quick start
 
-Osaurus ships with six built-in skills:
+Osaurus ships with seven built-in skills:
 
 | Skill | What it does |
 |---|---|
@@ -21,20 +21,21 @@ Osaurus ships with six built-in skills:
 | **Productivity Coach** | Task management and productivity optimization |
 | **Content Summarizer** | Distill long content into concise summaries |
 | **Debug Assistant** | Systematic debugging methodology |
+| **Data Visualizer** | Turn data into charts and visual summaries |
 
 To get started:
 
-1. Open the Management window (`⌘ ⇧ M`) → **Skills**
-2. Built-in skills are enabled by default — toggle off any you don't want
-3. Start a new chat — relevant skills load themselves when you ask the right kind of question
+1. Open the Management window (`⌘ ,`) → **Skills**
+2. Built-in skills ship disabled — toggle on the ones you want
+3. Start a new chat — the agent loads relevant skills when you ask the right kind of question
 
 ## How skills get picked
 
-Before every message, Osaurus runs a quick search across your enabled skills (and tools, and methods — see below) and picks the most relevant ones for the question you just asked. The matching skill's instructions are added to the system prompt for that turn.
+In the default **Auto** mode, the agent searches your enabled skills (and tools, and methods — see below) with `capabilities_discover` when it needs expertise it doesn't have, then loads the matching skill's instructions into the session with `capabilities_load`.
 
-There's no per-chat configuration — enable a skill once and it surfaces when needed.
+There's no per-chat configuration — enable a skill once and the agent can pull it in when needed.
 
-If you'd rather see them all every turn (predictable but heavier on context), each agent has an **Auto-discover vs Manual** toggle in its Capabilities tab. [Agents → Capabilities](/agents#capabilities)
+If you'd rather send them all every turn (predictable but heavier on context), each agent has an **Auto vs Manual** toggle in its Capabilities tab. [Agents → Capabilities](/agents#capabilities)
 
 ## Adding your own skills
 
@@ -139,10 +140,9 @@ You may see "Methods" mentioned alongside Skills in places like Insights and Cap
 
 ### Skills don't appear in chat
 
-- Verify the skill is enabled (toggle is on)
-- Make sure the skill's **description** clearly describes when to use it — auto-selection keys off this
+- Verify the skill is enabled (toggle is on) — built-ins ship disabled
+- Make sure the skill's **description** clearly describes when to use it — discovery keys off this
 - Start a new chat session
-- Try setting the search width to `wide` in **Management → Settings → Capabilities**
 
 ### GitHub import fails
 
@@ -164,7 +164,7 @@ You may see "Methods" mentioned alongside Skills in places like Insights and Cap
 
 ## Under the hood
 
-Curious about how methods are scored, the auto-selection mechanics, or the search width tiers? See [Methods](/methods).
+Curious about how methods are scored or how capability discovery works? See [Methods](/methods).
 
 ---
 

@@ -18,7 +18,7 @@ Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, 
 
 ### Via the UI
 
-1. Open the Management window (`⌘ ⇧ M`)
+1. Open the Management window (`⌘ ,`)
 2. Click **Providers** in the sidebar
 3. Click **Add Provider**
 4. Select a preset or **Custom**

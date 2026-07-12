@@ -154,7 +154,7 @@ Four base64url-encoded segments joined by `.`:
 
 1. **Encode payload** as JSON
 2. **Layer 1 — Identity signature:** Domain-separated secp256k1 signing
-   - Envelope: `\x19Osaurus Signed Message:\n<payload>`
+   - Envelope: `\x19Osaurus Signed Message:\n<length><payload>` — the decimal byte length of the payload sits between the newline and the payload bytes (Ethereum-style)
    - Hash: Keccak-256 of the envelope
    - Sign: secp256k1 with recovery (produces 65 bytes: r ‖ s ‖ v)
 3. **Layer 2 — Device assertion:** App Attest assertion over SHA-256 of the payload
@@ -274,20 +274,13 @@ Revocation data is persisted in macOS Keychain (`kSecAttrAccessibleWhenUnlockedT
 
 ## Recovery
 
-During initial identity setup, a one-time recovery code is generated:
+The local restore path is a **24-word BIP39 mnemonic** that round-trips the 32-byte master key's entropy:
 
-```
-OSAURUS-XXXX-XXXX-XXXX-XXXX
-```
+- **Encode:** 256 bits of entropy + the high 8 bits of `SHA-256(entropy)` as checksum = 264 bits = 24 × 11-bit indices into the canonical English BIP39 wordlist (2048 words)
+- **View:** Management → Identity → **View recovery phrase** (the phrase is cached in the Keychain via `MasterMnemonicStore`, or derived on demand from the master key)
+- **Restore:** Management → Identity → **Restore from recovery phrase** — validates the checksum, re-installs the master key into the Keychain, and existing agents and access keys start working again
 
-Format: `OSAURUS-` prefix followed by 4 groups of 4 uppercase hex characters (8 random bytes = 64 bits of entropy).
-
-The recovery code is:
-
-- Generated from `SecRandomCopyBytes` (cryptographically secure)
-- Shown to the user exactly once during setup
-- Discarded from application memory after display
-- Never stored on device in plaintext
+Separately, `RecoveryManager` generates a one-shot `OSAURUS-XXXX-XXXX-XXXX-XXXX` code (8 random bytes from `SecRandomCopyBytes`) intended as a **server-side claim token** for a future flow. It is not shown in the current UI and **cannot** rebuild the local master key — only the mnemonic can.
 
 ## Internal vs external communication
 
@@ -315,10 +308,12 @@ Access keys bridge the gap between hardware-bound internal identity and the need
 
 `POST /pair` is an unauthenticated, signature-verified flow used by the in-app connector to onboard a new device against a Bonjour-discovered agent.
 
-1. Connector signs a nonce with its `connectorAddress` private key (domain prefix `Osaurus Signed Pairing`)
-2. The Osaurus instance verifies the signature, resolves the target agent, and shows an approval dialog naming both the connector and the agent
-3. On approval, the host mints an **agent-scoped** `osk-v1` key for the approved agent (`agentIndex = agent.agentIndex`) with a **90-day expiration** by default. The user can opt in to a non-expiring key via the dialog's "Remember this device permanently" toggle
-4. The response body containing the new key is sent on the wire but **never persisted to the request log** — `InsightsService` redacts both `apiKey` JSON values and `Bearer osk-…` headers as defense-in-depth across all logged bodies
+1. Connector fetches a **single-use challenge nonce** from `GET /pair/challenge` (rate-limited per IP)
+2. Connector signs `nonce:encPub` — the challenge bound to its ephemeral encryption public key — with its `connectorAddress` private key (domain prefix `Osaurus Signed Pairing`)
+3. The Osaurus instance verifies the signature, resolves the target agent, and shows an approval dialog naming both the connector and the agent
+4. On approval, the host mints an **agent-scoped** `osk-v1` key for the approved agent (`agentIndex = agent.agentIndex`) with a **90-day expiration** by default. The user can opt in to a non-expiring key via the dialog's "Remember this device permanently" toggle
+5. The key is **HPKE-sealed** to the connector's ephemeral public key, and the response is signed by the host with the `Osaurus Signed Pairing Server` domain prefix so the connector can verify the host's identity. (A plaintext `apiKey` is only returned for legacy clients that omit `encPub`.)
+6. The response body containing the new key is sent on the wire but **never persisted to the request log** — `InsightsService` redacts both `apiKey` JSON values and `Bearer osk-…` headers as defense-in-depth across all logged bodies
 
 Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. The Settings → Server pane labels them as **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."*
 
@@ -328,7 +323,7 @@ Both Osaurus HTTP servers reject oversized request bodies before the auth gate r
 
 | Endpoint | Limit | Configurable via |
 |---|---|---|
-| `POST /pair` | 64 KiB | `ServerConfiguration.maxPairingBodyBytes` |
+| `POST /pair` (also `/pair-invite`, `/secure/session`) | 64 KiB | `ServerConfiguration.maxPairingBodyBytes` |
 | Other public HTTP routes | 32 MiB | `ServerConfiguration.maxRequestBodyBytes` |
 | Sandbox host bridge | 8 MiB | hard-coded in `HostAPIBridgeHandler` |
 
@@ -345,9 +340,9 @@ The address-based design naturally extends to agent-to-agent communication acros
 | Master key never leaves Keychain | Stored with `kSecAttrAccessibleWhenUnlocked`, read requires `LAContext` biometric auth |
 | Agent keys never stored | Re-derived on demand via HMAC-SHA512 from master key |
 | Device keys hardware-bound | Secure Enclave P-256 via App Attest (`DCAppAttestService`) |
-| Anti-replay | Per-device monotonic counter (`cnt`) persisted in `UserDefaults`; server rejects seen values |
-| Domain separation | `Osaurus Signed Message`, `Osaurus Signed Access`, `Osaurus Signed Pairing` prefixes prevent cross-protocol signature reuse |
-| Recovery code single-use | Generated from `SecRandomCopyBytes`, shown once, never stored on device |
+| Anti-replay | The two-layer identity token carries a per-device monotonic counter (`cnt`); on access keys, `cnt` is recorded at creation for bulk revocation. Routine `osk-v1` Bearer auth does not use a per-request counter — replay protection over the network comes from the [Secure Channel](/secure-channel) sequence numbers |
+| Domain separation | `Osaurus Signed Message`, `Osaurus Signed Access`, `Osaurus Signed Pairing`, `Osaurus Signed Pairing Server`, `Osaurus Signed Invite`, and `Osaurus Secure Channel` prefixes prevent cross-protocol signature reuse |
+| Recovery phrase | 24-word BIP39 mnemonic of the master key; viewable behind biometrics, restorable on a new Mac |
 | Canonical encoding | Access key payloads use sorted-key JSON for deterministic signature verification |
 | Memory safety | Master key bytes are zeroed after use (`memset` / index-level zeroing) |
 | Pairings scoped to one agent | `/pair` mints agent-scoped keys (`agentIndex` from approved agent), 90-day default expiry |
@@ -368,7 +363,8 @@ The address-based design naturally extends to agent-to-agent communication acros
 | `WhitelistStore.swift` | Master-level and per-agent address whitelist with Keychain persistence |
 | `RevocationStore.swift` | Individual and bulk access key revocation with Keychain persistence |
 | `CounterStore.swift` | Per-device monotonic counter in `UserDefaults` |
-| `RecoveryManager.swift` | One-time recovery code generation at identity creation |
+| `MasterKeyMnemonic.swift` | BIP39 24-word mnemonic encode/decode of the master key |
+| `RecoveryManager.swift` | One-shot server-side claim-token generation (not the local restore path) |
 | `CryptoHelpers.swift` | Keccak-256, domain-separated signing, ecrecover, address derivation, encoding utilities |
 | `OsaurusIdentityError.swift` | Error types for the identity system |
 

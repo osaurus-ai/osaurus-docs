@@ -28,7 +28,7 @@ You can override almost everything per-agent, or leave fields empty to fall back
 
 ## Creating an agent
 
-1. Open the Management window (`⌘ ⇧ M`) → **Agents**
+1. Open the Management window (`⌘ ,`) → **Agents**
 2. Click **Create Agent**
 
 The Create Agent sheet has a few sections:
@@ -57,7 +57,7 @@ Configure what the agent can do when the [Sandbox](/agent-loop) is toggled on fo
 
 | Setting | What it does | Default |
 |---|---|---|
-| `enabled` | Unlocks write/exec/install/secret tools in the Sandbox. With it off, the agent only gets read-only sandbox tools. | `false` |
+| `enabled` | Unlocks write/exec/install/secret tools in the Sandbox. With it off, the agent only gets read-only sandbox tools. | `true` for new custom agents when the Sandbox is supported (macOS 26+); off otherwise |
 | `pluginCreate` | Lets the agent author and register new Sandbox plugins at runtime | `true` |
 | `maxCommandsPerTurn` | Caps how many shell commands the agent can run in a single turn | `10` |
 | `commandTimeout` | Per-command timeout in seconds | `30` |
@@ -67,7 +67,7 @@ These settings are also editable on existing agents from the agent's **Sandbox**
 ### Memory and discovery *(optional)*
 
 - **Disable memory** — turn off memory entirely for this agent (no injection on read, no recording on write)
-- **Disable tools** — skip the tool/preflight system entirely; the agent is text-in-text-out
+- **Disable tools** — skip the tool system entirely; the agent is text-in-text-out
 - **Bonjour discovery** — advertise this agent on your local network so connector apps and remote pairers can find it
 
 ### Quick actions *(optional)*
@@ -116,16 +116,16 @@ Each agent has its own enabled set of tools and skills. You configure it in two 
 - **Inside the Create Agent sheet** — under the Capabilities section, when you're building a new agent
 - **On an existing agent** — open the agent and click the **Capabilities** tab
 
-### Auto-discover vs Manual
+### Auto vs Manual
 
-A single toggle at the top of the Capabilities picker decides how your enabled set reaches the model each turn:
+A single toggle at the top of the Capabilities picker decides how your enabled set reaches the model:
 
-- **Auto-discover** *(recommended)* — Before each message, Osaurus picks the most relevant subset of your enabled tools and skills for the question you just asked. Saves context tokens and tends to give better focus.
+- **Auto** *(recommended)* — The model starts with a small always-loaded set and loads more from your enabled capabilities on demand via `capabilities_discover` / `capabilities_load`. Saves context tokens and tends to give better focus.
 - **Manual** — Send the *entire* enabled set every turn. Predictable but heavier on context.
 
 In either mode, the per-item Enabled toggles in the picker are honored — disabling a tool there means the model never sees it, in any mode.
 
-For the search width tiers and the mechanics of how auto-selection works, see [Methods → Auto-selection mechanics](/methods#auto-selection-mechanics-preflight-search).
+For the mechanics of capability discovery, see [Methods → Mid-conversation discovery](/methods#mid-conversation-discovery).
 
 ### What the picker looks like
 
@@ -151,7 +151,7 @@ Per item you see name, description, and an estimated token cost. Filter the whol
 
 If you want a strictly conversational agent — no tools, no memory writes — flip these on the agent:
 
-- **Disable tools** — no tools and no preflight context are sent for this agent
+- **Disable tools** — no tools or capability context are sent for this agent
 - **Disable memory** — memory is neither injected on read nor recorded on write
 
 Useful for therapy-style assistants, coaching agents, or anything where you want predictable text-in-text-out behavior.

@@ -19,7 +19,7 @@ Where [Remote Providers](/remote-providers) provide *inference* (cloud models), 
 
 ## Adding an MCP provider
 
-1. Open the Management window (`⌘ ⇧ M`)
+1. Open the Management window (`⌘ ,`)
 2. Click **Providers** → scroll to the **MCP Providers** section
 3. Click **Add MCP Provider**
 4. Enter the server URL
@@ -86,7 +86,7 @@ The same [Tool Contract](/tool-contract) envelope is used end-to-end — failure
 
 ## Using remote MCP tools
 
-Remote MCP tools work like any other tool. The agent picks them up via [RAG-based auto-selection](/skills) when relevant.
+Remote MCP tools work like any other tool. The agent picks them up via [on-demand capability discovery](/skills) when relevant.
 
 ### Via the MCP API directly
 
@@ -188,7 +188,7 @@ Before saving a provider, you can test the connection:
 
 Use **Insights** to monitor MCP activity:
 
-1. Open Management window (`⌘ ⇧ M`)
+1. Open Management window (`⌘ ,`)
 2. Click **Insights**
 3. Filter by source or search for the provider name
 

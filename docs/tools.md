@@ -1,14 +1,14 @@
 ---
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
-description: Twenty-plus native Swift/Rust plugins across an append-only v1–v6 host ABI. Tools are auto-selected via RAG — no manual configuration.
+description: Twenty-plus native Swift/Rust plugins across an append-only v1–v6 host ABI. Agents start with a small hot set and discover more tools on demand.
 ---
 
 # Tools & Plugins
 
 Osaurus ships with 20+ native plugins for everything from filesystem operations and browser automation to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
 
-Tools are **auto-selected per turn** via the same preflight search that picks skills and methods — you don't manually toggle them per agent. See [Skills](/skills) and [Methods](/methods) for how that selection works.
+In the default **Auto** mode, agents start each session with a small always-loaded set of tools and pull in more from your enabled capabilities on demand — the same discovery mechanism that loads skills and methods. See [Skills](/skills) and [Methods](/methods) for how that works.
 
 ## Why Native Tools?
 
@@ -27,21 +27,25 @@ For agents that make dozens of tool calls per session, these differences compoun
 
 These tools are maintained by the Osaurus team and available from the central registry:
 
-| Plugin ID            | Description                      | Tools                                                                                                                                                          |
-| -------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `osaurus.filesystem` | File system operations           | `read_file`, `write_file`, `list_directory`, `create_directory`, `delete_file`, `move_file`, `search_files`, `get_file_info`                                   |
-| `osaurus.browser`    | Headless WebKit browser          | `browser_navigate`, `browser_get_content`, `browser_get_html`, `browser_execute_script`, `browser_click`, `browser_type`, `browser_screenshot`, `browser_wait` |
-| `osaurus.git`        | Git repository utilities         | `git_status`, `git_log`, `git_diff`, `git_branch`                                                                                                              |
-| `osaurus.search`     | Web search via DuckDuckGo        | `search`, `search_news`, `search_images`                                                                                                                       |
-| `osaurus.fetch`      | HTTP client for web requests     | `fetch`, `fetch_json`, `fetch_html`, `download`                                                                                                                |
-| `osaurus.time`       | Time and date utilities          | `current_time`, `format_date`                                                                                                                                  |
-| `osaurus.mail`       | Apple Mail integration           | `mail_send`, `mail_search`, `mail_read`                                                                                                                        |
-| `osaurus.calendar`   | Calendar events                  | `calendar_list`, `calendar_create`, `calendar_search`                                                                                                          |
-| `osaurus.vision`     | Image analysis and OCR           | `vision_describe`, `vision_ocr`                                                                                                                                |
-| `osaurus.macos-use`  | macOS UI automation              | `macos_click`, `macos_type`, `macos_screenshot`, `macos_get_windows`                                                                                           |
-| `osaurus.xlsx`       | Excel spreadsheet operations     | `xlsx_read`, `xlsx_write`, `xlsx_create`                                                                                                                       |
-| `osaurus.pptx`       | PowerPoint presentation tools    | `pptx_read`, `pptx_create`                                                                                                                                     |
-| `osaurus.music`      | Apple Music control              | `music_play`, `music_pause`, `music_search`, `music_now_playing`                                                                                               |
+| Plugin ID            | Description                      |
+| -------------------- | -------------------------------- |
+| `osaurus.files`      | File system operations           |
+| `osaurus.browser`    | Headless WebKit browser (navigate, read, click, type, screenshot) |
+| `osaurus.shell`      | Run shell commands               |
+| `osaurus.git`        | Git repository utilities         |
+| `osaurus.fetch`      | HTTP client for web requests     |
+| `osaurus.mail`       | Apple Mail integration           |
+| `osaurus.calendar`   | Calendar events                  |
+| `osaurus.reminders`  | Apple Reminders                  |
+| `osaurus.messages`   | Apple Messages                   |
+| `osaurus.vision`     | Image analysis and OCR           |
+| `osaurus.xlsx`       | Excel / CSV spreadsheet operations |
+| `osaurus.pptx`       | PowerPoint presentation tools    |
+| `osaurus.music`      | Apple Music control              |
+
+Browse the full, current catalog (with each plugin's tool list) in **Management → Plugins**, or search it with `osaurus tools search`.
+
+A few capabilities that used to be plugins are now **built in**: web search, the clock (`get_current_time`), and [Computer Use](/computer-use) (macOS UI automation) ship with the app rather than installing as `osaurus.*` plugins.
 
 ## Installing Tools
 
@@ -74,24 +78,22 @@ Tools are installed to:
 ~/.osaurus/Tools/<plugin_id>/<version>/
 ```
 
-## Auto-selection (RAG preflight)
+## Auto-selection (on-demand discovery)
 
 :::tip[Key feature]
-Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus loads only what's relevant to the current message.
+Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus keeps the schema small and lets the agent expand it only when needed.
 :::
 
-Before each chat turn, a **preflight RAG search** runs across every indexed tool, skill, and method and pulls in just the relevant ones. You don't toggle tools per agent — pick a mode and Osaurus matches the right tools to the right tasks.
+Each agent has a tool mode, set in the agent's **Capabilities** settings:
 
-| Mode | Tools loaded | Best for |
-|---|---|---|
-| `off` | 0 | Disabling auto-selection |
-| `narrow` | 2 | Fastest responses, minimal context |
-| `balanced` *(default)* | 5 | Most cases |
-| `wide` | 8 | Maximum coverage |
+| Mode | Behavior |
+|---|---|
+| **Auto** *(default)* | The model starts with a small always-loaded hot set and loads more from your enabled capabilities on demand |
+| **Manual** | All enabled capabilities are sent to the model every turn |
 
-Set the mode in **Management → Settings → Capabilities**. The agent can also expand its kit mid-conversation via `capabilities_search` and `capabilities_load`.
+In Auto mode, the agent expands its kit mid-conversation via two always-on tools: `capabilities_discover` searches your enabled methods, tools, and skills and returns ranked IDs; `capabilities_load` injects the selected items (with their dependencies) into the active session.
 
-This typically saves ~80% of context tokens compared to loading every tool spec, leaving more room for conversation and reasoning. [Skills →](/skills) · [Methods →](/methods)
+This keeps the context small compared to loading every tool spec, leaving more room for conversation and reasoning. [Skills →](/skills) · [Methods →](/methods)
 
 ## Using Tools
 
@@ -221,7 +223,7 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 
 ### Adding a Remote MCP Provider
 
-1. Open the Management window (⌘⇧M)
+1. Open the Management window (⌘,)
 2. Navigate to **MCP Providers**
 3. Click **Add Provider**
 4. Enter the provider details
@@ -314,7 +316,7 @@ Quick start:
 
 ```bash
 # Scaffold a new Swift plugin
-osaurus tools create MyPlugin --swift
+osaurus tools create MyPlugin --language swift
 
 # Build and install locally
 cd MyPlugin

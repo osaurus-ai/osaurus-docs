@@ -19,7 +19,7 @@ Three voice features for three different jobs:
 
 ## Setup (once)
 
-1. Open the Management window (`⌘ ⇧ M`) → **Voice**
+1. Open the Management window (`⌘ ,`) → **Voice**
 2. Complete the requirements at the top of the page:
    - **Microphone** — click **Grant** to enable mic access
    - **Parakeet model** — click **Download** to fetch the recommended model
@@ -44,8 +44,8 @@ The simplest mode. Click the microphone button in the chat input bar, speak, wat
 |---|---|---|
 | Voice input enabled | On | Master toggle for voice in chat |
 | Sensitivity | Medium | Voice detection threshold |
-| Pause duration | 2.0s | Silence before auto-send (set to 0 to disable) |
-| Confirmation delay | 1.5s | Countdown shown before sending |
+| Pause duration | 1.5s | Silence before auto-send (set to 0 to disable) |
+| Confirmation delay | 2.0s | Countdown shown before sending |
 
 ### Sensitivity levels
 
@@ -100,7 +100,6 @@ Osaurus listens in the background. When it hears an agent's name (or your custom
 | Custom wake phrase | Empty | Optional activation phrase |
 | Wake-word sensitivity | Medium | Detection threshold |
 | Auto-start voice input | On | Begin recording after activation |
-| Silence timeout | 0 (disabled) | Auto-close chat after this many seconds of silence |
 
 ### Status indicators
 

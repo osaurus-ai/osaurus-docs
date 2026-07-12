@@ -15,7 +15,7 @@ Where [Schedules](/schedules) run on a clock, watchers react to the real world.
 
 ## Quick start
 
-1. Open the Management window (`⌘ ⇧ M`) → **Watchers**
+1. Open the Management window (`⌘ ,`) → **Watchers**
 2. Click **Create Watcher**
 3. Fill in:
    - **Name** — e.g. "Downloads Organizer"

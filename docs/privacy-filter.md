@@ -29,7 +29,7 @@ It is **fail-closed** on every send. If scrubbing produced no changes, or a post
 
 ## Getting started
 
-1. Open the Management window (`⌘ ⇧ M`) → **Privacy**. All four tabs (**Overview**, **Rules**, **Providers**, **Model**) are available immediately — no download required.
+1. Open the Management window (`⌘ ,`) → **Privacy**. All four tabs (**Overview**, **Rules**, **Providers**, **Model**) are available immediately — no download required.
 2. Turn on **Enable Privacy Filter** in Overview. The regex layer is now active.
 3. *(Optional)* To also catch names, addresses, and free-form secrets, open the **Model** tab, install an AI model, and turn on **AI detection** in Overview. The toggle stays disabled until a model is installed and verified.
 4. Send a chat message containing personal info to a cloud provider. A **review sheet** appears showing each detected entity and a side-by-side scrubbed preview. Approve, and the scrubbed message sends; the reply streams back with placeholders restored inline.
@@ -129,7 +129,7 @@ The **Providers** tab lets you disable the filter for a specific cloud provider 
 
 ## Verify what actually left your Mac
 
-You don't have to take the filter's word for it. Open **Insights** (`⌘ ⇧ I`), pick a request, and look at the **Request** and **Response** tabs. The **Server Request** / **Server Response** sub-sections show the exact bytes that went to the provider and came back — captured at the wire, *after* scrubbing and *before* unscrubbing.
+You don't have to take the filter's word for it. Open **Insights** (Management window → **Insights**), pick a request, and look at the **Request** and **Response** tabs. The **Server Request** / **Server Response** sub-sections show the exact bytes that went to the provider and came back — captured at the wire, *after* scrubbing and *before* unscrubbing.
 
 If you see `[EMAIL_3]` in the Server Request body while your local message reads `alice@example.com`, the filter worked. The pre-scrub local copy sits in **Request → Local** for comparison. See [Developer Tools](/developer-tools) for more on Insights.
 

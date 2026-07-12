@@ -32,7 +32,7 @@ We've designed Osaurus so that even **we** — the maintainers — couldn't read
 | Storage encryption key (when opted in) | macOS Keychain | Device-bound, never copied off |
 | Master identity key | iCloud Keychain | Biometric-gated, syncs only across your Apple devices |
 | Cloud provider API keys | macOS Keychain | Never in plain-text config files |
-| Voice transcription | Memory only | **Never written to disk** |
+| Voice transcription | On-device (FluidAudio) | Interim audio buffers are memory-only; text you send is stored in chat history like any other message |
 | Models you've downloaded | `~/MLXModels/` | Local files (model weights aren't sensitive on their own) |
 
 Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest by macOS FileVault — the most reliable setup, with no app-managed key that can go missing. If you share the Mac account or don't run FileVault, turn on whole-database encryption in **Settings → Storage**. [Storage details →](/storage)
@@ -85,7 +85,7 @@ A short, plain-language tour of the things we've built in:
 
 - **At-rest protection** — FileVault covers everything by default. Opt in to SQLCipher and every database is encrypted with a 32-byte key in your Keychain, with large attachments AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
 - **On-device PII redaction** — The optional [Privacy Filter](/privacy-filter) scrubs names, emails, secrets, and more from cloud-bound prompts before they leave, using an on-device classifier. It's fail-closed (a detected leak blocks the send) and verifiable in Insights.
-- **Signed and replay-protected requests** — Every authenticated call carries a per-device monotonic counter the server checks. Replays get `401`.
+- **Signed requests** — Authenticated calls carry an `osk-v1` key signed by an address you control; revocation is checked on every request. Agent-to-agent traffic over the [Secure Channel](/secure-channel) is additionally sequence-numbered against replays.
 - **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
 - **Pairings expire** — Bonjour-paired devices get **agent-scoped, 90-day** access keys by default. Permanent keys are explicit opt-in.
 - **Credentials never logged** — Issued `osk-v1` keys and `Bearer` headers are redacted from request logs as defense-in-depth.
