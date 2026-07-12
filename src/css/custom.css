@@ -69,6 +69,9 @@
   --ifm-toc-border-color:  var(--color-border-light);
   --doc-sidebar-width:     260px;
 
+  /* Bounded reading column (prose + horizontal padding) */
+  --content-max-width: 920px;
+
   --docusaurus-highlighted-code-line-bg: var(--color-primary-light);
 
   /* Admonition tints — light */
@@ -389,9 +392,13 @@ main > .container {
   padding: 0 !important;
 }
 
+/* Bounded reading column: keeps line length comfortable on wide screens
+   while letting the layout (sidebar + TOC) stay full width. */
 article {
   padding: 24px 48px 48px 48px !important;
-  max-width: 100% !important;
+  max-width: var(--content-max-width) !important;
+  margin: 0 auto !important;
+  width: 100%;
 }
 
 /* ============================================
@@ -663,8 +670,9 @@ div[class*="admonition-tip"] {
    ============================================ */
 
 nav.pagination-nav {
-  margin: 48px 0 0 0 !important;
+  margin: 48px auto 0 auto !important;
   padding: 32px 48px 0 48px !important;
+  max-width: var(--content-max-width) !important;
   border-top: 1px solid var(--color-border-light) !important;
   display: flex !important;
   gap: 16px !important;
@@ -723,7 +731,8 @@ footer.footer {
 .footer__links {
   margin-bottom: 24px !important;
   display: flex !important;
-  gap: 64px !important;
+  flex-wrap: wrap !important;
+  gap: 32px 64px !important;
 }
 
 .footer__col {
@@ -780,23 +789,51 @@ footer.footer {
   padding: 8px 16px;
   border-radius: 6px;
   font-family: var(--font-sans);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.button--lg {
+  font-size: 1.0625rem;
+  padding: 12px 28px;
+  border-radius: 8px;
 }
 
 .button--primary {
   background: var(--color-primary);
   color: var(--color-bg) !important;
-  border: none;
+  border: 1px solid var(--color-primary);
 }
 
 .button--primary:hover {
   background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
   color: var(--color-bg) !important;
   text-decoration: none;
 }
 
+.button--secondary {
+  background: transparent;
+  color: var(--color-primary) !important;
+  border: 1px solid var(--color-primary);
+}
+
+.button--secondary:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+.markdown a.button {
+  text-decoration: none !important;
+}
+
 .markdown a.button.button--primary {
   color: var(--color-bg) !important;
-  text-decoration: none !important;
+}
+
+.markdown a.button.button--secondary {
+  color: var(--color-primary) !important;
 }
 
 /* Badges */
@@ -850,12 +887,20 @@ footer.footer {
     padding: 24px 16px 0 16px !important;
   }
 
-  /* Tables scroll horizontally but cells may still wrap for readability */
+  /* Tables scroll horizontally with edge shadows hinting at hidden columns */
   .markdown table {
     display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background:
+      linear-gradient(to right, var(--color-bg) 30%, transparent),
+      linear-gradient(to right, transparent, var(--color-bg) 70%) 100% 0,
+      radial-gradient(farthest-side at 0 50%, var(--color-border-light), transparent),
+      radial-gradient(farthest-side at 100% 50%, var(--color-border-light), transparent) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
   }
 }
 
@@ -873,6 +918,140 @@ footer.footer {
   a.pagination-nav__link {
     width: 100%;
   }
+}
+
+/* ============================================
+   INLINE ICONS
+   ============================================ */
+
+/* Icons used inline in prose get breathing room from following text */
+.markdown p > .icon-wrapper .inline-icon,
+.markdown li > .icon-wrapper .inline-icon {
+  margin-right: 0.5rem;
+}
+
+/* ============================================
+   JOURNEY CARDS (homepage / hub pages)
+   ============================================ */
+
+.journey-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+a.journey-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-bg);
+  text-decoration: none !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+a.journey-card:hover,
+a.journey-card:focus-visible {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.journey-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.journey-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.journey-card__title {
+  font-family: var(--font-heading);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.journey-card__description,
+.journey-card__description p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .journey-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   GITHUB STATS BADGES
+   ============================================ */
+
+.github-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+a.github-stats__badge {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border-light);
+  border-radius: 5px;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  line-height: 22px;
+  text-decoration: none !important;
+  transition: border-color 0.15s ease;
+}
+
+a.github-stats__badge:hover {
+  border-color: var(--color-primary);
+}
+
+.github-stats__label {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.github-stats__value {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  padding: 0 8px;
+  white-space: nowrap;
+  font-weight: 600;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ============================================
+   MERMAID DIAGRAMS
+   ============================================ */
+
+.docusaurus-mermaid-container {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+  overflow-x: auto;
 }
 
 /* ============================================

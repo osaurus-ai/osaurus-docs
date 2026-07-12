@@ -2,7 +2,6 @@
 title: Models
 sidebar_label: Models
 description: Local models on your Mac, Apple's on-device foundation model, or any cloud provider — your agents, memory, and tools work the same across all of them.
-sidebar_position: 6
 ---
 
 # Models

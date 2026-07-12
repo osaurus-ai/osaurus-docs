@@ -2,7 +2,6 @@
 title: Quick Start
 sidebar_label: Quick Start
 description: Five minutes from install to your first AI conversation. Here's what you'll do, in order.
-sidebar_position: 3
 ---
 
 # Quick Start

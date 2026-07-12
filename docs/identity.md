@@ -2,7 +2,6 @@
 title: Identity
 sidebar_label: Identity
 description: A cryptographic address for you and each of your agents. Issue access keys for outside tools, scope them per-agent, revoke them anytime — no central server.
-sidebar_position: 14
 ---
 
 # Identity

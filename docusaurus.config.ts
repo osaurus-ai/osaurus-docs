@@ -28,6 +28,7 @@ const config: Config = {
   onBrokenLinks: "throw",
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: "warn",
     },
@@ -48,6 +49,8 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           routeBasePath: "/",
+          editUrl: "https://github.com/osaurus-ai/osaurus-docs/edit/main/",
+          showLastUpdateTime: true,
         },
         blog: false,
         sitemap: {
@@ -63,6 +66,7 @@ const config: Config = {
   ],
 
   themes: [
+    "@docusaurus/theme-mermaid",
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),
       {
@@ -134,7 +138,7 @@ const config: Config = {
       tagName: "meta",
       attributes: {
         property: "og:image",
-        content: "/img/og-image.png",
+        content: "https://docs.osaurus.ai/img/og-image.png",
       },
     },
     {
@@ -163,7 +167,7 @@ const config: Config = {
       tagName: "meta",
       attributes: {
         name: "twitter:image",
-        content: "/img/og-image.png",
+        content: "https://docs.osaurus.ai/img/og-image.png",
       },
     },
     {
@@ -232,6 +236,26 @@ const config: Config = {
           label: "Docs",
         },
         {
+          to: "/installation",
+          label: "Install",
+          position: "left",
+        },
+        {
+          to: "/api",
+          label: "API",
+          position: "left",
+        },
+        {
+          href: "https://osaurus.ai",
+          label: "osaurus.ai",
+          position: "right",
+        },
+        {
+          href: "https://discord.gg/osaurus",
+          label: "Discord",
+          position: "right",
+        },
+        {
           href: "https://github.com/osaurus-ai/osaurus",
           label: "GitHub",
           position: "right",
@@ -242,21 +266,39 @@ const config: Config = {
       style: "light",
       links: [
         {
-          title: "Docs",
+          title: "Get Started",
           items: [
-            {
-              label: "Osaurus Overview",
-              to: "/",
-            },
+            { label: "Overview", to: "/" },
+            { label: "Installation", to: "/installation" },
+            { label: "Quick Start", to: "/quickstart" },
+            { label: "Security & Privacy", to: "/security" },
           ],
         },
         {
-          title: "More",
+          title: "Use",
           items: [
-            {
-              label: "GitHub",
-              href: "https://github.com/osaurus-ai/osaurus",
-            },
+            { label: "Chat", to: "/chat" },
+            { label: "Agents", to: "/agents" },
+            { label: "Models", to: "/models" },
+            { label: "Memory", to: "/memory" },
+          ],
+        },
+        {
+          title: "Build",
+          items: [
+            { label: "Architecture", to: "/architecture" },
+            { label: "HTTP API", to: "/api" },
+            { label: "CLI", to: "/cli" },
+            { label: "Tools & Plugins", to: "/tools" },
+          ],
+        },
+        {
+          title: "Community",
+          items: [
+            { label: "osaurus.ai", href: "https://osaurus.ai" },
+            { label: "GitHub", href: "https://github.com/osaurus-ai/osaurus" },
+            { label: "Discord", href: "https://discord.gg/osaurus" },
+            { label: "Hugging Face", href: "https://huggingface.co/OsaurusAI" },
           ],
         },
       ],
@@ -265,6 +307,12 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+    },
+    mermaid: {
+      theme: { light: "neutral", dark: "dark" },
+      options: {
+        fontFamily: "futura-pt, -apple-system, sans-serif",
+      },
     },
   } satisfies Preset.ThemeConfig,
 };

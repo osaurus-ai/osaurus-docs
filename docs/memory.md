@@ -2,7 +2,6 @@
 title: Memory
 sidebar_label: Memory
 description: Your AI remembers what matters and forgets the noise — privately, on your Mac. Identity facts, pinned takeaways, and per-session digests, never leaving your machine.
-sidebar_position: 7
 ---
 
 # Memory

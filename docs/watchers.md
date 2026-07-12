@@ -2,7 +2,6 @@
 title: Watchers
 sidebar_label: Watchers
 description: Have your AI react to file changes — sort downloads as they arrive, rename screenshots, auto-commit your wiki when you stop editing.
-sidebar_position: 11
 ---
 
 # Watchers

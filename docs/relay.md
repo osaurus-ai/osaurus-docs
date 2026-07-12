@@ -2,7 +2,6 @@
 title: Public Links
 sidebar_label: Public Links
 description: Give a friend, your phone, or a third-party tool a stable public URL to one of your agents — no port forwarding, no ngrok, no configuration.
-sidebar_position: 15
 ---
 
 # Public Links

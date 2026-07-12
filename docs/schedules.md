@@ -2,7 +2,6 @@
 title: Schedules
 sidebar_label: Schedules
 description: Run an agent on a timer — daily journaling prompts, weekly summaries, monthly reviews. Set it and forget it.
-sidebar_position: 12
 ---
 
 # Schedules

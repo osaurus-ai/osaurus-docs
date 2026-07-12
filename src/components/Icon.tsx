@@ -31,7 +31,6 @@ export default function Icon({ name, size = 20, className = "", label }: IconPro
         focusable="false"
         style={{
           verticalAlign: "middle",
-          marginRight: "0.5rem",
           strokeWidth: 2,
         }}
       />

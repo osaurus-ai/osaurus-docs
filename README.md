@@ -1,25 +1,58 @@
-# Website
+# Osaurus Docs
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Documentation site for [Osaurus](https://osaurus.ai) — the local-first AI harness for Apple Silicon. Live at [docs.osaurus.ai](https://docs.osaurus.ai).
 
-## Installation
+Built with [Docusaurus 3](https://docusaurus.io/). Docs are served from the site root (`routeBasePath: "/"`), so `docs/intro.md` is the homepage.
+
+## Requirements
+
+- **Node.js 20+** (Node 22 LTS recommended)
+- **npm** (this repo uses `package-lock.json`; do not use yarn or pnpm)
+
+## Development
 
 ```bash
-yarn
+npm install
+npm start
 ```
 
-## Local Development
-
-```bash
-yarn start
-```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+Starts a local dev server at `http://localhost:3000` with hot reload.
 
 ## Build
 
 ```bash
-yarn build
+npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Generates the static site into `build/`. The build fails on broken internal links (`onBrokenLinks: "throw"`), so run it before pushing content changes.
+
+To preview the production build locally:
+
+```bash
+npm run serve
+```
+
+## Typecheck
+
+```bash
+npm run typecheck
+```
+
+## Project layout
+
+| Path | Purpose |
+|------|---------|
+| `docs/` | All documentation pages (Markdown/MDX) |
+| `sidebars.ts` | Sidebar structure (manual, source of truth for ordering) |
+| `docusaurus.config.ts` | Site config: navbar, footer, SEO, plugins, redirects |
+| `src/css/custom.css` | Osaurus brand theme (light + dark palettes) |
+| `src/components/` | Custom React components exposed to MDX |
+| `src/theme/MDXComponents.tsx` | Registers components for use in any doc without imports |
+| `static/img/` | Logos, social cards, and other static assets |
+
+## Writing docs
+
+- Every page needs `title` and `description` frontmatter.
+- Mermaid diagrams are supported via fenced ` ```mermaid ` code blocks.
+- Custom MDX components available in any doc: `<Icon name="..." />`, `<GitHubStats />`, `<JourneyCards>`/`<JourneyCard>`.
+- Adding a page? Register it in `sidebars.ts` — pages not in the sidebar are unreachable.

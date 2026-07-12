@@ -82,7 +82,7 @@ export default function GitHubStats() {
           setStats({ stars: repo.stargazers_count, downloads, version, license });
         }
       } catch {
-        // fail silently
+        // Rate limits or offline: badges keep their placeholder value.
       }
     }
 
@@ -100,51 +100,23 @@ export default function GitHubStats() {
   }
 
   return (
-    <p style={{ textAlign: "center", margin: "0 0 4px" }} aria-busy={!stats}>
+    <ul className="github-stats" aria-busy={!stats} aria-label="GitHub project stats">
       {badges.map(({ key, label, href }) => (
-        <a
-          key={key}
-          href={href(REPO)}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={styles.badge}
-          aria-label={`${label}: ${stats ? displayValue(key) : "loading"} (opens GitHub in a new tab)`}
-        >
-          <span style={styles.left}>{label}</span>
-          <span style={styles.right} aria-hidden="true">
-            {displayValue(key)}
-          </span>
-        </a>
+        <li key={key}>
+          <a
+            href={href(REPO)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="github-stats__badge"
+            aria-label={`${label}: ${stats ? displayValue(key) : "loading"} (opens GitHub in a new tab)`}
+          >
+            <span className="github-stats__label">{label}</span>
+            <span className="github-stats__value" aria-hidden="true">
+              {displayValue(key)}
+            </span>
+          </a>
+        </li>
       ))}
-    </p>
+    </ul>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  badge: {
-    display: "inline-flex",
-    alignItems: "stretch",
-    borderRadius: "4px",
-    overflow: "hidden",
-    fontSize: "0.75rem",
-    fontFamily: '"futura-pt", "DejaVu Sans", Verdana, Geneva, sans-serif',
-    fontWeight: 400,
-    lineHeight: "20px",
-    textDecoration: "none",
-    margin: "0 4px 6px",
-    verticalAlign: "middle",
-  },
-  left: {
-    background: "#4a4a4a",
-    color: "#ffffff",
-    padding: "0 6px",
-    whiteSpace: "nowrap" as const,
-  },
-  right: {
-    background: "#111111",
-    color: "#ffffff",
-    padding: "0 6px",
-    whiteSpace: "nowrap" as const,
-    fontWeight: 600,
-  },
-};

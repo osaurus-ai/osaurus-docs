@@ -2,7 +2,6 @@
 title: Installation
 sidebar_label: Installation
 description: Download Osaurus for macOS in under a minute. Native Apple Silicon, signed and notarized, free.
-sidebar_position: 2
 ---
 
 # Installation
@@ -22,7 +21,7 @@ Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is th
 - **2–20 GB** free space per local model
 
 :::info[macOS 26 features]
-The [Sandbox](/agent-loop) (running agent code in an isolated Linux VM) and [Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. Osaurus itself runs fine on 15.5+ — those features just stay disabled.
+The [Sandbox](/agent-loop#toggle-the-sandbox-macos-26) (running agent code in an isolated Linux VM) and [Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. Osaurus itself runs fine on 15.5+ — those features just stay disabled.
 :::
 
 ## Install in 3 steps

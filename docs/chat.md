@@ -2,7 +2,6 @@
 title: Chat
 sidebar_label: Chat
 description: The Osaurus chat overlay, multi-window mode, sessions, and keyboard shortcuts in one place.
-sidebar_position: 4
 ---
 
 # Chat

@@ -2,7 +2,6 @@
 title: Skills
 sidebar_label: Skills
 description: Reusable expertise your AI can pull in on demand — a research methodology, a debugging framework, a writing style. Built-ins included; create or import your own.
-sidebar_position: 8
 ---
 
 # Skills

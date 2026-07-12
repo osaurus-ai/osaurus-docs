@@ -2,7 +2,6 @@
 title: Tasks
 sidebar_label: Tasks
 description: What happens when you ask Osaurus to do something — a live to-do list, real tool calls, artifact cards — plus the working folder and Sandbox power-ups.
-sidebar_position: 5
 ---
 
 # Tasks

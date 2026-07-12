@@ -2,7 +2,6 @@
 title: Agents
 sidebar_label: Agents
 description: Specialized AI assistants — your coding partner, research helper, creative collaborator. Each with its own prompt, theme, model, and memory.
-sidebar_position: 5
 ---
 
 # Agents
@@ -17,7 +16,7 @@ An agent is a saved configuration with its own:
 - **Personality** — system prompt, optional default model, optional temperature and max-tokens overrides, optional theme that activates when the agent is selected
 - **Capabilities** — its own enabled set of tools and skills, plus an *Auto-discover* toggle (more below)
 - **Memory** — pinned facts, episode digests, and identity overrides are stored per-agent
-- **Sandbox autonomy** — optional `autonomous_exec` config that controls what the agent can do in the [Linux Sandbox](/agent-loop)
+- **Sandbox autonomy** — optional `autonomous_exec` config that controls what the agent can do in the [Linux Sandbox](/agent-loop#toggle-the-sandbox-macos-26)
 - **Subagents** — per-agent delegation settings: spawnable agents/models, the `image` tool, Computer Use, and AppleScript, all off by default (see [Subagents](/subagents))
 - **Quick actions** — per-agent prompt templates shown in the chat empty state, separate lists for Chat and Work modes
 - **Plugin instructions** — optional per-plugin instruction overrides
@@ -53,7 +52,7 @@ The Capabilities picker is the single source of truth for what tools and skills 
 
 ### Sandbox autonomy *(optional)*
 
-Configure what the agent can do when the [Sandbox](/agent-loop) is toggled on for a chat:
+Configure what the agent can do when the [Sandbox](/agent-loop#toggle-the-sandbox-macos-26) is toggled on for a chat:
 
 | Setting | What it does | Default |
 |---|---|---|

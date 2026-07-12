@@ -2,7 +2,6 @@
 title: Voice
 sidebar_label: Voice
 description: Talk to your AI hands-free, dictate into any app, or transcribe meetings — all on-device. Nothing leaves your Mac.
-sidebar_position: 10
 ---
 
 # Voice

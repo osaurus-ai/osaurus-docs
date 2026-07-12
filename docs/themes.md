@@ -2,7 +2,6 @@
 title: Themes
 sidebar_label: Themes
 description: Built-in light/dark themes plus a full custom-theme editor with import/export. Bind a theme to an agent so it activates automatically.
-sidebar_position: 13
 ---
 
 # Themes
