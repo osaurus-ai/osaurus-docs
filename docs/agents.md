@@ -178,6 +178,10 @@ Each agent has its own memory — pinned facts, episodes, and identity overrides
 
 Identity overrides ("I prefer tabs over spaces", "Reply in English") are also per-agent unless you set them at the top level. If you want a clean stateless agent, flip **Disable memory** on the agent — memory is neither injected on read nor recorded on write. [Memory →](/memory)
 
+## Knowledge per agent
+
+Beyond what an agent learns from you, you can hand it curated reference material: knowledge collections are folders of documents (markdown, plain text, code, PDF, Word, Excel, PowerPoint, CSV) the agent can search and read on demand. Grants are per-agent and explicit — in the agent's **Abilities** tab, turn on **Knowledge** and check the collections this agent may see; it can never touch the others. Enable **Knowledge Curator** as well to let the agent flag stale documents and propose updates you approve. [Knowledge →](/knowledge)
+
 ## Switching, duplicating, and managing agents
 
 | Where | How |
@@ -251,5 +255,6 @@ Each agent gets a cryptographic address derived from your master key. You can mi
 - [Tasks](/agent-loop) — what happens when you ask the agent to *do* something
 - [Skills](/skills) — auto-selected expertise
 - [Memory](/memory) — what your agent remembers
+- [Knowledge](/knowledge) — curated reference collections your agent can consult
 - [Agent DB & Self-Scheduling](/agent-db) — give an agent structured storage and the ability to wake itself
 - [Themes](/themes) — visual customization per agent

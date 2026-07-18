@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "models/apple-intelligence", label: "Apple Intelligence" },
         { type: "doc", id: "osaurus-router", label: "Osaurus Router" },
         { type: "doc", id: "memory", label: "Memory" },
+        { type: "doc", id: "knowledge", label: "Knowledge" },
         { type: "doc", id: "skills", label: "Skills" },
       ],
     },
