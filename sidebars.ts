@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "image-generation", label: "Image Generation" },
         { type: "doc", id: "computer-use", label: "Computer Use" },
         { type: "doc", id: "voice", label: "Voice" },
+        { type: "doc", id: "text-to-speech", label: "Text-to-Speech" },
         { type: "doc", id: "app-intents", label: "Shortcuts, Spotlight & Siri" },
         { type: "doc", id: "claude-plugins", label: "Claude Plugins" },
         { type: "doc", id: "themes", label: "Themes" },

@@ -16,6 +16,8 @@ Three voice features for three different jobs:
 | **VAD Mode** | Always-on listening for a wake word | System-wide (background) |
 | **Transcription Mode** | Hotkey to dictate into any text field | Anywhere on macOS |
 
+Osaurus can talk back too — see [Text-to-Speech](text-to-speech.md) for having replies read aloud, on-device or via a local TTS server.
+
 ## Setup (once)
 
 1. Open the Management window (`⌘ ,`) → **Voice**
