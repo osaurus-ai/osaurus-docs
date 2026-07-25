@@ -6,7 +6,7 @@ description: Twenty-plus native Swift/Rust plugins across an append-only v1–v6
 
 # Tools & Plugins
 
-Osaurus ships with 20+ native plugins for everything from filesystem operations and browser automation to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
+Osaurus ships with 20+ native plugins for everything from filesystem operations to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
 
 In the default **Auto** mode, agents start each session with a small always-loaded set of tools and pull in more from your enabled capabilities on demand — the same discovery mechanism that loads skills and methods. See [Skills](/skills) and [Methods](/methods) for how that works.
 
@@ -30,7 +30,6 @@ These tools are maintained by the Osaurus team and available from the central re
 | Plugin ID            | Description                      |
 | -------------------- | -------------------------------- |
 | `osaurus.files`      | File system operations           |
-| `osaurus.browser`    | Headless WebKit browser (navigate, read, click, type, screenshot) |
 | `osaurus.shell`      | Run shell commands               |
 | `osaurus.git`        | Git repository utilities         |
 | `osaurus.fetch`      | HTTP client for web requests     |
@@ -45,7 +44,7 @@ These tools are maintained by the Osaurus team and available from the central re
 
 Browse the full, current catalog (with each plugin's tool list) in **Management → Plugins**, or search it with `osaurus tools search`.
 
-A few capabilities that used to be plugins are now **built in**: web search, the clock (`get_current_time`), and [Computer Use](/computer-use) (macOS UI automation) ship with the app rather than installing as `osaurus.*` plugins.
+A few capabilities that used to be plugins are now **built in**: [web search](/web-search) (replacing `osaurus.search`), [browser automation](/browser-use) (replacing `osaurus.browser`), the clock (`get_current_time`), and [Computer Use](/computer-use) (macOS UI automation) all ship with the app rather than installing as `osaurus.*` plugins. Existing installs of a superseded plugin keep their card in Settings → Plugins with a "Built into Osaurus" banner, but their tools no longer load.
 
 ## Installing Tools
 
@@ -53,17 +52,16 @@ Use the Osaurus CLI to manage tools:
 
 ```bash
 # Install a tool from the registry
-osaurus tools install osaurus.browser
-osaurus tools install osaurus.filesystem
+osaurus tools install osaurus.files
 
 # Install multiple tools
-osaurus tools install osaurus.git osaurus.search
+osaurus tools install osaurus.git osaurus.vision
 
 # List installed tools
 osaurus tools list
 
 # Search available tools
-osaurus tools search browser
+osaurus tools search calendar
 
 # Uninstall a tool
 osaurus tools uninstall osaurus.time
@@ -223,7 +221,7 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 
 ### Adding a Remote MCP Provider
 
-1. Open the Management window (⌘,)
+1. Open the Management window (`⌘ ⇧ M`)
 2. Navigate to **MCP Providers**
 3. Click **Add Provider**
 4. Enter the provider details
@@ -340,8 +338,8 @@ All official and community tools are indexed in the [osaurus-tools](https://gith
 ```
 osaurus-tools/
 ├── plugins/           # Plugin specifications
-│   ├── osaurus.browser.json
-│   ├── osaurus.filesystem.json
+│   ├── osaurus.files.json
+│   ├── osaurus.git.json
 │   └── ...
 ├── tools/             # Source code for official tools
 └── scripts/           # Build and release automation

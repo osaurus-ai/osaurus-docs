@@ -10,7 +10,7 @@ Make Osaurus look the way you want. Pick from the built-in light and dark themes
 
 ## Quick start
 
-1. Open the Management window (`⌘ ,`) → **Themes**
+1. Open the Management window (`⌘ ⇧ M`) → **Themes**
 2. Click any theme to apply it
 3. Click **Edit** on a custom theme to tweak it (built-in themes are read-only)
 4. Click **Create** to start a new theme from scratch (or duplicate an existing one)
@@ -18,6 +18,8 @@ Make Osaurus look the way you want. Pick from the built-in light and dark themes
 ## Built-in themes
 
 Osaurus ships with a curated set of light and dark themes. They're read-only — duplicate one to customize it.
+
+The default themes are built on **native macOS appearance**: they match the system light/dark look and **follow your macOS accent color**, so if your Mac is set to purple, Osaurus's highlights, focus rings, and selection colors are too. Custom themes can opt into the same behavior with the `followsSystemAccent` flag (see [File format](#file-format)).
 
 ## Custom themes
 
@@ -98,7 +100,8 @@ Top-level shape:
   "messages": { ... },
   "borders": { ... },
   "isBuiltIn": false,
-  "isDark": true
+  "isDark": true,
+  "followsSystemAccent": false
 }
 ```
 
@@ -107,6 +110,7 @@ Notes:
 - Colors are hex strings: `"#RRGGBB"` for opaque, `"#AARRGGBB"` for alpha (e.g. `"#80FF0000"` is 50% transparent red).
 - Dates are ISO 8601: `"2026-01-15T00:00:00Z"`.
 - `messages` and `borders` are optional — they fall back to defaults if omitted.
+- `followsSystemAccent` is optional (default `false`). When `true`, the accent-adjacent colors (`accentColor`, `accentColorLight`, `focusBorder`, `cursorColor`, `selectionColor`, `sidebarSelectedBackground`, `infoColor`) are re-derived from the user's macOS system accent when the theme is applied; the stored hex values are used as-is when the system accent matches the theme's authored accent.
 - All other top-level sections are required.
 
 ### Minimal example

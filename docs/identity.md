@@ -53,7 +53,7 @@ osk-v1.eyJpc3MiOiIweDc0...g.4f8a9b...
 
 Where you create the key decides its scope:
 
-- **Master-scoped** (works for any of your agents) — Management window (`⌘ ,`) → **Server** → **Access Keys** → **Create Access Key**
+- **Master-scoped** (works for any of your agents) — Management window (`⌘ ⇧ M`) → **Server** → **Access Keys** → **Create Access Key**
 - **Agent-scoped** (one specific agent) — Management window → **Identity** → the agent's key section
 
 Either way you pick:

@@ -1009,6 +1009,12 @@ a.journey-card:focus-visible {
   list-style: none;
 }
 
+/* Rendered inside MDX, so undo the markdown `li + li` top margin that
+   pushed every badge after the first out of alignment. */
+.github-stats li {
+  margin: 0;
+}
+
 a.github-stats__badge {
   display: inline-flex;
   align-items: stretch;

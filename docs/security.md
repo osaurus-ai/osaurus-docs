@@ -53,7 +53,9 @@ There's no central server handing out access. Verification is local and offline-
 
 ## When agents run code, they can't break out
 
-The Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization framework, Alpine Linux). Each agent gets its own Linux user with its own home directory — they can't read each other's files. The VM connects back to Osaurus via a **vsock bridge** with **per-agent bearer tokens** written into the guest as `0600` files; unknown tokens get `401`, no fallback. Outbound network can be set to `none` to fully air-gap.
+On macOS 26+, the Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization framework, Alpine Linux). Each agent gets its own Linux user with its own home directory — they can't read each other's files. The VM connects back to Osaurus via a **vsock bridge** with **per-agent bearer tokens** written into the guest as `0600` files; unknown tokens get `401`, no fallback. Outbound network can be set to `none` to fully air-gap, or to a per-agent **domain allowlist** enforced by a filtering proxy on a host-only network.
+
+On macOS 15, the Sandbox falls back to a **Seatbelt-confined backend**: commands run as host processes under a deny-by-default profile that can only write inside the sandbox workspace. The isolation boundary is weaker than the VM (host reads aren't blocked), which is why the [Sandbox Internals](/sandbox#seatbelt-fallback-macos-15) page spells out the exact differences.
 
 Sandbox runtime artifacts (the GHCR image, the Linux kernel, the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries.
 
@@ -89,6 +91,7 @@ A short, plain-language tour of the things we've built in:
 - **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
 - **Pairings expire** — Bonjour-paired devices get **agent-scoped, 90-day** access keys by default. Permanent keys are explicit opt-in.
 - **Credentials never logged** — Issued `osk-v1` keys and `Bearer` headers are redacted from request logs as defense-in-depth.
+- **Agent secrets stay out of the record** — When an agent stores a credential with `sandbox_secret_set`, execution gets the real value but every recorded surface gets a redacted copy: chat and HTTP run history, plugin events, approval prompts, debug logs, Insights, and provider wire snapshots. Malformed secret payloads fail closed to a redacted stub, and known secret values are scrubbed from command output too. [Details →](/sandbox#secret-containment)
 - **No silent fallbacks** — If a sandbox artifact fails its digest check, provisioning fails closed. No fallback to alternate mirrors.
 - **Reproducible builds** — SPM dependencies are pinned to commits; CI is pinned to a specific Xcode version.
 

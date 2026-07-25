@@ -29,7 +29,7 @@ It is **fail-closed** on every send. If scrubbing produced no changes, or a post
 
 ## Getting started
 
-1. Open the Management window (`⌘ ,`) → **Privacy**. All four tabs (**Overview**, **Rules**, **Providers**, **Model**) are available immediately — no download required.
+1. Open the Management window (`⌘ ⇧ M`) → **Privacy**. All four tabs (**Overview**, **Rules**, **Providers**, **Model**) are available immediately — no download required.
 2. Turn on **Enable Privacy Filter** in Overview. The regex layer is now active.
 3. *(Optional)* To also catch names, addresses, and free-form secrets, open the **Model** tab, install an AI model, and turn on **AI detection** in Overview. The toggle stays disabled until a model is installed and verified.
 4. Send a chat message containing personal info to a cloud provider. A **review sheet** appears showing each detected entity and a side-by-side scrubbed preview. Approve, and the scrubbed message sends; the reply streams back with placeholders restored inline.

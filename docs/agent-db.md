@@ -19,11 +19,13 @@ Together they're a journal that can also set its own alarm.
 
 ## Enabling the database
 
-Turn on **Database** in an agent's **Configure → Features**. That does three things:
+Turn on the **Database** ability in an agent's **Abilities → Overview** (or from the **Database** tab itself, which always shows — with an Enable action when it's off, so the feature stays discoverable). That does three things:
 
-1. Five database tabs appear in the agent detail view — **Home**, **Schema**, **Data**, **Views**, **Activity**.
+1. The **Database** tab (under the agent's **Memory** group) becomes a live workspace with four sections — **Overview**, **Tables**, **Saved Views**, and **History**.
 2. The agent gains the `db_*` tools (they're hidden from the model when the database is off).
 3. The agent gets a fresh, empty database on its first write — nothing is created on disk until it's actually used.
+
+If the agent's effective model is a **cloud provider**, the schema — table names and column types — is sent with each request so the model can use the tools. Row data is not.
 
 ## How the agent uses it
 
@@ -39,9 +41,9 @@ The agent works the database entirely through typed `db_*` tools — it never wr
 
 ### Soft deletes
 
-Every table the agent creates gets three reserved columns: `_created_at`, `_updated_at`, and `_deleted_at`. `db_delete` is a **soft delete** — it stamps `_deleted_at` rather than removing the row, and `db_restore` clears it. Reads hide soft-deleted rows by default. In the **Data** tab, the `Active` / `Deleted` / `All` filter maps directly to that flag. There's no hard-delete tool — purging a row is a host-side action the model can't take.
+Every table the agent creates gets three reserved columns: `_created_at`, `_updated_at`, and `_deleted_at`. `db_delete` is a **soft delete** — it stamps `_deleted_at` rather than removing the row, and `db_restore` clears it. Reads hide soft-deleted rows by default. When browsing a table, the `Active` / `Deleted` / `All` filter maps directly to that flag. There's no hard-delete tool — purging a row is a host-side action the model can't take.
 
-Every mutation is also appended to a hidden changelog (who changed what, and during which run), surfaced in the **Activity** tab.
+Every mutation is also appended to a hidden changelog (who changed what, and during which run), surfaced in the **History** section.
 
 ## Where it lives, and quotas
 
@@ -54,19 +56,20 @@ Both files go through the same storage stack as chat history and memory — plai
 
 Each agent has its own storage quota: writes are rejected once the file exceeds the limit (the error tells the model to delete or migrate older rows), and a banner warns you when usage crosses ~80%.
 
-## The detail-view tabs
+## The Database workspace
 
-| Tab | What it shows |
+Everything lives inside one **Database** tab, split into four sections:
+
+| Section | What it shows |
 |---|---|
-| **Home** | A dashboard of pinned views — the agent's "what should I look at right now?" |
-| **Schema** | Read-only catalogue of tables, columns, types, and indexes |
-| **Data** | Browse and edit rows, with the Active/Deleted/All filter and CSV export |
-| **Views** | Manage saved views; pin one to show on Home |
-| **Activity** | The audit log — run history paired with the changelog entries for each run |
+| **Overview** | A dashboard of pinned views — the agent's "what should I look at right now?" |
+| **Tables** | The schema catalogue plus row browsing and editing, with the Active/Deleted/All filter and CSV export |
+| **Saved Views** | Manage saved views; pin one to show on the Overview |
+| **History** | The audit log — run history paired with the changelog entries for each run |
 
 ## Self-scheduling
 
-Self-scheduling is a **separate opt-in** — the **Self-scheduling** toggle under **Configure → Features** (default off). When off, the scheduling tools are stripped from the model and any pending slot is cancelled, so an agent can't fire after you opt out. It's independent of the database: any agent can self-schedule whether or not it has a DB.
+Self-scheduling is a **separate opt-in** — the **Self-scheduling** ability in **Abilities → Overview** (default off). When off, the scheduling tools are stripped from the model and any pending slot is cancelled, so an agent can't fire after you opt out. It's independent of the database: any agent can self-schedule whether or not it has a DB.
 
 The contract is deliberately minimal: **one next-run slot per agent**. The agent calls `schedule_next_run` to set it; when the time arrives, Osaurus clears the slot *before* dispatching (so a slow run can't double-fire) and runs the agent with the instructions it left itself. Because the slot is cleared on wake, **wake-ups are single-shot** — if the agent wants to run again, it must call `schedule_next_run` again from inside the run. That's how it expresses "keep me going" versus "I'm done."
 
@@ -95,7 +98,7 @@ The mode sets the *bounds* for self-scheduling (the on/off switch is the separat
 | **Reactive** | 24 hours | 5 minutes | 48 | None |
 | **Project** | 30 days | 1 hour | 4 | 22:00–07:00 |
 
-Pick a mode in **Configure → Scheduling** (only shown when self-scheduling is on). Selecting a mode rewrites the cap, horizon, and quiet hours — not just the label.
+Pick a mode in **General → Configure → Scheduling** (only shown when self-scheduling is on). Selecting a mode rewrites the cap, horizon, and quiet hours — not just the label.
 
 ### Pausing
 

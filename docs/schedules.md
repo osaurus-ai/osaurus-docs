@@ -12,7 +12,7 @@ Where [Watchers](/watchers) react to file changes, schedules run on a clock.
 
 ## Quick start
 
-1. Open the Management window (`⌘ ,`) → **Schedules**
+1. Open the Management window (`⌘ ⇧ M`) → **Schedules**
 2. Click **Create Schedule**
 3. Fill in:
    - **Name** — what this schedule is for
@@ -188,7 +188,7 @@ Each run is also saved as a chat session tagged `schedule` (visible as a badge i
 
 - **Review the instructions** — Ambiguous prompts lead to inconsistent results
 - **Check the agent** — Make sure the right agent is assigned
-- **Inspect what tools fired** — Open Insights (Management `⌘ ,` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
+- **Inspect what tools fired** — Open Insights (Management `⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
 
 ### Missed schedules
 

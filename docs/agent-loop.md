@@ -45,9 +45,9 @@ By default, the agent has a strong general tool kit selected automatically based
 | Power-up | What it adds | When to use |
 |---|---|---|
 | **Working folder** | Scoped file/search/git tools for one folder | Editing code in a real repo, reorganizing a directory, summarizing a project |
-| **Sandbox** *(macOS 26+)* | Shell access in an isolated Linux VM | Running scripts, installing packages, scraping URLs, building/testing |
+| **Sandbox** | Shell access in an isolated environment — a Linux VM on macOS 26+, a Seatbelt-confined host runner on macOS 15 | Running scripts, installing packages, scraping URLs, building/testing |
 
-Pick **one or the other** — they're mutually exclusive per chat.
+You can enable either, or **both at once**. In combined mode the agent reads your folder on the host while all execution happens in the sandbox — see [Combined mode](#combined-mode-folder--sandbox) below.
 
 ### Pick a working folder
 
@@ -55,30 +55,39 @@ Click the folder icon next to the input bar and pick a folder. The agent loads t
 
 | Tool | What it does |
 |---|---|
-| `file_tree` | Show the folder structure (skipping the obvious noise like `node_modules`) |
-| `file_read` | Read a file (line ranges supported) |
-| `file_write` | Create or overwrite a file |
-| `file_edit` | Make a precise edit to part of a file |
-| `file_search` | Fast text search across the folder |
+| `file_read` | Read a file (line ranges supported) — or point it at a directory to get a listing (skipping the obvious noise like `node_modules`) |
+| `file_write` | Create or overwrite a file. Pass `dry_run: true` to preview the diff without writing. |
+| `file_edit` | Make a precise edit to part of a file (also supports `dry_run` previews) |
+| `file_search` | Fast text search across the folder, or find files by name glob |
+| `file_operation_history` / `file_undo` | Review the session's file writes and edits, and revert individual operations |
 | `shell_run` | Run a shell command — for builds, installs, `mv`/`cp`/`rm`/`mkdir` (asks before running) |
 | `git_status` / `git_diff` / `git_commit` | When the folder is a git repo. `git_commit` asks before running. |
 
-Osaurus remembers your folder choice across launches via macOS's security-scoped bookmarks. The project's language (Swift, Node, Python, Rust, Go) is auto-detected from manifests; project-level guidance files (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) are loaded automatically. Paths the agent uses must stay strictly under the folder — anything outside is rejected before execution.
+The folder choice is **per chat** and survives relaunch via macOS's security-scoped bookmarks — two windows can work against two different repos at once. The project's language (Swift, Node, Python, Rust, Go) is auto-detected from manifests; project-level guidance files (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) are loaded automatically. Paths the agent uses must stay strictly under the folder — anything outside is rejected before execution.
 
-Every write/exec/git-mutating call is logged so you can review or undo individual operations.
+Every applied write and edit is logged, and simple `shell_run` mutations (`mv`/`cp`/`rm`/`mkdir`) join the same log — so you (or the agent, via `file_undo`) can review and revert individual operations. Commands the log can't capture faithfully are flagged as not covered by undo rather than half-logged.
 
-### Toggle the Sandbox (macOS 26+)
+### Toggle the Sandbox
 
-Toggle Sandbox on the input bar to give the agent shell access in an isolated Linux VM (Apple Containerization framework, Alpine Linux). Each agent gets its own Linux user with its own home directory.
+Toggle Sandbox on the input bar to give the agent shell access in an isolated environment. On **macOS 26+** that's a Linux VM (Apple Containerization framework, Alpine Linux) with each agent as its own Linux user; on **macOS 15** it falls back to a Seatbelt-confined host runner that can only write inside the sandbox workspace. [Sandbox Internals →](/sandbox)
 
-What's available inside:
+What's available inside (Linux VM):
 
 - Full POSIX userland: shell, coreutils, find, grep, sed, awk, tar
 - Python (`pip`), Node.js (`npm`), system packages (`apk`)
 - Compilers and build tools as needed
 - Per-agent home at `/workspace/agents/{name}/` (mounted from your Mac)
 
-Read-only sandbox tools are always available. Write, exec, install, and secret tools require `autonomous_exec` enabled on the agent. [Sandbox Internals →](/sandbox)
+Read-only sandbox tools are always available. Write, exec, install, and secret tools require `autonomous_exec` enabled on the agent.
+
+### Combined mode (folder + Sandbox)
+
+With a working folder *and* the Sandbox enabled, the agent gets both filesystems with a deliberate trust boundary between them:
+
+- Your folder is exposed **read-only** on the host (`file_read` / `file_search`) by default; host shell and git tools stay hidden. Two per-agent opt-ins loosen this: **Edit Folder Files** allows creating and editing folder files (tracked and undoable in Changes), and **Read Secret Files** allows reading `.env` / keys / credentials — both off by default (see [Sandbox permissions](/agents#sandbox-permissions)).
+- All execution happens in the sandbox, which has **no mount** of your folder — sandboxed code can never touch it directly.
+- **`file_copy`** bridges the two: it copies raw bytes between the workspace and the sandbox (the only way binary files like PDFs, images, or archives cross the boundary — nothing passes through the conversation).
+- Changes are tracked per chat in a **Changes** view with conflict-aware undo: anything modified afterwards by another chat or by you is flagged as conflicted instead of being overwritten.
 
 ## Sharing artifacts
 
@@ -93,7 +102,7 @@ Artifacts are persisted under `~/.osaurus/artifacts/{session}/` and rendered inl
 | Ask a question, summarize, brainstorm | Plain (no folder, no sandbox) |
 | Edit code in a real repo | Working folder |
 | Run a script, scrape a URL, install a package, build/test | Sandbox |
-| Refactor across many files, then run tests | Working folder + delegate execution to your local tooling |
+| Analyze or process files from a project without letting code touch it | Working folder + Sandbox (combined) |
 
 ## Best practices
 

@@ -16,7 +16,7 @@ There are three ways to use it:
 
 ## Available models
 
-Install models from the Management window (`⌘ ,`) → **Images** → **Models**. The catalog shows download sizes and links to each model's Hugging Face page. (The **Images → Settings** sub-tab holds global image defaults.)
+Install models from the Management window (`⌘ ⇧ M`) → **Images** → **Models**. The catalog shows download sizes and links to each model's Hugging Face page. (The **Images → Settings** sub-tab holds global image defaults.)
 
 | Model | Good at |
 |---|---|
@@ -24,7 +24,9 @@ Install models from the Management window (`⌘ ,`) → **Images** → **Models*
 | **FLUX.1 Schnell** | Text-to-image with strong prompt adherence |
 | **Qwen-Image** | Text-to-image |
 | **Qwen-Image-Edit** | Editing — give it one or more source images plus instructions |
-| **Ideogram** | Text-to-image, strong at stylized output |
+| **Ideogram 4** | Text-to-image, strong typography and stylized output |
+
+The catalog is dynamic: a curated set is merged with a live listing of image bundles from the OsaurusAI Hugging Face org, and an **Import** field lets you stage any compatible (mflux-format) repo by pasting its `org/repo` id — you're not limited to what's listed. Each installed model reports its capabilities (`generations`, `edits`, `upscale`), which the UI and API honor.
 
 Image models are large (several GB) and memory-hungry while loaded. Osaurus loads a model for the job and unloads it afterward, so it doesn't sit on your RAM between generations.
 
@@ -40,7 +42,7 @@ For **editing**, pick an edit-capable model (like Qwen-Image-Edit), attach one o
 
 Your chat model — local or cloud — can call the built-in `image` tool to generate or edit a picture as part of a task, rendering the result inline in the conversation.
 
-- Enable it per agent in **Agents → Configure → Subagents**, where you can also pick which image model the agent uses.
+- Enable it per agent in **Agents → Abilities → Subagents**, where you can also pick which image model the agent uses.
 - When your chat runs on a local model, Osaurus performs a **residency handoff**: it unloads the chat model, runs the image job, then reloads the chat model and continues — so two large models never fight for memory. The handoff is automatic and crash-safe.
 
 ## HTTP API
@@ -51,6 +53,7 @@ OpenAI-compatible endpoints on the local server:
 |---|---|
 | `POST /v1/images/generations` | Text-to-image |
 | `POST /v1/images/edits` | Image editing (edit-capable models only; generation-only models return `400`) |
+| `POST /v1/images/upscale` | Upscale a source image with an upscale-capable model — send `image` plus an optional `scale` (default 4×) |
 | `POST /v1/images/cancel` | Cancel an in-flight job |
 | `GET /images/models` | List installed image models with capabilities and defaults |
 

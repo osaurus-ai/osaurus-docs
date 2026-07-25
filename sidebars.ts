@@ -27,6 +27,8 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "subagents", label: "Subagents" },
         { type: "doc", id: "image-generation", label: "Image Generation" },
         { type: "doc", id: "computer-use", label: "Computer Use" },
+        { type: "doc", id: "browser-use", label: "Browser Use" },
+        { type: "doc", id: "web-search", label: "Web Search" },
         { type: "doc", id: "voice", label: "Voice" },
         { type: "doc", id: "text-to-speech", label: "Text-to-Speech" },
         { type: "doc", id: "app-intents", label: "Shortcuts, Spotlight & Siri" },
@@ -115,6 +117,7 @@ const sidebars: SidebarsConfig = {
           collapsed: true,
           items: [
             { type: "doc", id: "configuration", label: "Server Settings" },
+            { type: "doc", id: "global-proxy", label: "Global Proxy" },
             { type: "doc", id: "storage", label: "Storage & Encryption" },
           ],
         },

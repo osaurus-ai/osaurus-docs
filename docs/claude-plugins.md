@@ -26,7 +26,7 @@ Once imported, skills, references, slash commands, and MCP tools are discovered 
 
 ## Importing a plugin
 
-1. Open Management (`⌘ ,`) → **Plugins**.
+1. Open Management (`⌘ ⇧ M`) → **Plugins**.
 2. Click **Import** in the header.
 3. Enter the repository (`owner/repo` or a full URL).
 4. Choose which plugins — and which artifacts within each — to install.

@@ -23,10 +23,11 @@ Two more capabilities share the same machinery and the same per-agent settings s
 
 - **`image`** — generate or edit a picture inline; see [Image Generation](/image-generation)
 - **`computer_use`** — drive a macOS app; see [Computer Use](/computer-use)
+- **`browser_use`** — drive a persistent, isolated browser; see [Browser Use](/browser-use)
 
 ## Getting started
 
-1. Open **Agents → Configure → Subagents** on the agent you want to grant delegation (the main chat has its own Subagents tab too).
+1. Open **Agents → Abilities → Subagents** on the agent you want to grant delegation (the main chat has its own Subagents tab too).
 2. Enable **Spawn & Delegation** and pick the **spawnable pool** — which saved agents and models this agent may delegate to. The pool is searchable, and you can attach a note to each entry to tell the model when to use it.
 3. Ask for something that benefits from delegation: *"Have the research agent summarize this paper, then continue."*
 4. Approve the first use. You can set individual targets to always-allow in the same tab.
@@ -51,6 +52,7 @@ Everything is scoped to the agent, in its **Subagents** tab:
 - **Spawn & Delegation** — enable, plus the allow-list of spawnable agents and models
 - **Image** — enable the `image` tool and pick the agent's image model
 - **Computer Use** — enable, autonomy ceiling, screen context ([details](/computer-use))
+- **Browser Use** — enable, plus an optional model override ([details](/browser-use))
 - **AppleScript** — enable the AppleScript subagent and pick its model
 
 Every capability ships disabled on every agent, so nothing can delegate until you say so.
@@ -62,4 +64,5 @@ Every capability ships disabled on every agent, so nothing can delegate until yo
 - [Agents](/agents) — creating and configuring agents
 - [Image Generation](/image-generation) — the `image` subagent
 - [Computer Use](/computer-use) — the `computer_use` subagent
+- [Browser Use](/browser-use) — the `browser_use` subagent
 - [Models](/models) — local and remote models a subagent can target

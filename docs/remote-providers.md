@@ -18,7 +18,7 @@ Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, 
 
 ### Via the UI
 
-1. Open the Management window (`⌘ ,`)
+1. Open the Management window (`⌘ ⇧ M`)
 2. Click **Providers** in the sidebar
 3. Click **Add Provider**
 4. Select a preset or **Custom**
@@ -347,3 +347,4 @@ This file contains connection settings but **not** API keys or secret headers.
 - [Privacy Filter](/privacy-filter) — redact sensitive content before it reaches a cloud provider
 - [HTTP API](/api) — what callers see once a provider is connected
 - [Remote MCP Providers](/remote-mcp-providers) — connecting Osaurus to remote *tool* providers (different feature)
+- [Global Proxy](/global-proxy) — routing provider traffic through a proxy

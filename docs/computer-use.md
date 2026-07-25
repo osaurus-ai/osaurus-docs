@@ -31,7 +31,7 @@ The model is kept on a short leash: it only ever proposes the *next* action. The
 ## Getting started
 
 1. Grant **Accessibility** permission (required) and **Screen Recording** (optional — needed only for screenshot-based perception) in **Settings → Computer Use**.
-2. Enable Computer Use on a custom agent: **Agents → Configure → Subagents → Computer Use**.
+2. Enable Computer Use on a custom agent: **Agents → Abilities → Subagents → Computer Use**.
 3. Ask the agent to do something on screen: *"Open System Settings and turn on Night Shift"* or *"Fill in this form with my details"*.
 4. Approve or deny each confirmation as it appears. The overlay shows a structured preview: app, action, target, and any text about to be typed.
 
@@ -84,7 +84,7 @@ If a task would benefit from cloud vision but you haven't consented, Osaurus sho
 
 Separate from driving apps, **Screen context** gives an agent ambient awareness of what you're doing — *without* taking any action. When enabled, a distilled, text-only snapshot of your screen (frontmost app, window titles, the field you're editing, salient on-screen text) is attached to the **first message** of each chat session and reused unchanged for the rest of the conversation.
 
-- It's per-agent, nested under Computer Use (**Agents → Configure → Subagents → Computer Use → Share screen context**), and on by default once an agent has Computer Use enabled. Agents without Computer Use — including the Default agent — never inject screen context.
+- It's per-agent, nested under Computer Use (**Agents → Abilities → Subagents → Computer Use → Share screen context**), and on by default once an agent has Computer Use enabled. Agents without Computer Use — including the Default agent — never inject screen context.
 - The snapshot is built entirely from the accessibility tree — no screenshots — so it passes through the text-based [Privacy Filter](/privacy-filter) before any cloud send.
 - **Settings → Computer Use → Screen context** shows a live preview of exactly what would be shared, including how many spans the Privacy Filter would mask.
 
@@ -117,5 +117,6 @@ Telemetry for Computer Use is coarse and privacy-clean: one event per run with o
 **Related:**
 
 - [Subagents](/subagents) — the delegation family Computer Use belongs to
+- [Browser Use](/browser-use) — the same autonomy gate, applied to a real browser
 - [Privacy Filter](/privacy-filter) — the scrubbing layer used for screen context and cloud vision
 - [Agents](/agents) — configuring per-agent capabilities

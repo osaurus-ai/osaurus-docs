@@ -21,7 +21,7 @@ Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is th
 - **2–20 GB** free space per local model
 
 :::info[macOS 26 features]
-The [Sandbox](/agent-loop#toggle-the-sandbox-macos-26) (running agent code in an isolated Linux VM) and [Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. Osaurus itself runs fine on 15.5+ — those features just stay disabled.
+[Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. The [Sandbox](/agent-loop#toggle-the-sandbox) uses an isolated Linux VM on macOS 26+ and automatically falls back to a Seatbelt-confined backend on macOS 15 — sandboxed execution works either way.
 :::
 
 ## Install in 3 steps

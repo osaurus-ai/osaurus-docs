@@ -20,39 +20,44 @@ ChatEngine (route resolution, attribution, logging)
                 -> AsyncThrowingStream<ModelRuntimeEvent, Error>
 ```
 
-`BatchEngine.generate` returns three event cases:
+`BatchEngine.generate` returns these event cases:
 
 - `.chunk(String)` — pure user-visible text. Reasoning markers and tool-call markers are stripped by the library before they reach Osaurus.
+- `.reasoning(String)` — model reasoning text. Osaurus forwards this to `ModelRuntimeEvent.reasoning`, HTTP `reasoning_content`, the ChatView Think panel, and plugin `chunk.delta.reasoning_content`.
+- `.prefillProgress(PrefillProgress)` — real prompt-processing progress before the first generated token, surfaced as a determinate prefill percentage in the chat UI.
 - `.toolCall(ToolCall)` — a fully-parsed tool call. Every supported family (JSON, Qwen `xml_function`, Mistral, GLM-4, LFM2, Kimi K2, Gemma-3/4, MiniMax M2) emits this once the call is complete.
 - `.info(GenerateCompletionInfo)` — final stats (token counts, prompt/generation time, stop reason). One per request.
 
-`GenerationEventMapper` translates those into Osaurus's local `ModelRuntimeEvent` (`.tokens`, `.reasoning`, `.toolInvocation`, `.completionInfo`). Reasoning is wired forward-compat: vmlx does not yet emit `Generation.reasoning(String)` on its public enum, so `ModelRuntimeEvent.reasoning` is currently never produced — the plumbing is ready end-to-end (HTTP `reasoning_content`, ChatView Think panel, `StreamingReasoningHint` sentinel for plugins / remote providers) for the day vmlx adds the case.
+`GenerationEventMapper` translates those into Osaurus's local `ModelRuntimeEvent` (`.tokens`, `.reasoning`, `.prefillProgress`, `.toolInvocation`, `.completionInfo`).
 
 ## Continuous batching
 
-Same-model concurrent requests share a single forward pass via `BatchEngine`. The default `mlxBatchEngineMaxBatchSize` is `1`. The primary control is **Server → Settings → Concurrency & Batching** (`continuousBatching` and `maxConcurrentSequences`) — when continuous batching is off, the effective batch size is pinned to `1`. The legacy defaults key still works for advanced tuning:
+Same-model concurrent requests share a single forward pass via `BatchEngine`. The default `mlxBatchEngineMaxBatchSize` is `1` — deliberately, because vmlx's compiled-decode fast path (a large measured TTFT win on families like Mistral, Qwen, MiniMax, and DSV4) only engages at batch size 1. The primary control is **Server → Settings → Concurrency & Batching** (`continuousBatching` and `maxConcurrentSequences`) — when continuous batching is off, the effective batch size is pinned to `1`; when it's on, `maxConcurrentSequences` wins over the legacy defaults key:
 
 ```bash
 defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-Clamped to `[1, 32]`; values ≤ 0 fall back to `1`. Higher values raise total throughput at the cost of wired-memory footprint and per-request latency. Defined in `InferenceFeatureFlags.swift`.
+Clamped to `[1, 32]`; values ≤ 0 fall back to `1`. Higher values raise possible same-model concurrency at the cost of compile eligibility, wired-memory footprint, and per-request latency — the chat UI's tok/s display flags the trade-off when a non-default value is active. The batch size is hot-resizable: a changed value takes effect on the next inference call, without an unload/reload. Defined in `InferenceFeatureFlags.swift`.
 
 ## Cache management
 
-vmlx's `CacheCoordinator` owns KV-cache geometry. Osaurus configures it per container at load time with three minimal overrides (`installCacheCoordinator` in `ModelRuntime.swift`):
+vmlx's `CacheCoordinator` owns KV-cache geometry. Osaurus configures it per container at load time (`installCacheCoordinator` in `ModelRuntime.swift`):
 
 | Override | Why |
 |---|---|
-| `modelKey` | Per-model isolation across loads |
+| `modelKey` (with KV-mode / serializer / topology tags) | Per-model isolation across loads — the tags prevent serving disk entries encoded under a different cache contract after a runtime update |
 | `diskCacheDir` | Osaurus-managed sandbox path |
-| `enableDiskCache=false` when dir is unwritable | Graceful fallback to memory-only |
+| `enableDiskCache` | `true` when a probe-write succeeds, else `false` — graceful fallback to memory-only when the dir is read-only or out of disk |
+| `defaultKVMode` = `engine_selected` | The engine picks the KV mode per model: eligible full-attention rows get quantized (TurboQuant) KV; hybrid, rotating, and companion-cache architectures keep their native/fp16 typed caches unless explicitly overridden |
+| `defaultMaxKVSize` = `65536`, `longPromptMultiplier` = `2.0` | Prefill window, with the rotating-cache cap kicking in only past 131K |
+| `usePagedCache` = `false` | Paged RAM KV blocks mainly help multi-batch workloads; the single-batch default keeps prefix reuse through the disk/L2 tier instead |
 
-Everything else (`maxCacheBlocks`, `pagedBlockSize`, `diskCacheMaxGB`, `ssmMaxEntries`) is left at the library default so vmlx can ship a single tuned answer per release.
+`maxCacheBlocks`, `pagedBlockSize`, and `diskCacheMaxGB` are left at the library default so a vmlx tuning bump lands without an app-layer redeploy.
 
 Osaurus deliberately does **not** pass `GenerateParameters.maxKVSize` — a global rotating cache window forced from the app layer conflicted with sliding-window attention layers (e.g. Gemma-4 with a fixed per-layer 1024-position window) and produced `[broadcast_shapes] (1,1,1,N) and (1,16,1,1024)` crashes on the first decode step.
 
-Osaurus also does not call `CacheCoordinator.setHybrid(_:)`. The engine auto-detects hybrid SSM models on first slot admission.
+For hybrid SSM families, Osaurus eagerly calls `CacheCoordinator.setHybrid(_:)` for known model families, and vmlx also auto-detects Mamba-style caches on first slot admission. Models with their own companion-cache topology (e.g. DeepSeek V4's hybrid pool) keep their typed serializers — generic KV compression is never forced onto them.
 
 ### Multi-turn KV cache reuse
 
@@ -65,9 +70,11 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 | Layer | What it protects |
 |---|---|
 | `BatchEngine` actor (vmlx) | Serializes Metal / model access. Continuous batching for same-model concurrent requests. |
+| `MLXBatchAdapter.Registry` | Keeps one `BatchEngine` per model name and coalesces concurrent first creation, so two same-model requests can't build duplicate engines. |
 | `ModelLease` | Pins a model name for the lifetime of one stream so eviction (`unload`, `clearAll`, GC) blocks until the lease drops to zero. |
+| `ModelResidencyManager` | Schedules the idle-unload policy after the final lease drops; it never owns execution or cache deletion. |
 | `PluginHostAPI` per-plugin in-flight cap | Caps concurrent inference calls per plugin (default 2). Excess returns `plugin_busy`. |
-| `MetalGate.enterEmbedding` | Embedding service (`MetalSafeEmbedder`) opt-in serialization point. The generation surface of the gate was retired; only embeddings call into it today. |
+| `MetalGate` | Serializes GPU producers across families so concurrent command buffers can't trip Metal asserts — generation is gated per model; embedding and model load are exclusive. |
 
 ## Model loading and eviction
 
@@ -84,6 +91,12 @@ Configurable in **Management → Server → Settings → Model Memory:**
 | **Strict (One Model)** | Only one local model loaded at a time (default) |
 | **Flexible (Multi Model)** | Allows concurrent models for high-RAM systems |
 
+### Idle residency
+
+**Settings → Local Inference → Model Management → Keep model loaded after use** controls how long weights stay resident after the last stream releases its lease. The default is **15 minutes**, so follow-up turns don't pay a full cold load; choices are 5/15/30/60 minutes, **Immediately** (the old window-close GC behavior, still useful on low-memory Macs), or **Never**.
+
+This is a memory-residency policy only — it unloads weights and runtime buffers, never downloaded models or disk KV-cache entries. Strict single-model eviction, manual unload, app quit, and memory cleanup still win over idle timers. `/health` reports `resident_models[]` with per-model `idle_unload_at` and `idle_seconds_remaining`.
+
 ## Sentinel scheme (in-band streaming hints)
 
 `ChatEngine.streamWithTools` returns `AsyncThrowingStream<String, Error>`. Non-content events ride along on the same stream as sentinel strings starting with `\u{FFFE}`:
@@ -93,10 +106,11 @@ Configurable in **Management → Server → Settings → Model Memory:**
 | `\u{FFFE}tool:` | local + remote tool call name | HTTP SSE → `tool_calls` deltas; ChatView Think panel |
 | `\u{FFFE}args:` | tool argument fragments | HTTP SSE → `tool_calls.function.arguments` deltas |
 | `\u{FFFE}done:` | server-side tool call result | ChatView (tool result card) |
+| `\u{FFFE}prefill:` | local vMLX prefill progress JSON | ChatView loading label; internal sentinel on HTTP/plugin paths |
 | `\u{FFFE}stats:` | post-stream perf | ChatView, plugin `chunk.delta.stats` |
-| `\u{FFFE}reasoning:` | local (forward-compat) + remote `reasoning_content` | OpenAI SSE `reasoning_content`; Anthropic `thinking_delta`; OpenResponses `response.reasoning_summary_text.delta`; ChatView Think panel; plugin `chunk.delta.reasoning_content` |
+| `\u{FFFE}reasoning:` | local + remote `reasoning_content` | OpenAI SSE `reasoning_content`; Anthropic `thinking_delta`; OpenResponses `response.reasoning_summary_text.delta`; ChatView Think panel; plugin `chunk.delta.reasoning_content` |
 
-HTTP handlers and the plugin SDK MUST decode `StreamingReasoningHint` BEFORE the generic `StreamingToolHint.isSentinel` filter, otherwise reasoning gets dropped together with the other sentinels.
+HTTP handlers and the plugin SDK MUST decode any sentinel with public meaning (`StreamingReasoningHint`, `StreamingStatsHint`) BEFORE the generic `StreamingToolHint.isSentinel` filter, otherwise that signal gets dropped together with the private tool sentinels.
 
 ## Source map
 
@@ -104,18 +118,20 @@ HTTP handlers and the plugin SDK MUST decode `StreamingReasoningHint` BEFORE the
 |---|---|
 | `ModelRuntime.swift` | Container lifecycle (load / unload / strict eviction), `ModelLease` glue, single MLX entry into `MLXBatchAdapter` |
 | `MLXBatchAdapter.swift` | Per-model `BatchEngine` registry; submits each request via `engine.generate(...)` |
-| `GenerationEventMapper.swift` | `Generation` → `ModelRuntimeEvent` bridge; stop-sequence lookahead; tool-call argument JSON serialization |
-| `Events.swift` | `ModelRuntimeEvent` enum (`tokens` / `reasoning` / `toolInvocation` / `completionInfo`) |
+| `GenerationEventMapper.swift` | `Generation` → `ModelRuntimeEvent` bridge; stop-sequence lookahead; prefill progress forwarding; tool-call argument JSON serialization |
+| `Events.swift` | `ModelRuntimeEvent` enum (`tokens` / `reasoning` / `prefillProgress` / `toolInvocation` / `completionInfo`) |
 | `RuntimeConfig.swift` | Server-side default `topP` |
 | `InferenceFeatureFlags.swift` | Single user-tunable: `mlxBatchEngineMaxBatchSize` |
-| `MetalGate.swift` | Embedding-only counter (kept as the canonical hook for any future MLX-vs-CoreML interlock) |
+| `MetalGate.swift` | Cross-family GPU serialization gate (generation shared per model; embedding and model load exclusive) |
 | `ModelLease.swift` | Per-model refcount; `unload(name)` waits for `count == 0` before freeing buffers |
+| `ModelResidencyManager.swift` | Per-model idle timers and health snapshots for the residency policy |
 
 ## Tests
 
 | File | Coverage |
 |---|---|
-| `MLXBatchAdapterTests` | Max-batch-size flag clamping; registry-shutdown safety |
+| `MLXBatchAdapterTests` | Max-batch-size flag clamping; per-family thinking opt-in contexts; registry-shutdown safety |
+| `ModelResidencyManagerTests` | Timer scheduling, cancellation on new use, never policy, active-lease protection |
 | `GenerationEventMapperTests` | `chunk` → `tokens`; `toolCall` → `toolInvocation` JSON serialization (happy path + failure envelope); `info` → `completionInfo`; cross-chunk stop-sequence cut |
 | `StreamingReasoningHintTests` | Sentinel encode/decode round-trip; co-existence with the tool sentinel filter |
 | `MetalGateTests` | Embedding gate happy paths |

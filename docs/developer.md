@@ -101,7 +101,7 @@ See [`CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CON
 │ MLX      │ OpenAI   │ Anthropic │ Ollama / Others   │
 │ Runtime  │ API      │ API       │                   │
 ├──────────┴──────────┴───────────┴───────────────────┤
-│      Plugin System (v1 / v2 ABI) · Native Plugins   │
+│      Plugin System (v1–v6 ABI) · Native Plugins     │
 ├──────────┬──────────┬───────────┬───────────────────┤
 │ Identity │ Relay    │ Tools     │ Skills · Methods  │
 ├──────────┴──────────┴───────────┴───────────────────┤
@@ -110,7 +110,7 @@ See [`CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CON
 └─────────────────────────────────────────────────────┘
 ```
 
-Most features are accessible through the Management window (`⌘ ,`).
+Most features are accessible through the Management window (`⌘ ⇧ M`).
 
 ## Contributing
 
@@ -317,7 +317,7 @@ Logger.shared.level = .trace
 
 ## Developer tools
 
-Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ,`) and click **Insights** or **Server**.
+Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
 
 [Full Developer Tools guide →](/developer-tools)
 

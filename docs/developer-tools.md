@@ -6,7 +6,7 @@ description: Real-time API request inspection (Insights) and an interactive endp
 
 # Developer Tools
 
-Osaurus includes built-in developer tools for debugging, monitoring, and testing your integration. Open the Management window (`⌘ ,`) and click **Insights** or **Server**.
+Osaurus includes built-in developer tools for debugging, monitoring, and testing your integration. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
 
 ## Insights
 

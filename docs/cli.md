@@ -20,7 +20,11 @@ osaurus ui
 # Check status
 osaurus status
 
-# Interactive chat
+# Diagnose a broken install
+osaurus doctor
+
+# Download a model, then chat with it
+osaurus pull mlx-community/Llama-3.2-1B-4bit
 osaurus run gemma-4-e2b-it-4bit
 ```
 
@@ -57,6 +61,7 @@ osaurus serve [options]
 | -------------- | ------------------------------------------ | ------- |
 | `--port`       | Server port number                         | 1337    |
 | `--expose`     | Enable LAN access (bind to all interfaces) | false   |
+| `--yes`, `-y`  | Skip the interactive security prompt that `--expose` shows | false |
 | `--supervise`  | Keep the server alive — probe health and relaunch it whenever it goes down | false |
 | `--interval`   | Health-probe interval in seconds (with `--supervise`) | 15 |
 
@@ -123,6 +128,23 @@ running (port 1337)
 
 Prints `stopped` when the server isn't running.
 
+### osaurus doctor
+
+Read-only diagnostics for the installation and server: CLI/app version skew, duplicate app bundles, server startup, and model storage.
+
+```bash
+osaurus doctor [--port N] [--json] [--redact] [--verify-signatures]
+```
+
+| Option | Description |
+| --- | --- |
+| `--port` | Probe a specific port instead of the configured one |
+| `--json` | Machine-readable report |
+| `--redact` | Strip usernames/paths for a shareable report — use this when attaching output to a bug report |
+| `--verify-signatures` | Also check code signature and notarization of every discovered app bundle (explicit because it can be slow with many copies installed) |
+
+The report ends with a diagnosis and a concrete next step. Exit code is 0 when the install is usable (healthy, or merely not running) and 1 otherwise.
+
 ### osaurus ui
 
 Open the Osaurus menu-bar popover.
@@ -181,6 +203,19 @@ Path:           ~/MLXModels/gemma-4-e2b-it-4bit
 
 Useful for inspecting architecture, parameter count, quantization level, and context window size.
 
+### osaurus pull
+
+Download an MLX model from Hugging Face without opening the app.
+
+```bash
+osaurus pull <model_id>
+
+# Example
+osaurus pull mlx-community/Llama-3.2-1B-4bit
+```
+
+Downloads the same file set the in-app downloader uses (config, tokenizer, `*.safetensors`, …) into your configured models directory (falling back to `~/.osaurus/models/<org>/<name>`). Files that are already fully downloaded are skipped, so an interrupted pull resumes where it left off.
+
 ### osaurus run
 
 Interactive chat session with a model.
@@ -197,15 +232,28 @@ osaurus run gemma-4-e2b-it-4bit
 
 Starts an interactive REPL where you can chat with the model. Type `exit` or press Ctrl+C to quit.
 
+### osaurus bench
+
+Benchmark the running server: time-to-first-token, prefill tok/s, and decode tok/s per prompt size, reported as JSON tagged with hardware info.
+
+```bash
+osaurus bench [--model <id>] [--prompt-tokens 1024,8192] [--max-tokens 128] [--runs 3] [--json <path>] [--port N]
+
+# Find and persist the best prefill step size for a model
+osaurus bench --tune-prefill [--model <id>] [--candidates 512,1024,2048,4096]
+```
+
+Requires a running server (`osaurus serve`). `--tune-prefill` measures TTFT at each candidate prefill step size and persists the per-model winner — the optimum is model-architecture-dependent, and the server applies it immediately.
+
 ### osaurus mcp
 
 Start MCP stdio transport for connecting MCP clients.
 
 ```bash
-osaurus mcp
+osaurus mcp [--access-key KEY]
 ```
 
-Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed.
+Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed. Local-only servers can rely on loopback trust; if **Server → Network exposure** is enabled, pass an [access key](/identity) with `--access-key` or the `OSAURUS_MCP_ACCESS_KEY` environment variable (also accepted: `OSAURUS_ACCESS_KEY`, `OSAURUS_API_KEY`, or a `Bearer …` value in `OSAURUS_MCP_AUTHORIZATION`).
 
 **Use with MCP clients:**
 
@@ -222,16 +270,10 @@ Proxies the MCP protocol over stdio to the running Osaurus server, auto-launchin
 
 ### osaurus version
 
-Display the Osaurus version.
+Display the Osaurus version (also `--version` / `-v`).
 
 ```bash
 osaurus version
-```
-
-**Example output:**
-
-```
-Osaurus 0.22.1
 ```
 
 ### osaurus tools
@@ -244,11 +286,11 @@ osaurus tools <subcommand> [options]
 
 #### tools install
 
-Install a plugin from the registry or local directory.
+Install a plugin from the registry, a URL, or a local directory.
 
 ```bash
 # From registry
-osaurus tools install osaurus.browser
+osaurus tools install osaurus.files
 
 # From local directory (must contain osaurus-plugin.json,
 # manifest.json, or plugin.json)
@@ -261,7 +303,7 @@ osaurus tools install /path/to/plugin
 Remove an installed plugin.
 
 ```bash
-osaurus tools uninstall osaurus.browser
+osaurus tools uninstall osaurus.files
 ```
 
 #### tools list
@@ -277,8 +319,39 @@ osaurus tools list
 Search for plugins in the registry.
 
 ```bash
-osaurus tools search browser
-osaurus tools search filesystem
+osaurus tools search calendar
+osaurus tools search git
+```
+
+#### tools outdated / upgrade / rollback
+
+Keep installed plugins current — and step back when an update misbehaves.
+
+```bash
+# Check for newer registry versions
+osaurus tools outdated
+
+# Upgrade installed tools
+osaurus tools upgrade
+
+# Roll a tool back to its previous version
+osaurus tools rollback osaurus.git
+```
+
+#### tools verify
+
+Verify the dylib integrity of installed tools — useful after a suspicious sync or restore.
+
+```bash
+osaurus tools verify
+```
+
+#### tools reload
+
+Ask the running app to rescan installed tools without restarting.
+
+```bash
+osaurus tools reload
 ```
 
 #### tools create
@@ -319,6 +392,39 @@ osaurus tools package com.example.mytool 1.0.0
 ```
 
 Creates a zip file with the built `.dylib` and the plugin manifest.
+
+### osaurus manifest
+
+Work with plugin manifests during development.
+
+```bash
+# Extract the manifest JSON embedded in a built plugin dylib
+osaurus manifest extract ./MyPlugin.dylib
+
+# Validate a manifest's structure before packaging
+osaurus manifest validate ./osaurus-plugin.json
+```
+
+### osaurus bundle
+
+Load and run an MCP Bundle (`.mcpb` file) — a packaged MCP server that Osaurus can host directly.
+
+```bash
+osaurus bundle load ./my-server.mcpb --name "Display Name"
+```
+
+### osaurus coord
+
+Foundation for local multi-instance coordination — directories, JSON feature flags, and file-scoped locks.
+
+```bash
+osaurus coord init                       # Create coordinator directories and seed state
+osaurus coord status [--json]            # Root, initialization, locks, pause/stop state
+osaurus coord feature-flags list|get|set # Read or update JSON-backed feature flags
+osaurus coord lock list|acquire|release|reap
+```
+
+All subcommands accept `--root PATH` to work against a non-default coordinator root. Later orchestration subcommands (`preflight`, `heartbeat`, `lane`, `promote`, …) are registered but **not yet supported** — they exit with an error in the current foundation slice.
 
 ## Environment Variables
 

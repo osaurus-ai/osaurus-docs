@@ -356,6 +356,53 @@ requests.post(
 
 Distillation flushes immediately at the end of the batch, so the next chat can reference the imported context right away.
 
+### Embeddings
+
+The built-in on-device embedding model works through the OpenAI SDK:
+
+```python
+result = client.embeddings.create(
+    model="osaurus",  # ignored — the embedding model is built in
+    input=["The sky is blue", "Grass is green"],
+)
+print(len(result.data[0].embedding))
+```
+
+### Audio transcription
+
+On-device speech-to-text, OpenAI-shaped:
+
+```python
+with open("recording.wav", "rb") as f:
+    transcript = client.audio.transcriptions.create(model="osaurus", file=f)
+print(transcript.text)
+```
+
+### Detached tasks (dispatch and poll)
+
+For long-running agent work, dispatch a task and poll instead of holding a connection open:
+
+```python
+import requests, time
+
+base = "http://127.0.0.1:1337"
+
+task = requests.post(
+    f"{base}/agents/9A2B4C6D-1122-3344-5566-77889900AABB/dispatch",
+    json={"prompt": "Summarize this week's inbox", "title": "Inbox sweep"},
+).json()
+
+while True:
+    state = requests.get(base + task["poll_url"]).json()
+    if state.get("status") not in ("running", "pending"):
+        break
+    time.sleep(2)
+
+print(state)
+```
+
+Cancel with `DELETE /tasks/{id}`; if the task asks a clarifying question, answer it with `POST /tasks/{id}/clarify` and `{"response": "…"}`. [API details →](/api)
+
 ### Using an `osk-v1` access key (LAN / Relay)
 
 Mint a key from **Identity → Access Keys** and pass it as the API key string:

@@ -22,39 +22,39 @@ The app is signed and notarized, so it opens without security warnings. Full gui
 
 ## 2. Walk through onboarding
 
-A short wizard greets you on first launch and walks through five quick steps.
+A short wizard greets you on first launch and walks through six quick steps.
 
 ### Welcome
 
-The hero screen. Click **Get Started**.
+The hero screen. This is also where the (optional, anonymous) usage-analytics opt-in lives. Click **Get Started**.
 
-### Create your agent
+### Meet your dino
 
-Pick a name and a starter template (you can change everything later). An agent is a saved configuration — a system prompt, theme, default model, memory of its own. You can always come back and create more. [Agents →](/agents)
+Name your agent — your "dino." An agent is a saved configuration: a system prompt, theme, default model, memory of its own. One tap; you can rename and customize it anytime in Settings, and create more later. [Agents →](/agents)
 
-If you want to skip and use the default Osaurus agent, click **Skip for now**.
+### Give your dino a brain
 
-### Configure your AI
+Osaurus **recommends the best local model your Mac can run** — the pick is based on your machine's memory, so a mainstream Mac and a maxed-out one get different (equally sensible) defaults. A **Change** control lets you pick another local model if you'd rather.
 
-Pick how you want to run models:
+You don't have to wait for the download: **Osaurus Cloud is included with a free welcome credit**, so you can skip the download and start chatting on hosted models immediately — or use Cloud while the local model downloads in the background.
 
-| Option | Best for | Setup |
-|---|---|---|
-| **Apple Foundation** *(macOS 26+)* | Zero setup, fast on Apple Neural Engine | Built in |
-| **Local model (MLX)** | Privacy-first, runs offline | Download a model from the picker — `Gemma 4 E2B it 4bit` is the recommended starter (~1.5 GB) |
-| **Cloud provider** | Frontier-class models | Paste an API key for OpenAI, Anthropic, xAI, or OpenRouter |
+Prefer your own provider? **Use an API key** drills into OpenAI, Anthropic, and friends, plus a local Ollama server or any custom OpenAI-compatible endpoint. You can always add more later from **Management → Models** or **Management → Providers**.
 
-You can always add more later from **Management → Models** or **Management → Providers**.
+### Add a few tools
 
-### Set up identity
+An optional picker for starter plugins — file access, shell, Calendar, Reminders, Messages. All optional, and you can add or remove any of them later from **Management → Plugins**.
 
-Osaurus creates a key for you (and your future agents) the first time it runs — silently, nothing to write down. It lives in your iCloud Keychain, gated by Face ID / Touch ID. When you have a minute, save your **24-word recovery phrase** from **Management → Identity → View recovery phrase** — it's what restores your identity on a new Mac.
+### A quick tour
 
-This step is skippable but recommended — it unlocks access keys and Public Links later. [Identity →](/identity)
+A three-card carousel: agents do real work with tools, each dino remembers your context, and your data stays on your device.
 
-### How it works
+### One last thing
 
-A short carousel covers what you can do once you're in: tasks, the Sandbox, personalization, and privacy. After you finish, the chat overlay opens and you're ready to go.
+A crash-report sharing toggle (on by default, and anonymized), then **Finish** — the chat overlay opens and you're ready to go.
+
+:::info[Identity and Sandbox are automatic]
+There's no identity or sandbox step anymore. Your **identity key** is created silently on completion — it lives in your iCloud Keychain, gated by Face ID / Touch ID. When you have a minute, save your **24-word recovery phrase** from **Management → Identity → View recovery phrase**; it's what restores your identity on a new Mac. The **Sandbox** is configured with defaults and provisions itself lazily the first time an agent actually needs it — no surprise multi-GB download. [Identity →](/identity) · [Sandbox →](/sandbox)
+:::
 
 ## 3. Pick your Core Model
 
@@ -101,7 +101,7 @@ Try giving the agent a real task — it'll write a plan, use tools, and bring ba
 
 You'll see a live to-do list appear and tick off as the agent reads files, drafts the README, and writes it. The new file shows up as an artifact card right in the chat.
 
-On macOS 26+, toggle the **Sandbox** for shell access in an isolated Linux VM — handy for running scripts, scraping URLs, or trying out a package. [Tasks →](/agent-loop)
+Toggle the **Sandbox** for shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15) — handy for running scripts, scraping URLs, or trying out a package. [Tasks →](/agent-loop)
 
 ### Try voice
 

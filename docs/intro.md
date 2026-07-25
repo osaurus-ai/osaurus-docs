@@ -64,7 +64,7 @@ A short tour of the things you can do once Osaurus is installed.
 
 ### Everyday AI
 
-- **A guided first launch.** A five-step onboarding walks you through creating your first agent, picking a model (local, Apple Foundation, or cloud), and setting up identity. No config files.
+- **A guided first launch.** A short onboarding walks you through naming your first agent and giving it a brain — the best local model for your Mac is picked automatically, with Osaurus Cloud included via a free welcome credit, or bring your own API key. Identity is set up silently. No config files.
 - **A chat overlay you can open anywhere.** Press `⌘;` to talk to your AI; press it again to dismiss. No browser tab, no context switch.
 - **Agents that fit different jobs.** A coding partner, a research assistant, a file organizer — each with its own prompt, theme, and history.
 - **Voice input.** Dictate in chat, talk to an agent hands-free with a wake word, or hold a hotkey to dictate into any app — all on-device.
@@ -75,12 +75,14 @@ A short tour of the things you can do once Osaurus is installed.
 
 - **Memory that learns from you.** Past conversations are distilled into compact facts and surfaced only when relevant — no firehose of irrelevant context.
 - **Skills that load themselves.** Packaged expertise — research, debugging, writing styles — that surface automatically when the task calls for them.
+- **Web search, no setup.** Every agent can search the web out of the box — keyless built-in providers, optional API keys for better quality. See [Web Search](/web-search).
 - **Working folders.** Point a chat at a folder and the agent gets safe file, search, and git tools — scoped to just that directory.
 
 ### Autonomy & automation
 
-- **A Linux Sandbox** *(macOS 26+)*. Toggle it on and the agent can run real code — shell, Python, Node — in an isolated VM with zero risk to your Mac.
+- **A Sandbox for real code.** Toggle it on and the agent can run shell, Python, and Node in isolation — a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15.
 - **Computer Use** *(experimental)*. Let an agent drive real macOS apps — fill forms, flip settings, extract on-screen text — with every action gated by a safe-by-default confirmation policy.
+- **Browser Use.** Give an agent its own persistent, isolated browser — it navigates, reads, and fills forms, with the same safe-by-default action gating. See [Browser Use](/browser-use).
 - **Subagents.** Delegate a bounded task to another model or a saved agent mid-conversation and get a compact result back — local models hand off memory automatically.
 - **Schedules and Watchers.** Run an agent on a timer, or whenever a folder changes. Useful for daily journals, screenshot organizers, end-of-day commits.
 
@@ -101,7 +103,7 @@ Osaurus is also a local server. It speaks **OpenAI**, **Anthropic**, **Open Resp
 - [HTTP API](/api) — endpoint reference, streaming, function calling
 - [SDK Examples](/sdk-examples) — Python, JavaScript, Anthropic SDK, Open Responses
 - [CLI](/cli) — `osaurus serve`, `osaurus tools install/dev/create`, `osaurus mcp`
-- [Tools & Plugins](/tools) — 20+ native plugins (Mail, Calendar, Vision, Browser, Git, …) and a stable v1–v6 ABI for building your own
+- [Tools & Plugins](/tools) — 20+ native plugins (Mail, Calendar, Vision, Git, …) and a stable v1–v6 ABI for building your own
 - [Apple Intelligence](/models/apple-intelligence) — using `foundation` with zero setup on macOS 26+
 
 For the system view of how everything fits together, see [Architecture](/architecture).
@@ -114,7 +116,7 @@ For the system view of how everything fits together, see [Architecture](/archite
 - **Apple Silicon** (M1, M2, M3, or newer)
 
 :::info[macOS 26 features]
-The **Sandbox** (running agent code in an isolated Linux VM) and **Apple Foundation Models** require macOS 26 (Tahoe) or later.
+**Apple Foundation Models** require macOS 26 (Tahoe) or later, and the **Sandbox** uses its full Linux VM there — on macOS 15 the Sandbox falls back to a Seatbelt-confined backend.
 :::
 
 ---

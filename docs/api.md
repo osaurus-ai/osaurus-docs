@@ -43,6 +43,11 @@ Override the port with the `OSU_PORT` environment variable.
 | `/v1/responses` | POST | Responses (Open Responses) |
 | `/v1/messages` | POST | Chat completion (Anthropic) |
 | `/api/chat` | POST | Chat completion (Ollama) |
+| `/api/generate` | POST | Text generation (Ollama) |
+| `/api/show` | POST | Model metadata (Ollama) |
+| `/v1/embeddings` | POST | Text embeddings (OpenAI) |
+| `/api/embed` | POST | Text embeddings (Ollama) |
+| `/v1/audio/transcriptions` | POST | Speech-to-text with the on-device engine (OpenAI-compatible) |
 
 ### Image endpoints
 
@@ -50,8 +55,9 @@ Override the port with the `OSU_PORT` environment variable.
 | -------- | ------ | ----------- |
 | `/v1/images/generations` | POST | Text-to-image with a local image model |
 | `/v1/images/edits` | POST | Image editing (edit-capable models) |
+| `/v1/images/upscale` | POST | Upscale an image (upscale-capable models) |
 | `/v1/images/cancel` | POST | Cancel an in-flight image job |
-| `/images/models` | GET | List installed image models with capabilities |
+| `/images/models` | GET | List installed image models with per-model capabilities (`generations`, `edits`, `upscale`) |
 
 See [Image Generation](/image-generation) for model setup and examples.
 
@@ -67,6 +73,10 @@ See [Image Generation](/image-generation) for model setup and examples.
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
 | `/agents/{id}/run` | POST | Server-side autonomous tool loop (executes tools, manages iteration budget, streams hints) |
+| `/agents/{id}/dispatch` | POST | Fire-and-forget detached task — returns immediately with a task id |
+| `/tasks/{task_id}` | GET | Poll a detached task's status and result |
+| `/tasks/{task_id}` | DELETE | Cancel a detached task |
+| `/tasks/{task_id}/clarify` | POST | Answer a clarifying question a detached task is waiting on |
 
 ### MCP Endpoints
 
@@ -76,11 +86,21 @@ See [Image Generation](/image-generation) for model setup and examples.
 | `/mcp/tools` | GET | List available tools |
 | `/mcp/call` | POST | Execute a tool |
 
-### Identity / pairing
+### Identity / pairing / secure channel
 
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
+| `/pair/challenge` | GET | Fetch a pairing challenge nonce |
 | `/pair` | POST | Bonjour pairing handshake (mints an `osk-v1` access key after user approval) |
+| `/pair-invite` | POST | Redeem an out-of-band pairing invite |
+| `/secure/session` | POST | Establish an end-to-end-encrypted [Secure Channel](/secure-channel) session |
+| `/secure/call` | POST | Invoke a route through an established Secure Channel envelope |
+
+Path prefixes are normalized: `/v1/…`, `/api/…`, and `/v1/api/…` all resolve to the same handlers, so `/v1/chat/completions` and `/chat/completions` are the same route.
+
+:::note[Public vs. internal routes]
+A few `/admin/*` routes (cache stats, generation/runtime settings) exist for the app's own diagnostics. They're loopback-oriented and not part of the stable public contract — don't build integrations on them.
+:::
 
 ## Core Endpoints
 
@@ -267,6 +287,39 @@ Server-side autonomous tool loop. Osaurus executes tools on your behalf, manages
 - Independent tool calls within a single model turn run **in parallel**
 - The loop defaults to 30 iterations (configurable via the chat settings' max tool attempts, capped at 120); if the budget is exhausted while still requesting tools, a notice is appended to the stream
 - Honors client-supplied `tools` (merged with the agent's always-loaded set) and `tool_choice`
+
+### POST /agents/&#123;id&#125;/dispatch
+
+Fire-and-forget version of `/run`: dispatch a prompt as a **detached background task** and return immediately. The identifier can be an agent UUID or its crypto address (`0x…`).
+
+**Request Body:**
+
+```json
+{
+  "prompt": "Summarize this week's inbox and file follow-ups",
+  "title": "Weekly inbox sweep"
+}
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+  "id": "6f9c2c1e-...",
+  "status": "running",
+  "poll_url": "/v1/tasks/6f9c2c1e-..."
+}
+```
+
+Returns `429 task_limit_reached` when the concurrent background-task limit is hit. Loopback callers may dispatch to the built-in agent (this is how App Intents drive it); remote callers can only dispatch to custom agents, and — like `/run` — remote dispatch requires the [Secure Channel](/secure-channel).
+
+### Task endpoints
+
+Manage a dispatched task by the id returned from `/dispatch`:
+
+- **`GET /tasks/{task_id}`** — poll status; returns the serialized task state (running, waiting on clarification, completed with result, failed), or `404` for unknown ids
+- **`DELETE /tasks/{task_id}`** — cancel; returns `204 No Content`
+- **`POST /tasks/{task_id}/clarify`** with `{"response": "…"}` — answer a clarifying question the task is blocked on
 
 ### POST /api/chat
 
@@ -550,6 +603,32 @@ curl http://127.0.0.1:1337/v1/messages \
   }'
 ```
 
+### POST /v1/embeddings
+
+Text embeddings from the built-in on-device embedding model. OpenAI-shaped request and response; `POST /api/embed` accepts the same input and answers in Ollama's shape.
+
+**Request Body:**
+
+```json
+{
+  "input": ["The sky is blue", "Grass is green"]
+}
+```
+
+`input` can be a single string or an array of strings. The response carries one embedding vector per input, in order, plus a token-count `usage` estimate. The embedding model is built in — there's no `model` selection.
+
+### POST /v1/audio/transcriptions
+
+Speech-to-text through the same on-device engine that powers [Voice](/voice). OpenAI-compatible: send `multipart/form-data` with a `file` part (WAV audio) and an optional `response_format` (`json`, the default, or `text`).
+
+```bash
+curl http://127.0.0.1:1337/v1/audio/transcriptions \
+  -F file=@recording.wav \
+  -F response_format=json
+```
+
+Transcription runs entirely on your Mac — audio never leaves the machine.
+
 ## MCP Endpoints
 
 ### GET /mcp/health
@@ -588,17 +667,17 @@ List all available MCP tools from installed plugins.
       }
     },
     {
-      "name": "browser_navigate",
-      "description": "Navigate to a URL in the browser",
+      "name": "web_search",
+      "description": "Discover relevant web sources",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "url": {
+          "query": {
             "type": "string",
-            "description": "URL to navigate to"
+            "description": "Plain-language search query"
           }
         },
-        "required": ["url"]
+        "required": ["query"]
       }
     }
   ]
@@ -648,6 +727,8 @@ Errors use the same MCP content envelope with `isError` set — there is no sepa
   "isError": true
 }
 ```
+
+**Tool-level failures keep HTTP 200.** A tool that runs but fails — a structured failure envelope, or a tool body that throws — is still a successful *transport* exchange: the response stays HTTP 200 and the failure is reported through MCP `isError: true`, with the structured failure envelope in `content`. Separate transport success from tool success when integrating: check `isError`, not just the status code. (Routing, auth, and lookup failures still use regular HTTP error statuses.)
 
 ## Memory API
 

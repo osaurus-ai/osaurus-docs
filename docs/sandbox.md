@@ -6,7 +6,7 @@ description: The shared Linux VM, host bridge, plugin recipes, security posture,
 
 # Sandbox Internals
 
-The Sandbox is a shared Linux VM (Alpine, Apple Containerization framework) that runs agent code with full POSIX userland access — shell, Python, Node, compilers, package managers — all natively on Apple Silicon.
+The Sandbox runs agent code in an isolated environment with full dev capabilities — shell, Python, Node, compilers, package managers. On **macOS 26+** it's a shared Linux VM (Alpine, Apple Containerization framework) running natively on Apple Silicon; on **macOS 15** it falls back to a native Seatbelt backend so sandboxed execution works everywhere.
 
 :::tip[Sandbox security at a glance]
 Per-agent Linux users, vsock-bridge with per-agent bearer tokens, fail-closed network policy, SHA-256-pinned runtime artifacts. Plain-language summary on [Security & Privacy](/security).
@@ -16,8 +16,28 @@ For the everyday view, see [Tasks](/agent-loop). This page is the reference for 
 
 ## Requirements
 
-- **macOS 26 (Tahoe)** or later — required for Apple's Containerization framework
+- **macOS 26 (Tahoe)** or later for the Linux VM backend (Apple's Containerization framework)
 - **Apple Silicon** (M1 or newer)
+- On earlier macOS, the sandbox automatically uses the [Seatbelt fallback](#seatbelt-fallback-macos-15) — no VM, no download
+
+## Seatbelt fallback (macOS 15)
+
+On Macs that can't run the Containerization VM, commands run as regular host processes confined by a deny-by-default Seatbelt profile (`sandbox-exec`): they can read the system but can only write inside the sandbox workspace (`~/.osaurus/container/workspace/`, seen by agents as `/workspace`) and a scratch temp directory. The backend is chosen once at launch — macOS 26+ always uses the VM, older systems always use Seatbelt.
+
+Everything on this page applies to both backends unless noted. The differences:
+
+| | Linux VM (macOS 26+) | Seatbelt (earlier) |
+|---|---|---|
+| Environment | Alpine Linux, full userland | macOS, BSD userland |
+| Package managers | `pip`, `npm`, `apk` | `pip`, `npm` (no `apk`) |
+| Tool recipe `dependencies` | Supported | Not supported — install via `setup` with pip/npm |
+| Network policy | Off, on, or per-domain allowlist | All-or-nothing. A configured domain allowlist can't be enforced and fails closed to no network |
+| Isolation boundary | Hardware VM, separate filesystem | Process-level write confinement. Reads of the host are not blocked |
+| Per-agent environments | Separate Linux users, optional per-agent rootfs | Shared workspace tree with per-agent home directories |
+| Sandboxed MCP servers | Supported | Not supported — set the provider's Run in to Host |
+| Provisioning | Kernel + rootfs download (~1 min) | Instant, no download |
+
+Two Seatbelt behavioral notes: denied file lookups surface as "No such file or directory" rather than "Operation not permitted" (deliberate macOS anti-probing behavior), and `~` inside sandboxed commands resolves to the agent's workspace home, not your macOS home.
 
 ## Provisioning
 
@@ -25,6 +45,10 @@ For the everyday view, see [Tasks](/agent-loop). This page is the reference for 
 2. Osaurus downloads the Linux kernel + initial filesystem and boots the VM
 3. The first run takes about a minute; subsequent boots are seconds
 4. Sandbox tools become available to the active agent automatically
+
+On macOS 26+ the sandbox chip defaults **on** for the Default agent and newly created agents, but the container is not booted eagerly — a never-set-up sandbox stays un-provisioned until the first time the model actually reaches for a sandbox tool, at which point it boots and provisions on demand. Once setup completes, later launches auto-start as normal.
+
+A **Provisioning Preflight** report (Management → Sandbox) inspects the resolved paths, config, cached assets, and bridge socket before provisioning, with typed readiness states (`ready` / `needs_setup` / `blocked` / `unproven`) and a concrete repair suggestion per finding. **Copy JSON** produces a support artifact.
 
 ## Architecture
 
@@ -63,9 +87,12 @@ For the everyday view, see [Tasks](/agent-loop). This page is the reference for 
 |---|---|---|---|
 | CPUs | 1–8 | 2 | |
 | Memory | 1–8 GB | 2 GB | |
-| Network | `outbound` / `none` | outbound | NAT for outbound internet |
+| Network | `outbound` / `proxy` / `none` | outbound | `outbound` = unrestricted NAT; `proxy` = host-only network with a domain-allowlist egress proxy (selected automatically when the agent has Allowed Domains set); `none` = no networking |
+| Per-Agent Environments | on / off | off | Experimental: boot from the provisioning agent's own copy-on-write clone of the base image |
 | Auto-Start | on / off | on | Start VM when Osaurus launches |
 | Rootfs | — | 8 GiB | Fixed |
+
+With **Per-Agent Environments** on, system packages an agent installs with `apk` persist in its own clone and are invisible to other agents. The clone pool is LRU-bounded (default 3); evicted environments re-clone fresh from the pristine base template. Agent home directories live on the `/workspace` mount and are never affected by environment eviction or reset.
 
 Changes require a container restart. Config file: `~/.osaurus/config/sandbox.json`:
 
@@ -328,6 +355,13 @@ The prompt path keeps secret values out of conversation history and LLM context 
 
 `SecretPromptState` tracks a `resolved` flag so `submit()` and `cancel()` are idempotent. `onDisappear` calls `cancel()` as a safety net.
 
+### Secret containment
+
+Storing a secret is only half the problem — the other half is keeping its **value** out of model context and every persisted record afterwards:
+
+- **Output scrubbing.** Agent secrets are injected into the exec environment, so `echo $KEY` would otherwise land the value in the model's context. `SecretScrubber` rewrites every known secret value in `sandbox_exec` stdout/stderr, background-job log tails, and sandbox-plugin tool output to `[REDACTED:<ENV_KEY>]` before the result is enveloped. Longer values scrub first (substring-safe); values under 6 characters are exempt to avoid false positives.
+- **Argument redaction (fail-closed).** When the agent uses the direct `value` path of `sandbox_secret_set`, execution receives the original arguments but every *recorded* surface receives a secret-safe representation instead: chat and HTTP agent-run history, plugin events and streamed deltas, approval prompts, debug logs, Insights records, and remote-provider wire snapshots. The exact value is also redacted from any sibling string field it was duplicated into, and malformed or ambiguous secret payloads collapse to a minimal redacted object rather than re-emitting uncertain input. The prompt path never carries the value through the model at all and remains the recommended flow.
+
 ## Security
 
 ### Path sanitization
@@ -340,7 +374,15 @@ Each agent runs as a separate Linux user (`agent-{name}`). Standard Unix permiss
 
 ### Network policy
 
-Container networking is `outbound` (NAT) or `none` (isolated). Plugins declare their own network requirements in `permissions`.
+Container networking has three modes:
+
+- **`outbound`** — unrestricted NAT internet access (the default, and an explicit user choice)
+- **`proxy`** — the VM boots on a **host-only** network with no NAT. All egress goes through a filtering HTTP/HTTPS CONNECT proxy on the host. This mode is selected automatically when the provisioning agent has a non-empty **Allowed Domains** list in its Agent settings.
+- **`none`** — no guest networking at all
+
+In proxy mode, enforcement is per-connection and per-agent: the requested hostname must match the agent's resolved allowlist (its own Allowed Domains plus the domains declared by its installed plugins). Patterns are `example.com` (exact) or `*.example.com` (subdomains, not the apex). IP literals are rejected outright, and resolved addresses are re-checked on the host — names resolving to loopback, private, link-local, or reserved space are refused (DNS-rebinding defense). Known limitation: the guest can still reach the proxy gateway address itself; everything beyond it is blocked by the host-only network.
+
+Plugins declare their own network requirements in `permissions`; declarations are validated at install, reinstall, and repair time and feed the runtime allowlist.
 
 ### Rate limiting
 

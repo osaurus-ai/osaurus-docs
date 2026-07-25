@@ -138,7 +138,7 @@ If you want the DEK reproducible across devices via the iCloud-synced [Identity 
 
 ## Settings → Storage
 
-Open the Management window (`⌘ ,`) → **Storage**. The panel reflects the **detected on-disk reality** (plaintext, encrypted, or mixed), not a flag guess.
+Open the Management window (`⌘ ⇧ M`) → **Storage**. The panel reflects the **detected on-disk reality** (plaintext, encrypted, or mixed), not a flag guess.
 
 - **Encrypt local data at rest** — the opt-in toggle, off by default. Turning it on shows a confirmation explaining the key-loss risk, then converts every database and attachment with progress. Turning it off runs the inverse.
 - **Trade-offs panel** — a plain-language summary of the FileVault reliance and key-loss risk, including your machine's **live FileVault status**, so the recommendation reflects whether your disk is actually encrypted at rest.

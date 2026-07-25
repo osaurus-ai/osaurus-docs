@@ -20,7 +20,7 @@ Osaurus can talk back too — see [Text-to-Speech](text-to-speech.md) for having
 
 ## Setup (once)
 
-1. Open the Management window (`⌘ ,`) → **Voice**
+1. Open the Management window (`⌘ ⇧ M`) → **Voice**
 2. Complete the requirements at the top of the page:
    - **Microphone** — click **Grant** to enable mic access
    - **Parakeet model** — click **Download** to fetch the recommended model

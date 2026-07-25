@@ -74,22 +74,25 @@ Memory is on by default, with ten settings. Edit them in **Management → Memory
 | Setting | Description |
 |---|---|
 | **Eviction policy** | `Strict (One Model)` keeps one model loaded (default); `Flexible (Multi Model)` allows concurrent models for high-RAM systems |
+| **Keep model loaded after use** | Idle residency after the last request — 5/15/30/60 minutes (default 15), Immediately, or Never |
 | **Top P** | Default top-p for inference (per-request override available) |
 | **Allowed origins** | CORS origins (currently `*`) |
 
-### Advanced (`defaults`)
+### Concurrency & Batching
 
-One advanced tunable, exposed only via `defaults`:
+**Server → Settings → Concurrency & Batching** controls same-model concurrency. With **Continuous Batching** off (the default), the batch size is pinned to `1` — that deliberately keeps vmlx's compiled-decode fast path engaged for single-user chat. Turning it on lets **Max Concurrent Sequences** raise the ceiling (clamped to 32) for server-style multi-user deployments, at the cost of the compile speedup and more wired memory.
+
+The legacy `defaults` knob still works when no runtime setting is present:
 
 ```bash
 defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-Default `4`, clamped to `[1, 32]`. Higher values raise total throughput at the cost of wired-memory footprint and per-request latency. [Inference Runtime details →](/inference-runtime)
+Default `1`, clamped to `[1, 32]`. [Inference Runtime details →](/inference-runtime)
 
-## Sandbox (macOS 26+)
+## Sandbox
 
-The Linux sandbox is configured in **Management → Sandbox → Container → Resources** or by editing `~/.osaurus/config/sandbox.json`:
+The sandbox is configured in **Management → Sandbox → Container → Resources** or by editing `~/.osaurus/config/sandbox.json` (the Linux VM backend on macOS 26+; macOS 15 uses the Seatbelt fallback, which has no VM resources to configure):
 
 ```json
 {
@@ -105,9 +108,9 @@ The Linux sandbox is configured in **Management → Sandbox → Container → Re
 | `autoStart` | true / false | true |
 | `cpus` | 1–8 | 2 |
 | `memoryGB` | 1–8 | 2 |
-| `network` | `outbound` / `none` | outbound |
+| `network` | `outbound` / `proxy` / `none` | outbound |
 
-Changes require a container restart. [Sandbox Internals →](/sandbox)
+`proxy` boots the VM on a host-only network with a domain-allowlist egress proxy; it's selected automatically when the provisioning agent has Allowed Domains configured. Changes require a container restart. [Sandbox Internals →](/sandbox)
 
 ## Storage encryption
 

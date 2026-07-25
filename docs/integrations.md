@@ -71,6 +71,7 @@ The `osaurus mcp` command:
 - Proxies MCP protocol over stdio to the running server
 - Auto-launches Osaurus if it isn't running
 - Exposes all installed tools to the connected client
+- Accepts `--access-key` (or `OSAURUS_MCP_ACCESS_KEY`) when the server has network exposure enabled — see [CLI](/cli#osaurus-mcp)
 
 ### HTTP MCP Endpoints
 
@@ -102,7 +103,7 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 
 ### Adding a Provider
 
-1. Open the Management window (⌘,)
+1. Open the Management window (`⌘ ⇧ M`)
 2. Navigate to **Providers**
 3. Click **Add Provider**
 4. Choose a preset or configure a custom endpoint

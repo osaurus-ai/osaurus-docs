@@ -13,7 +13,7 @@ If you're building on top of Osaurus — writing plugins, scripts, or integratio
 Osaurus presents three entry points:
 
 - **The chat overlay** (`⌘;`) — the daily driver
-- **The Management window** (`⌘ ,`) — settings, agents, models, plugins, tools, memory, themes, automation
+- **The Management window** (`⌘ ⇧ M`) — settings, agents, models, plugins, tools, memory, themes, automation
 - **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP
 
 All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
@@ -24,7 +24,7 @@ All three funnel into the same **agent loop**, which talks to your **memory**, *
 flowchart TB
     User[You]
     Chat[Chat Overlay - ⌘;]
-    Mgmt[Management Window - ⌘ ,]
+    Mgmt[Management Window - ⌘⇧M]
     HTTP[HTTP API on :1337]
 
     User --> Chat
@@ -80,10 +80,10 @@ flowchart TB
 
 | Layer | What it does | Reference |
 |---|---|---|
-| **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ,`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
+| **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
 | **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
-| **Tools** | 20+ native plugins (Mail, Calendar, Browser, Git, …), remote MCP aggregation, the Linux Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
+| **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use)), 20+ native plugins (Mail, Calendar, Vision, Git, …), remote MCP aggregation, the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
 | **Foundations** | Identity (signed requests, `osk-v1` keys), local storage (opt-in SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
 
 ## Entry points
@@ -96,7 +96,7 @@ The overlay is also where voice input lives: the microphone in the input bar, pl
 
 ### Management window
 
-`⌘ ,`. Tabs for everything that isn't a single chat: Models, Providers, Agents, Plugins, Sandbox, Tools, Skills, Commands, Memory, Schedules, Watchers, Voice, Themes, Insights, Server, Permissions, Identity, Storage, Settings.
+`⌘ ⇧ M`. Tabs for everything that isn't a single chat: Models, Providers, Agents, Plugins, Sandbox, Tools, Skills, Commands, Memory, Schedules, Watchers, Voice, Themes, Insights, Server, Permissions, Identity, Storage, Settings.
 
 ### HTTP API
 
@@ -132,7 +132,9 @@ An append-only host ABI for native plugins, **v1 through v6**:
 - **v2** — full host API: HTTP routes, SQLite-backed config, web app serving, agent dispatch, inference, events
 - **v3–v6** — streaming cancellation, agent-context introspection, structured logging, and a host-side string free path, each added without breaking older plugins
 
-Plus **remote MCP providers** to aggregate tools from external MCP servers, and the **Linux Sandbox** (macOS 26+) for safe code execution. The sandbox itself accepts JSON-recipe plugins so users can extend an agent's capabilities without compiling anything.
+Formerly-plugin capabilities like [web search](/web-search) and [browser use](/browser-use) are native built-ins now — no plugin install needed.
+
+Plus **remote MCP providers** to aggregate tools from external MCP servers, and the **Sandbox** for safe code execution (a Linux VM on macOS 26+, a Seatbelt-confined host runner on macOS 15). The sandbox itself accepts JSON-recipe plugins so users can extend an agent's capabilities without compiling anything.
 
 Every tool — built-in, folder, sandbox, plugin, MCP-aggregated — returns the same canonical [Tool Contract](/tool-contract) envelope.
 
@@ -161,5 +163,6 @@ Understand a piece:
 - [Inference Runtime](/inference-runtime) — `BatchEngine`, KV cache, model leases
 - [Identity Cryptography](/identity-internals) — full crypto spec
 - [Storage & Encryption](/storage) — the plaintext default, opt-in SQLCipher, recovery
+- [Global Proxy](/global-proxy) — routing outbound traffic through one validated proxy
 - [Developer Tools](/developer-tools) — Insights and Server Explorer in the Management window
 - [Building from Source](/developer) — clone, build, test, contribute

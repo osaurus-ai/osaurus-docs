@@ -13,7 +13,7 @@ Memory is on by default and runs in the background. Most messages get **zero ext
 ## Quick start
 
 1. Open **Settings (`⌘ ,`) → General → Core Model** and pick a model. **This is the one knob that turns memory on.**
-2. Open the Management window (`⌘ ,`) → **Memory** to confirm it's enabled (it is by default).
+2. Open the Management window (`⌘ ⇧ M`) → **Memory** to confirm it's enabled (it is by default).
 3. Just chat. Sessions are distilled into compact memory in the background once they end.
 
 No tagging. No "save this". No prompting tricks.

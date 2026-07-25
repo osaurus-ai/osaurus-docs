@@ -12,10 +12,10 @@ Everything is indexed and searched locally. Nothing in a collection leaves your 
 
 ## Quick start
 
-1. Open the Management window (`⌘ ,`) → **Knowledge**
+1. Open the Management window (`⌘ ⇧ M`) → **Knowledge**
 2. Click **Add Knowledge Base**, give it a name, and pick a folder of documents
-3. Wait for indexing to finish (it's fast, and re-runs automatically when files change)
-4. Open your agent's settings → **Abilities**, turn on **Knowledge**, and check the collections it should see
+3. Grant it right there — after creating a collection, a **grant-to-agents** dialog lets you check the agents that should see it (you can always adjust later in each agent's **Abilities → Overview**)
+4. Wait for indexing to finish (it's fast, and re-runs automatically when files change)
 5. Ask something the folder answers — the agent will search the collection and cite what it found
 
 :::note[Knowledge rides on Tools]
@@ -42,9 +42,9 @@ Deliberately **excluded**:
 - **Images** — no text to extract; OCR/vision indexing is a possible future feature
 - **Oversized files** — markdown over 2 MB and other formats over 10 MB are skipped
 
-### Frontmatter for markdown
+### Categories: frontmatter or folders
 
-Markdown files can carry YAML frontmatter, and the `type` field is used as the document's category. A collection where every markdown file declares a `type` is considered fully conformant; the Knowledge tab points out files that don't. Extracted formats (PDF, Word, …) are exempt — they have no frontmatter to check.
+Markdown files can carry YAML frontmatter, and the `type` field is used as the document's category:
 
 ```markdown
 ---
@@ -55,6 +55,8 @@ type: guide
 ...
 ```
 
+Documents without an explicit `type` get an **inferred category from their folder**: if you've organized a collection into subfolders ("Medical Records/", "recipes/"), that structure already categorizes the documents, and Osaurus reuses it (slugified, e.g. `medical-records`). Inference is metadata-only — files on disk are never modified, and an explicit frontmatter `type` always wins. The collection card shows a neutral hint (not a warning) for documents that ended up uncategorized.
+
 ## How search works
 
 Each collection is chunked and indexed two ways: a full-text (BM25) index and a local vector index, combined into hybrid search. If the embedding model isn't available, search falls back to full-text matching — you never lose retrieval entirely.
@@ -63,10 +65,12 @@ A **folder watcher** keeps the index live: edit, add, or delete a file in the fo
 
 ## Granting collections to agents
 
-Grants are per-agent and explicit. In the agent's **Abilities** tab:
+Grants are per-agent and explicit, and there are two places to manage them:
 
-- **Knowledge** — turns on the retrieval tools and lists your collections as a checklist; check the ones this agent may see. An agent can only ever search and read collections it's been granted — other collections' indexes are never even opened.
-- **Knowledge Curator** — appears once Knowledge is on; lets the agent file staleness tickets and propose document updates (see below).
+- **From the Knowledge tab** — a grant-to-agents dialog appears right after you create a collection, and each collection card shows the agents with access as **stacked avatars**. Click a card to open its detail sheet, which also carries the collection's folder path, categories, and a **Delete** action.
+- **From the agent** — in the agent's **Abilities → Overview**: **Knowledge** turns on the retrieval tools and lists your collections as a checklist right under the toggle; **Curator** appears once Knowledge is on and lets the agent file staleness tickets and propose document updates (see below).
+
+An agent can only ever search and read collections it's been granted — the grant is enforced when tools execute, not just hidden from the schema. Deleting a collection removes its index and grants; the source folder on disk is never touched.
 
 The Abilities context estimate includes the cost of the knowledge tools and grant manifest, so you can see what enabling it adds to the agent's startup context.
 
