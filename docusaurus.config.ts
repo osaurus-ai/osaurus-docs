@@ -58,6 +58,9 @@ const config: Config = {
           priority: 0.5,
           filename: "sitemap.xml",
         },
+        googleTagManager: {
+          containerId: "GTM-WCVDZS73",
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -122,35 +125,6 @@ const config: Config = {
     {
       tagName: "meta",
       attributes: {
-        property: "og:title",
-        content: "Osaurus — Own Your AI on Apple Silicon",
-      },
-    },
-    {
-      tagName: "meta",
-      attributes: {
-        property: "og:description",
-        content:
-          "Run AI agents with memory, tools, and identity entirely on your Mac — offline and open source. OpenAI-, Anthropic-, Ollama-, and MCP-compatible so any client connects.",
-      },
-    },
-    {
-      tagName: "meta",
-      attributes: {
-        property: "og:image",
-        content: "https://docs.osaurus.ai/img/og-image.png",
-      },
-    },
-    {
-      tagName: "meta",
-      attributes: {
-        name: "twitter:card",
-        content: "summary_large_image",
-      },
-    },
-    {
-      tagName: "meta",
-      attributes: {
         name: "twitter:title",
         content: "Osaurus — Own Your AI on Apple Silicon",
       },
@@ -161,20 +135,6 @@ const config: Config = {
         name: "twitter:description",
         content:
           "Own your AI: local-first agents with memory, tools, and identity on Apple Silicon. Offline, open source, and API-compatible with OpenAI, Anthropic, and Ollama.",
-      },
-    },
-    {
-      tagName: "meta",
-      attributes: {
-        name: "twitter:image",
-        content: "https://docs.osaurus.ai/img/og-image.png",
-      },
-    },
-    {
-      tagName: "link",
-      attributes: {
-        rel: "canonical",
-        href: "https://docs.osaurus.ai",
       },
     },
     {

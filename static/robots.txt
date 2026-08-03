@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+
+Disallow: /search
+
+Sitemap: https://docs.osaurus.ai/sitemap.xml
