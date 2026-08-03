@@ -38,6 +38,25 @@ A couple of reliability details Osaurus handles for you:
 - **Sensible output length.** If a request doesn't specify `max_tokens`, Osaurus sends a sane default so a long agent run isn't silently truncated by an upstream cap.
 - **No silent empty answers.** If a response finishes without producing any visible text, Osaurus shows an explicit empty-response notice instead of dropping the bubble.
 
+## Redeem credit codes
+
+Version 0.22.15 supports promotion and referral codes in two places:
+
+- On a fresh install, choose **Have a code? → Enter it** on the welcome screen. A successful redemption becomes the wallet's first credit action instead of the automatic welcome-credit claim.
+- Later, open **Management → Credits → Have a code?**. Router and an Osaurus Identity must be enabled; account eligibility remains server-authoritative.
+
+Codes are trimmed before submission. While a request is running, the field and controls are disabled. Success shows the campaign message, distinguishes an already-redeemed code, refreshes a non-zero balance, and offers **Redeem another code**. Referral campaigns can instead show that the reward remains pending until the first paid top-up.
+
+Errors are intentionally actionable without exposing server eligibility detail:
+
+- malformed or unknown code: check the code and retry;
+- ineligible, frozen, or forbidden account: the code isn't available for this account;
+- identity or connection failure: fix that condition and retry;
+- temporary service failure: retry later;
+- too many attempts: redemption is disabled until the displayed retry countdown ends.
+
+The entered code remains in place after a retryable failure, and editing it clears the prior error.
+
 ## Billing and your privacy
 
 Router is metered, so a few things are tracked — but **only metadata, never your content**. Prompt text, responses, tool arguments, and tool results are never written to billing records.

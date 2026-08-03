@@ -6,20 +6,30 @@ description: Route Osaurus's outbound network traffic through a single validated
 
 # Global Proxy
 
-Osaurus can route its outbound network traffic through a single global proxy endpoint. Set one validated proxy URL in **Server settings** and it applies to new outbound connections across the app — without weakening TLS, and without accepting credentials embedded in the URL.
+Osaurus can route its app-managed outbound network traffic through one global proxy endpoint. Set a validated proxy URL in **Server settings** and it applies to new outbound sessions without weakening TLS or accepting credentials embedded in the URL.
 
 ## What the proxy covers
 
-The global proxy applies to Osaurus's own outbound traffic, including:
+The global proxy covers:
 
-- Remote provider requests (OpenAI, Anthropic, and other [remote providers](/remote-providers))
+- Remote provider requests (OpenAI, Anthropic, and other [remote providers](/remote-providers)), including streamed OpenAI-compatible text-to-speech
 - HTTP/SSE [remote MCP provider](/remote-mcp-providers) discovery and auth probes
-- Model downloads and Hugging Face lookups
+- Model downloads and Hugging Face lookups, including Rampart and privacy-filter model bundles
+- Slack, Discord, and Telegram API requests, plus custom JSON Agent Channel HTTP requests
 - Plugin HTTP requests, plugin repository refreshes, and plugin artifact installs
-- [Relay](/relay), theme sharing, and GitHub skill imports
+- [Relay](/relay), theme sharing, GitHub skill imports, and remote Markdown images
 - Sandbox provisioning
 
-Local loopback health checks deliberately stay direct — a proxy setting never affects how Osaurus talks to itself. Per-provider proxy selection is not supported; the setting is global by design.
+Local loopback health checks deliberately stay direct — a proxy setting never affects how Osaurus talks to itself. iMessage channel traffic is local to Messages.app and its helper, so it has no remote HTTP session to proxy. Per-provider proxy selection is not supported; the setting is global by design.
+
+### CLI coverage
+
+The setting is not a process-wide proxy for every `osaurus` CLI request. Registry-based plugin refreshes and installs use the shared repository proxy policy, but these direct CLI download paths do not read `globalProxyURL` in 0.22.15:
+
+- `osaurus pull <model_id>`
+- `osaurus tools install https://…` (the direct archive URL form)
+
+Commands that connect to Osaurus over local loopback also remain direct.
 
 ## Supported URL formats
 

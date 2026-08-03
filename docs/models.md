@@ -90,6 +90,19 @@ Tool calling works across every family above. Osaurus's tool-call parser handles
 
 Whether a local model supports thinking is **detected from its chat template**, not hardcoded — new reasoning families are picked up automatically the moment you download them. When a model exposes a thinking toggle, the model picker shows a **Thinking** control, and the chip reports the model's true default (some families think unless told not to, others only when asked). Reasoning output streams separately from the answer — the Think panel in chat, `reasoning_content` over the API. A few families get tuned defaults (e.g. Ling ships with thinking off by default, with explicit opt-in preserved).
 
+#### DeepSeek V4 Flash 0731
+
+DeepSeek V4 Flash bundles expose a four-level **Reasoning Mode** under the model's options:
+
+- **Off** — uses the compatibility `instruct`/direct-answer rail
+- **Low** — the bundle default
+- **High** — more reasoning
+- **Max** — maximum 0731 reasoning effort
+
+Low, High, and Max pass the corresponding 0731 effort value to the runtime; they are not aliases for a generic on/off toggle.
+
+Leave temperature unset to use the bundle's sampling defaults unless you specifically need deterministic output. An explicit agent or request `temperature: 0` overrides those defaults, forces greedy argmax decoding, and makes `top_p` inert. On long DSV4 reasoning runs, that deterministic path can amplify repetition once the model revisits a prior state.
+
 ### How much RAM does a model need?
 
 Apple Silicon shares VRAM with system memory. Approximate RAM per model:

@@ -42,7 +42,7 @@ If you'd rather install via Homebrew:
 brew install --cask osaurus
 ```
 
-This puts **Osaurus.app** in your Applications folder and links the **`osaurus` CLI** into your `PATH`. Update with `brew upgrade --cask osaurus`.
+This puts **Osaurus.app** in your Applications folder and lets Homebrew manage the **`osaurus` CLI** link in its own prefix. Update with `brew upgrade --cask osaurus`; don't replace that managed link manually.
 
 ## Permissions
 
@@ -54,7 +54,7 @@ Osaurus only asks for permissions when you actually use the feature that needs t
 | Screen Recording | Capturing system audio for transcription |
 | Accessibility | Transcription Mode (typing into other apps) |
 | Network | Cloud providers, MCP, public agent links |
-| Files | Working folders (one folder at a time, via macOS security-scoped bookmarks) |
+| Files | Trusted folders (one folder at a time, via macOS security-scoped bookmarks) |
 
 You'll be prompted in System Settings → Privacy & Security as you use each feature.
 
@@ -85,18 +85,28 @@ osaurus status        # confirms it's up
 osaurus stop          # stops it
 ```
 
-If `osaurus` isn't on your PATH (DMG install), link it once:
+If `osaurus` isn't on your PATH after a DMG install, link it without writing into Homebrew's managed prefix:
 
 ```bash
-ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
+cli="/Applications/Osaurus.app/Contents/Helpers/osaurus"
+[ -x "$cli" ] || cli="/Applications/Osaurus.app/Contents/MacOS/osaurus"
+
+bin="/usr/local/bin"
+if [ ! -d "$bin" ] || [ ! -w "$bin" ]; then
+  bin="$HOME/.local/bin"
+  mkdir -p "$bin"
+fi
+ln -sf "$cli" "$bin/osaurus"
 ```
 
-Or add the bundle to your shell:
+If the link lands in `~/.local/bin`, add that directory to your shell:
 
 ```bash
-echo 'export PATH="/Applications/Osaurus.app/Contents/MacOS:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
+
+From a source checkout, `scripts/release/install_cli_symlink.sh` follows the same `/usr/local/bin` then `~/.local/bin` order. Pass `--prefix <directory>` only when you explicitly want `<directory>/bin`.
 
 Test the local server is up:
 
@@ -127,6 +137,7 @@ brew uninstall --cask osaurus
 # If you installed manually
 rm -rf /Applications/Osaurus.app
 rm /usr/local/bin/osaurus 2>/dev/null
+rm ~/.local/bin/osaurus 2>/dev/null
 
 # Optional: remove all your data
 rm -rf ~/MLXModels

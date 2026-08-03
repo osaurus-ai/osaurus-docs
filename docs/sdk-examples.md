@@ -17,6 +17,9 @@ Before running any examples:
 1. **Start Osaurus**: `osaurus serve` or use the UI
 2. **Download a model**: Use the Model Manager
 3. **Note your URL**: Default is `http://127.0.0.1:1337`
+4. **Check liveness**: `curl http://127.0.0.1:1337/health`
+
+If your integration needs Osaurus tools, also query `GET /mcp/tools` after plugins and remote MCP providers have connected. The server becomes healthy before those optional tool sources necessarily finish loading.
 
 ## Python Examples
 
@@ -247,7 +250,7 @@ print(bot.chat("Name 3 famous landmarks there"))  # Continues context
 
 ### Anthropic SDK
 
-Use the Anthropic Python SDK directly — Osaurus speaks the Messages API at `/v1/messages`.
+Use the Anthropic Python SDK directly. With the server root as `base_url`, the SDK posts to the registered `/v1/messages` route:
 
 ```bash
 pip install anthropic
@@ -271,6 +274,8 @@ message = client.messages.create(
 
 print(message.content[0].text)
 ```
+
+Upstream overview copy labels `/anthropic/v1/messages` canonical, but the pinned local handler does not normalize an `/anthropic` prefix. Keep the root `base_url` shown above until that route registration changes. See the [HTTP API route note](/api#compatible-apis).
 
 Streaming and tool use are fully supported. The same model name namespace as `/v1/chat/completions` applies — you can target `foundation`, any local model, or any cloud model you've configured.
 

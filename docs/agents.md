@@ -14,7 +14,7 @@ An agent is a saved configuration with its own:
 
 - **Identity** — name, description, optional avatar (mascot or initial monogram), and a cryptographic address derived from your master key
 - **Personality** — system prompt, optional default model, optional generation overrides (temperature, max tokens), optional theme that activates when the agent is selected
-- **Abilities** — every capability switch in one place: tools, memory, knowledge, web search, charts, speech, self-scheduling, database, code execution, host files — with a live estimate of what each one costs in startup context
+- **Abilities** — every capability switch in one place: tools, memory, knowledge, web search, charts, speech, self-scheduling, database, code execution, and host files — with a live estimate of what each one costs in startup context
 - **Tools** — its own enabled set of tools, plus an *Auto vs Manual* toggle (more below). Skills aren't scoped per agent — they come from the universal [Skills library](/skills).
 - **Memory** — pinned facts, episode digests, and identity overrides are stored per-agent
 - **Database** — an optional private, encrypted SQLite database for structured data across runs (see [Agent DB](/agent-db))
@@ -101,7 +101,7 @@ The switches, grouped the way the UI groups them:
 | Autonomy | **Self-scheduling** | Let the agent schedule its own follow-up runs and send notifications; frequency limits live in General → Configure → Scheduling |
 | Data | **Database** | A private encrypted database for structured data (see [Agent DB](/agent-db)). With a cloud model, the schema — table names and column types — is sent with requests; row data is not. |
 | Code Execution | **Autonomous Execution** | Master switch for sandboxed commands; the full permission set lives in Abilities → Sandbox |
-| Host Files | **Host Files** | Grant access to one macOS folder, including over authenticated remote agent runs. Writes stay inside the folder; shell and git remain disabled. |
+| Host Files | **Host Files** | Grant one standing macOS folder to this agent, including for authenticated remote agent runs. Writes stay inside the folder; shell and git remain disabled. |
 
 Most ability toggles are backed by tools, so they pause (with a note) if the master **Tools** switch is off.
 
@@ -116,8 +116,6 @@ Most ability toggles are backed by tools, so they pause (with a note) if the mas
 | **Sandbox Network** | Allow outbound network from the sandbox; turn off to cut exfiltration (takes effect on next sandbox start) | On |
 | **Allowed Domains** | Comma-separated egress allowlist (`example.com` exact, `*.example.com` subdomains). Non-empty switches the sandbox to host-only networking with a filtering proxy. VM backend (macOS 26+) only — on Seatbelt, network is all-or-nothing. | Empty (unrestricted) |
 | **Background Processes** | Long-lived detached processes (servers, watchers) the agent can manage | Off |
-| **Read Secret Files** | With a working folder, allow reading `.env` / keys / credentials | Off |
-| **Edit Folder Files** | With a working folder, allow creating and editing its files (tracked and undoable in **Changes**). Off keeps the folder read-only. | Off |
 
 The same tab has a **Workspace Folder** row that reveals the agent's sandbox home (`/workspace/agents/<name>/`) in Finder — edits you make there are visible to the agent immediately — and the agent's **secrets** list. [Sandbox Internals →](/sandbox)
 
@@ -171,16 +169,16 @@ Useful for therapy-style assistants, coaching agents, or anything where you want
 
 [Skills deep dive →](/skills)
 
-## Working folders and the Sandbox
+## Trusted folders and the Sandbox
 
-These are per-chat power-ups, not per-agent settings:
+These are separate execution modes:
 
-- **Click the folder picker** in the chat input bar to point a chat at a folder. The agent gets file/search/git tools scoped to that folder for the current chat.
-- **Toggle the Sandbox** to give the agent shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15). It composes with a working folder — see [Combined mode](/agent-loop#combined-mode-folder--sandbox).
+- **Pick a trusted folder** in the chat input bar to give the current chat file/search/git tools scoped to that folder. Selecting it disables Sandbox for the agent.
+- **Enable Sandbox** to give the agent shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15). This agent-scoped switch clears folder selections from visible chats using that agent; turn it off and reselect a folder when you want trusted-folder mode again.
 
-The agent's [sandbox permissions](#sandbox-permissions) control how much capability it has *if the Sandbox is on*. Read-only sandbox tools (`sandbox_read_file`, `sandbox_search_files`) are always available; write/exec/install/secret tools require **Autonomous Execution** to be on.
+Trusted-folder and Sandbox tools never appear together. The agent's [sandbox permissions](#sandbox-permissions) control how much capability it has *if Sandbox is on*. Read-only sandbox tools are available in that mode; write, exec, install, and secret tools require **Autonomous Execution**.
 
-Separate from the per-chat folder, the per-agent [**Host Files** ability](#abilities) grants standing access to one macOS folder — it works over authenticated remote agent runs too, with writes confined to the folder and shell/git kept disabled.
+Separate from the current chat's trusted-folder picker, the per-agent **Host Files** ability grants one standing macOS folder for authenticated remote agent runs. It permits folder-confined file access but never enables host shell, git, or undo tools.
 
 [Tasks →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
@@ -214,7 +212,11 @@ Agents you've been invited to (via [Share Agent](#share-an-agent)) appear in the
 
 ## Built-in agents
 
-Osaurus ships with a default **Osaurus** agent — a generalist that uses your global chat settings. It's read-only; **Duplicate** it to start a custom variant, so you can always reset to a known-good configuration.
+Osaurus ships with a built-in **Osaurus** assistant whose agent definition is read-only. It is dedicated to configuring and explaining the app: it inspects current state with `osaurus_status`, `osaurus_list`, and `osaurus_describe`, and answers product questions from the bundled guide through `osaurus_help`.
+
+It can also make approval-gated changes: `osaurus_settings` covers common app, server, chat, memory, voice, and default-agent settings; `osaurus_watcher` manages folder watchers; the other configuration tools manage agents, models, providers, MCP, plugins, search, and schedules. Agent updates can change supported capability toggles, and schedule updates can reassign a schedule to another custom agent.
+
+The built-in assistant does not use the Skills library or trusted folders, and it is not a general work agent. For coding, research, files, images, or other work, create or switch to a custom agent.
 
 ## Share an agent
 

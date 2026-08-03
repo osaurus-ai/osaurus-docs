@@ -18,7 +18,11 @@ Drop-in endpoints for existing tools and SDKs:
 | Anthropic | http://127.0.0.1:1337/v1/messages           |
 | Ollama    | http://127.0.0.1:1337/api/chat              |
 
-All prefixes supported (`/v1`, `/api`, `/v1/api`). Full function calling with streaming tool call deltas.
+The router normalizes `/v1`, `/api`, and `/v1/api` prefixes before dispatch. Full function calling with streaming tool call deltas.
+
+:::note[Anthropic path at this baseline]
+Upstream overview copy calls `/anthropic/v1/messages` canonical, but the pinned server handler registers `/messages` and its normalized `/v1/messages` alias. Direct local examples therefore use the registered `/v1/messages` route; this guide does not claim the `/anthropic`-prefixed path is an alias.
+:::
 
 ## Base URL
 
@@ -82,8 +86,8 @@ See [Image Generation](/image-generation) for model setup and examples.
 
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
-| `/mcp/health` | GET | MCP server health |
-| `/mcp/tools` | GET | List available tools |
+| `/mcp/health` | GET | MCP HTTP transport liveness |
+| `/mcp/tools` | GET | List currently registered, enabled, externally exposed tools |
 | `/mcp/call` | POST | Execute a tool |
 
 ### Identity / pairing / secure channel
@@ -96,7 +100,7 @@ See [Image Generation](/image-generation) for model setup and examples.
 | `/secure/session` | POST | Establish an end-to-end-encrypted [Secure Channel](/secure-channel) session |
 | `/secure/call` | POST | Invoke a route through an established Secure Channel envelope |
 
-Path prefixes are normalized: `/v1/…`, `/api/…`, and `/v1/api/…` all resolve to the same handlers, so `/v1/chat/completions` and `/chat/completions` are the same route.
+Path prefixes are normalized before handler matching: `/v1/…`, `/api/…`, and `/v1/api/…` resolve to the same registered route, so `/v1/chat/completions` and `/chat/completions` are equivalent.
 
 :::note[Public vs. internal routes]
 A few `/admin/*` routes (cache stats, generation/runtime settings) exist for the app's own diagnostics. They're loopback-oriented and not part of the stable public contract — don't build integrations on them.
@@ -116,7 +120,7 @@ Osaurus Server is running! 🦕
 
 ### GET /health
 
-Health check endpoint returning a rich JSON diagnostics payload — not just a liveness bit. Fields include loaded models, the current model, in-flight requests, memory status, and more.
+Health check endpoint returning liveness plus current runtime diagnostics. It includes model residency and contention, memory/persistence state, hardware and RAM feasibility, batching, sandbox/index failures, and HTTP connection pressure.
 
 **Response (truncated):**
 
@@ -129,9 +133,17 @@ Health check endpoint returning a rich JSON diagnostics payload — not just a l
   "inflight": {},
   "resident_models": [],
   "memory_enabled": true,
-  "http_inflight": 0
+  "memory_database_open": true,
+  "http_inflight": 0,
+  "http_inference_limit": 4,
+  "chat_active": false,
+  "distillation": {"queued": 0, "active": 0},
+  "open_file_descriptors": 42,
+  "open_connections": 1
 }
 ```
+
+Batch diagnostics are deadline-bounded so a wedged engine cannot wedge `/health`. If that snapshot exceeds the deadline, `batch_diagnostics` is `null` and `batch_diagnostics_timeout` is `true`.
 
 ### GET /v1/models
 
@@ -487,7 +499,7 @@ curl http://127.0.0.1:1337/v1/responses \
 
 ### POST /v1/messages
 
-Create a chat completion using the Anthropic Messages format. The route is registered at `/messages`; the standard `/v1` prefix is stripped, so `/v1/messages` works too.
+Create a chat completion using the Anthropic Messages format. The handler is registered at `/messages`; the standard `/v1` prefix is normalized, so `/v1/messages` is the preferred direct-client form at this baseline.
 
 **Request Body:**
 
@@ -633,7 +645,7 @@ Transcription runs entirely on your Mac — audio never leaves the machine.
 
 ### GET /mcp/health
 
-Check MCP server availability.
+Check MCP HTTP transport liveness. A successful response does not mean every plugin or remote MCP provider has finished connecting.
 
 **Response:**
 
@@ -645,7 +657,9 @@ Check MCP server availability.
 
 ### GET /mcp/tools
 
-List all available MCP tools from installed plugins.
+Return a snapshot of tools that are registered and enabled at request time, excluding app-only tools that external callers cannot invoke.
+
+The HTTP server binds before optional plugin loading and remote MCP provider discovery finish. During startup, this list can be incomplete even while `/health` and `/mcp/health` are healthy. If an expected tool is missing, wait for its plugin/provider to become ready and query again.
 
 **Response:**
 

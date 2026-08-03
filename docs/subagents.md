@@ -1,7 +1,7 @@
 ---
 title: Subagents
 sidebar_label: Subagents
-description: Delegate a bounded task to another model or a saved agent mid-conversation — spawn_agent and spawn_model, with automatic residency handoff on local models.
+description: Delegate one task or a mixed batch to saved agents and local or remote models, with bounded concurrency and local-model residency safety.
 ---
 
 # Subagents
@@ -10,16 +10,19 @@ Subagents let a chat delegate a bounded task to another model — **local or rem
 
 Delegation is **off by default**, approved on first use, and configured per agent.
 
-## The two spawn tools
+## Spawn tools
 
 | Tool | What it does |
 |---|---|
-| `spawn_agent(input, agent)` | Delegate a task to one of your saved agents — it runs with that agent's prompts, tools, and context |
+| `spawn_agent(input, agent)` | Delegate a task to one of your saved agents — it uses that agent's persona and allowed child tools |
 | `spawn_model(input, model)` | Delegate to a bare model (no persona) — useful for "ask a bigger/faster model" moments |
+| `spawn_batch(jobs)` | Fan out independent jobs across a mixed set of allowed agents and bare models |
 
 The subagent runs its own bounded job and returns a single compact result. Its inner steps render live in the chat row but never enter your conversation's transcript, so context stays lean.
 
-Two more capabilities share the same machinery and the same per-agent settings surface:
+For `spawn_batch`, every job carries a stable ID, an `agent` or `model` target, and its own input. One batch can mix saved agents, local models, and remote models. Osaurus validates the whole batch first, asks for **one approval for the batch**, and returns one result per job in the same order as the input.
+
+Three more capabilities share the same machinery and the same per-agent settings surface:
 
 - **`image`** — generate or edit a picture inline; see [Image Generation](/image-generation)
 - **`computer_use`** — drive a macOS app; see [Computer Use](/computer-use)
@@ -29,10 +32,10 @@ Two more capabilities share the same machinery and the same per-agent settings s
 
 1. Open **Agents → Abilities → Subagents** on the agent you want to grant delegation (the main chat has its own Subagents tab too).
 2. Enable **Spawn & Delegation** and pick the **spawnable pool** — which saved agents and models this agent may delegate to. The pool is searchable, and you can attach a note to each entry to tell the model when to use it.
-3. Ask for something that benefits from delegation: *"Have the research agent summarize this paper, then continue."*
-4. Approve the first use. You can set individual targets to always-allow in the same tab.
+3. Ask for something that benefits from delegation: *"Have the research agent summarize this paper, then continue."* For independent work, ask it to run the tasks as a batch.
+4. Approve the first use. You can set Spawn to **Always Allow** in the same settings surface.
 
-## Residency handoff
+## Batch execution and residency
 
 Delegation works in any direction — local to local, local to remote, remote to local, remote to remote. Only one case touches GPU memory: delegating from a local model to a **different** local model.
 
@@ -43,19 +46,35 @@ Delegation works in any direction — local to local, local to remote, remote to
 | Local → different local model (handoff off) | Rejected up front — nothing is evicted |
 | Local ↔ remote, remote ↔ remote | Runs in place |
 
-The **Local Orchestrator Handoff** toggle (on by default) lives in **Management → General**. With handoff on, two large models never fight for memory; with it off, Osaurus refuses the delegation cleanly instead of erroring mid-run.
+**Local Orchestrator Handoff** is on by default. With handoff on, two large models never fight for memory; with it off, Osaurus refuses the delegation cleanly instead of erroring mid-run.
+
+`spawn_batch` groups work by resolved model:
+
+- Jobs using the **same local model** reuse one loaded model and can run concurrently through continuous batching.
+- Jobs using **different local models** run as serial waves, so cold loads and residency handoffs never race.
+- **Remote jobs** start independently and can overlap every local wave.
+- Before each local wave, RAM admission considers the model footprint, per-child working memory, current engine occupancy, and continuous-batching capacity. A wave may be narrowed, split into subwaves, or refused before unloading a model.
+
+Results still preserve the original job order, regardless of completion order.
+
+### One concurrency setting
+
+**Max subagents per batch** and **Server → Concurrent Sessions** are the same canonical setting (1–32). Changing either updates the other. It is a ceiling for accepted batch size and local fan-out; RAM admission, engine occupancy, continuous batching, and local-model grouping can reduce the concurrency of a particular wave.
 
 ## Per-agent configuration
 
 Everything is scoped to the agent, in its **Subagents** tab:
 
-- **Spawn & Delegation** — enable, plus the allow-list of spawnable agents and models
+- **Spawn & Delegation** — enable, plus separate allow-lists of spawnable agents and bare local or remote models
+- **Permission** — Ask, Always Allow, or Deny; Ask produces one prompt for an entire `spawn_batch`
+- **Child tools** — choose None or Read Only. A saved-agent child can receive the cancellation-audited subset of its enabled tools; a bare-model child has no target-agent tools. Read Only can additionally grant bounded `file_read` / `file_search` access.
+- **Budgets** — delegate tokens, turns, tool calls, elapsed time, and the shared batch/concurrency limit
 - **Image** — enable the `image` tool and pick the agent's image model
 - **Computer Use** — enable, autonomy ceiling, screen context ([details](/computer-use))
 - **Browser Use** — enable, plus an optional model override ([details](/browser-use))
 - **AppleScript** — enable the AppleScript subagent and pick its model
 
-Every capability ships disabled on every agent, so nothing can delegate until you say so.
+Spawn remains unavailable until its allow-list is configured; the other delegation capabilities ship disabled.
 
 ---
 

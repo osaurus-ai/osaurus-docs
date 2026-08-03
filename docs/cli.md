@@ -30,20 +30,26 @@ osaurus run gemma-4-e2b-it-4bit
 
 ## Installation
 
-The CLI ships inside the Osaurus application bundle. Homebrew installs link it automatically.
+The CLI ships inside the Osaurus application bundle. The Homebrew cask links it automatically and owns that link.
 
 ### Manual Setup
 
 If the `osaurus` command is not found after installation:
 
 ```bash
-# Quick symlink
-ln -sf "/Applications/Osaurus.app/Contents/MacOS/osaurus" "$(brew --prefix)/bin/osaurus"
+cli="/Applications/Osaurus.app/Contents/Helpers/osaurus"
+[ -x "$cli" ] || cli="/Applications/Osaurus.app/Contents/MacOS/osaurus"
 
-# Or add to PATH
-echo 'export PATH="/Applications/Osaurus.app/Contents/MacOS:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+# Prefer /usr/local/bin; fall back without sudo.
+bin="/usr/local/bin"
+if [ ! -d "$bin" ] || [ ! -w "$bin" ]; then
+  bin="$HOME/.local/bin"
+  mkdir -p "$bin"
+fi
+ln -sf "$cli" "$bin/osaurus"
 ```
+
+Do not write into `$(brew --prefix)/bin` for a DMG install: Homebrew manages that directory. If the link uses `~/.local/bin`, add it to `PATH`. From a source checkout, `scripts/release/install_cli_symlink.sh --prefix <directory>` explicitly targets `<directory>/bin`; without `--prefix`, it follows the same `/usr/local/bin` then `~/.local/bin` order.
 
 ## Commands
 

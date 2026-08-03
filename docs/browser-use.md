@@ -23,7 +23,7 @@ The chat agent calls one tool — `browser_use(goal:)` — exactly once. That to
 | `goal` | yes | The complete task in plain language, naming the site when it matters |
 | `max_steps` | no | Safety cap on subagent turns (each turn can batch many page actions). Default 24, clamped to 1–100. |
 
-The subagent inherits the chat model by default, with the standard per-agent model override — including the single-residency handoff rules for local models (see [Subagents](/subagents#residency-handoff)). Because a run may legitimately park on a sign-in window, it has a 15-minute wall-clock budget rather than a normal tool timeout.
+The subagent inherits the chat model by default, with the standard per-agent model override — including the single-residency handoff rules for local models (see [Subagents](/subagents#batch-execution-and-residency)). Because a run may legitimately park on a sign-in window, it has a 15-minute wall-clock budget rather than a normal tool timeout.
 
 Under the hood, the subagent works with primitives like navigate, snapshot (numbered element references it can click and type against), read-page (readability-style article extraction), scroll, select, batched actions, screenshots, script execution, console/network inspection, and cookie operations. You never call these directly — the `goal` is the whole interface.
 

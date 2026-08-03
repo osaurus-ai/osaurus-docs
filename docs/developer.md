@@ -79,7 +79,7 @@ osaurus/
 └── assets/                       # DMG packaging assets
 ```
 
-See [`CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CONTRIBUTING.md) for the architecture guide and layer definitions.
+See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/docs/CONTRIBUTING.md) for the architecture guide and layer definitions at the documented upstream baseline.
 
 ### Running in Development
 
@@ -325,8 +325,8 @@ Osaurus has built-in dev tools — Insights for live request monitoring and Serv
 
 ### Osaurus Documentation
 
-- [FEATURES.md](https://github.com/osaurus-ai/osaurus/blob/main/docs/FEATURES.md) — Complete feature inventory and architecture overview
-- [Contributing Guide](https://github.com/osaurus-ai/osaurus/blob/main/CONTRIBUTING.md) — How to contribute to Osaurus
+- [FEATURES.md](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/docs/FEATURES.md) — Complete feature inventory and architecture overview
+- [Contributing Guide](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/docs/CONTRIBUTING.md) — How to contribute to Osaurus
 
 ### External Documentation
 
@@ -350,7 +350,7 @@ Osaurus has built-in dev tools — Insights for live request monitoring and Serv
 
 ### Reporting Vulnerabilities
 
-See [SECURITY.md](https://github.com/osaurus-ai/osaurus/blob/main/SECURITY.md) for reporting security issues.
+See [`docs/SECURITY.md`](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/docs/SECURITY.md) for reporting security issues.
 
 ### Best Practices
 

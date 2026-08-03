@@ -1,7 +1,7 @@
 ---
 title: Inference Runtime
 sidebar_label: Inference Runtime
-description: BatchEngine continuous batching, library-managed KV cache, model leases, eviction, and the one max-batch-size knob.
+description: BatchEngine concurrency, library-managed KV cache, model leases, eviction, and live diagnostics.
 ---
 
 # Inference Runtime
@@ -32,38 +32,49 @@ ChatEngine (route resolution, attribution, logging)
 
 ## Continuous batching
 
-Same-model concurrent requests share a single forward pass via `BatchEngine`. The default `mlxBatchEngineMaxBatchSize` is `1` — deliberately, because vmlx's compiled-decode fast path (a large measured TTFT win on families like Mistral, Qwen, MiniMax, and DSV4) only engages at batch size 1. The primary control is **Server → Settings → Concurrency & Batching** (`continuousBatching` and `maxConcurrentSequences`) — when continuous batching is off, the effective batch size is pinned to `1`; when it's on, `maxConcurrentSequences` wins over the legacy defaults key:
+Same-model concurrent requests share a single forward pass via `BatchEngine`. **Server → Settings → Concurrency & Batching → Concurrent Sessions** is the canonical ceiling for both request concurrency and subagent batching; Main Chat Spawn and every agent's **Max subagents per batch** editor share that value.
+
+Leave Concurrent Sessions empty for an automatic Memory Safety value, or set 1–32 explicitly. RAM admission, current engine occupancy, and model residency can still run a smaller subagent wave. With **Continuous Batching** off, the effective local per-model limit is `1` regardless of the configured ceiling. Turning it on allows same-model requests to decode together; `1` retains the compiled-decode fast path, while higher values favor aggregate throughput at the cost of more wired memory and per-request latency.
+
+The legacy defaults key remains a fallback when no runtime setting is present:
 
 ```bash
 defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-Clamped to `[1, 32]`; values ≤ 0 fall back to `1`. Higher values raise possible same-model concurrency at the cost of compile eligibility, wired-memory footprint, and per-request latency — the chat UI's tok/s display flags the trade-off when a non-default value is active. The batch size is hot-resizable: a changed value takes effect on the next inference call, without an unload/reload. Defined in `InferenceFeatureFlags.swift`.
+The value is clamped to `[1, 32]`. The batch size is hot-resizable: a changed value takes effect on the next inference call without an unload/reload.
 
 ## Cache management
 
-vmlx's `CacheCoordinator` owns KV-cache geometry. Osaurus configures it per container at load time (`installCacheCoordinator` in `ModelRuntime.swift`):
+vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server → Settings → Cache**. Each local model captures the saved cache policy when it loads; changing the KV-retention policy unloads resident models so the next load cannot retain the old cap.
 
-| Override | Why |
+| Control | Behavior |
 |---|---|
-| `modelKey` (with KV-mode / serializer / topology tags) | Per-model isolation across loads — the tags prevent serving disk entries encoded under a different cache contract after a runtime update |
-| `diskCacheDir` | Osaurus-managed sandbox path |
-| `enableDiskCache` | `true` when a probe-write succeeds, else `false` — graceful fallback to memory-only when the dir is read-only or out of disk |
-| `defaultKVMode` = `engine_selected` | The engine picks the KV mode per model: eligible full-attention rows get quantized (TurboQuant) KV; hybrid, rotating, and companion-cache architectures keep their native/fp16 typed caches unless explicitly overridden |
-| `defaultMaxKVSize` = `65536`, `longPromptMultiplier` = `2.0` | Prefill window, with the rotating-cache cap kicking in only past 131K |
-| `usePagedCache` = `false` | Paged RAM KV blocks mainly help multi-batch workloads; the single-batch default keeps prefix reuse through the disk/L2 tier instead |
+| **Prefix Cache** | Master switch for content-addressed prompt reuse. Turning it off also disables GPU and SSD reuse. |
+| **GPU Cache (Paged KV)** | Optional hot prefix tier in unified memory. Some hybrid cache topologies are not page-compatible. |
+| **SSD Cache (L2)** | Persists prompt checkpoints across requests and restarts, even when GPU Cache is off. The default path is `~/.osaurus/cache/kv_v2/`. |
+| **KV Retention Override** | Explicit per-session retention cap; blank uses the active Memory Safety profile. This is separate from the model's context maximum. |
+| **On-the-fly Compression** | `Engine Selected` keeps native cache types. TurboQuant is an explicit opt-in and is not forced onto hybrid or companion caches. |
 
-`maxCacheBlocks`, `pagedBlockSize`, and `diskCacheMaxGB` are left at the library default so a vmlx tuning bump lands without an app-layer redeploy.
-
-Osaurus deliberately does **not** pass `GenerateParameters.maxKVSize` — a global rotating cache window forced from the app layer conflicted with sliding-window attention layers (e.g. Gemma-4 with a fixed per-layer 1024-position window) and produced `[broadcast_shapes] (1,1,1,N) and (1,16,1,1024)` crashes on the first decode step.
-
-For hybrid SSM families, Osaurus eagerly calls `CacheCoordinator.setHybrid(_:)` for known model families, and vmlx also auto-detects Mamba-style caches on first slot admission. Models with their own companion-cache topology (e.g. DeepSeek V4's hybrid pool) keep their typed serializers — generic KV compression is never forced onto them.
+Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory, ownership problem, or full disk disables the disk tier rather than writing elsewhere. Current main, after 0.22.15, logs the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
 
 ### Multi-turn KV cache reuse
 
 Reuse across requests is **automatic and content-addressed** — the engine delegates prefix-cache management to vmlx's `CacheCoordinator`. Two requests that share the same prefix tokens (system prompt, tools, prior turns) automatically share the cached KV blocks. There is no client-side opt-in or cache key to manage.
 
 For visibility, every response carries a `prefix_hash` field — a stable hash of the system prompt + tool names that produced this generation. `prefix_hash` is informational; passing it back has no effect. Keep `session_id` stable per conversation so chat history and session bookkeeping group correctly; cache reuse itself does not depend on it.
+
+### Context compaction and cache reuse
+
+LLM context compaction replaces older outbound turns with a persisted summary while leaving the visible transcript unchanged. That changes the prompt prefix once, so Osaurus invalidates the old warm-up identity and rewarms the summary-aware prefix before the next send. Later turns reuse the stable summary prefix normally.
+
+The deterministic last-resort trimmer also keeps its decisions sticky within a run: once an old message is summarized or dropped, later tool-loop iterations do not rewrite the middle of the already-rendered prefix. [Chat compaction →](/chat#context-compaction)
+
+### DeepSeek V4 cache caveats
+
+DeepSeek V4 Flash uses a hybrid, paged-incompatible cache topology. Its SSD L2 tier is therefore the only cross-request prefix-reuse tier; if Disk Cache is disabled or its directory is not writable, every tool round must prefill the growing transcript again.
+
+Current main, after 0.22.15, also rejects inconsistent SSD checkpoints before storing them. If DSV4 reasoning began looping or degrading after cache restores on an older build, update and clear the SSD KV cache once so pre-fix entries cannot be reused.
 
 ## Concurrency
 
@@ -75,6 +86,10 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 | `ModelResidencyManager` | Schedules the idle-unload policy after the final lease drops; it never owns execution or cache deletion. |
 | `PluginHostAPI` per-plugin in-flight cap | Caps concurrent inference calls per plugin (default 2). Excess returns `plugin_busy`. |
 | `MetalGate` | Serializes GPU producers across families so concurrent command buffers can't trip Metal asserts — generation is gated per model; embedding and model load are exclusive. |
+
+### Live diagnostics
+
+Open **Server → Settings → Live Activity** for a read-only BatchEngine snapshot that refreshes every two seconds. It reports active and queued slots, per-model configured capacity, high-water marks, engine status, loaded/cache-enabled models, prefix hits and misses, SSD L2 hits/misses/stores, paged evictions, TurboQuant compressions, and hybrid SSM re-derivations. No model loaded means there is no engine snapshot yet.
 
 ## Model loading and eviction
 
@@ -121,7 +136,8 @@ HTTP handlers and the plugin SDK MUST decode any sentinel with public meaning (`
 | `GenerationEventMapper.swift` | `Generation` → `ModelRuntimeEvent` bridge; stop-sequence lookahead; prefill progress forwarding; tool-call argument JSON serialization |
 | `Events.swift` | `ModelRuntimeEvent` enum (`tokens` / `reasoning` / `prefillProgress` / `toolInvocation` / `completionInfo`) |
 | `RuntimeConfig.swift` | Server-side default `topP` |
-| `InferenceFeatureFlags.swift` | Single user-tunable: `mlxBatchEngineMaxBatchSize` |
+| `ServerRuntimeSettingsStore.swift` | Saved concurrency, Memory Safety, generation, and cache settings |
+| `InferenceFeatureFlags.swift` | Legacy `mlxBatchEngineMaxBatchSize` fallback |
 | `MetalGate.swift` | Cross-family GPU serialization gate (generation shared per model; embedding and model load exclusive) |
 | `ModelLease.swift` | Per-model refcount; `unload(name)` waits for `count == 0` before freeing buffers |
 | `ModelResidencyManager.swift` | Per-model idle timers and health snapshots for the residency policy |

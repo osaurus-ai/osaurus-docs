@@ -1,122 +1,137 @@
 ---
 title: Agent Channels
 sidebar_label: Agent Channels
-description: Connect agents to Slack, Telegram, Discord, or your own JSON APIs through one provider-neutral action set — guided setup, multi-agent routing, allowlisted, confirmed, and audited.
+description: Let agents reply and start messages in Slack, Telegram, Discord, iMessage, or your own JSON API — with explicit routing, allowlists, and review controls.
 ---
 
 # Agent Channels
 
-Agent Channels connect your agents to chat platforms — **Slack**, **Telegram**, **Discord**, or any service with a simple JSON API — through one provider-neutral set of actions. The same tools read messages, search history, and send replies regardless of the platform behind them, and inbound messages can be routed to different agents per room or by name.
+Agent Channels connect Osaurus to **Slack**, **Telegram**, **Discord**, **iMessage**, and services with a simple JSON API. Channel messaging has two separate paths:
 
-Native connections come with a **guided, numbered setup** in Settings → Channels: each provider sheet walks you through creating the bot, granting it access, picking rooms and senders from live discovery (raw IDs are demoted to an Advanced section), and ends with a **live "verify incoming message" step** so you know receive actually works before you rely on it. Saving is gated on real readiness — missing pieces are surfaced as blockers instead of silently dismissed.
+- **Replies** answer incoming messages. You choose which conversations and senders may reach an agent, which agent answers, and whether its response is posted automatically.
+- **New Messages** let an agent bring something up without an incoming trigger. The Channels page calls these **Messages Agents Can Start**; each agent's Channels tab calls them **Messages It Can Start**.
 
-## The standard actions
+Both paths use the same provider-neutral tools, routing policy, and local audit state.
 
-Every channel connection exposes the same verbs through the `agent_channel_*` tools:
+## Set up a channel
 
-| Action | What it does |
-|---|---|
-| `list_connections` | Enumerate the channel connections available, with per-action policy |
-| `diagnostics` | Validate a connection's configuration — reports missing credentials, disabled writes, and denied rooms as explicit states |
-| `list_spaces` / `list_rooms` | Discover servers/workspaces and channels the connection can see |
-| `read_messages` / `read_thread` / `search_messages` | Read a room, follow a thread, or search allowlisted rooms |
-| `draft_message` | A local dry run — shows a redacted preview of what would be sent, sends nothing |
-| `send_message` / `reply_thread` | Post to an allowlisted room, always requiring explicit confirmation |
-| `edit_message` / `delete_message` | Modify or remove a previously sent message where the provider supports it |
-| `add_reaction` / `remove_reaction` / `send_typing` | Lightweight presence and reaction actions |
+Open **Settings → Channels**, choose **Add Channel**, then pick a provider. Native setup is divided into four focused sections:
 
-Provider-specific adapters translate these standard verbs into each platform's API, so an agent that learns to use channels once can use any of them. The `agent_channel_*` tools are loaded on demand through the capabilities flow, and they're **denied to external HTTP/MCP callers** — channel reads and writes must originate from the Osaurus app surface, where connection policy, confirmations, and local credentials are available.
+1. **Connect** — add the bot credentials or local iMessage helper.
+2. **Conversations** — choose readable and writable conversations and authorized senders.
+3. **Agent Behavior** — configure Replies and sending.
+4. **Test** — run diagnostics and verify a real incoming message from receipt through dispatch and reply.
 
-## Multi-agent routing
+Valid policy changes save automatically and restart the receive runtime when needed. Conversation and sender selectors are searchable by name or ID; direct ID entry remains under **Advanced** for items discovery cannot return. Provider tokens are stored in Keychain, not in channel configuration.
 
-A channel is not owned by a single agent. Each connection carries per-room **routing rules** with optional name **aliases**, resolved in a fixed order:
+## Replies
 
-1. **Alias** — a message starting with a configured name ("sales: what changed this week?") routes to that agent
-2. **Room** — otherwise, the room's routing rule picks the agent
-3. **Default** — otherwise, the connection's default agent answers
+In **Agent Behavior**, turn on **Reply with an Agent** and choose the default agent. Optional routing rules can use different agents for different conversations or name prefixes in a shared conversation. Routing is deterministic:
 
-The Channels tab shows who answers at a glance ("Answers as Sales", "Routes to 2 agents"), the resolved agent is recorded in the inbound activity feed, and diagnostics validate every routed agent — a rule pointing at a deleted agent is flagged instead of failing silently.
+1. A leading configured name, such as `sales:`, selects that agent.
+2. Otherwise, a conversation-specific rule selects the agent.
+3. Otherwise, the default replying agent handles the message.
 
-## Activity and health
+Each reply runs in a private channel session. Turn on **Reply Automatically** only when you want the sanitized agent response posted back without a separate approval. Provider sending, the conversation's write allowlist, and the global sending switch still apply.
 
-Each provider's settings show **live transport health** and a per-event **inbound activity** feed that tracks every message through its lifecycle: received → rejected or stored → dispatched → replied. When a message didn't get an answer, the activity row says why (unauthorized sender, room not allowlisted, duplicate, …) instead of leaving you guessing.
+The **Test** section shows transport health and recent inbound stages. A rejected event explains why — for example, an unauthorized sender, a conversation outside the read allowlist, or a duplicate provider event.
 
-The transport supervisor starts each configured receive runtime at launch and after settings changes.
+## Messages Agents Can Start
+
+An agent with an approved destination can call `agent_channel_publish` during chat, scheduled, watcher, or self-scheduled runs. The agent supplies a destination binding and a stable intent key; it never chooses a raw provider connection or conversation ID.
+
+Osaurus creates **Automatic** destinations when a connected native channel has:
+
+- an agent assigned to Replies;
+- a writable conversation; and
+- channel sending and inbound dispatch enabled.
+
+Automatic destinations grant no new access and always start in **Ask first** mode. Removing write access makes the destination disappear immediately. Destinations are shown name-first — for example, `#content` or a person's name — with the provider and raw route available as secondary detail.
+
+Manage destinations globally under **Settings → Channels → Messages Agents Can Start**, or per agent under **Agents → agent → Channels → Messages It Can Start**. Each destination has one mode:
+
+- **Ask first** — show an approval card in an attended chat; unattended runs wait in the Outbox.
+- **Auto-send** — send without asking each time. Enabling it requires an explicit acknowledgement, and all other gates still apply.
+- **Drafts only** — save the exact message locally for review; never contact the provider.
+- **Off** — keep the destination listed but refuse publishing.
+
+Advanced options can restrict run kinds, pin a thread, and set per-destination rate limits.
+
+### Outbox and delivery review
+
+The durable **Outbox** keeps drafts, pending approvals, uncertain deliveries, and recent history. Every approval or retry shows the complete payload and destination, then rechecks the current route, run source, allowlists, rate limits, and global sending switch.
+
+An intent key prevents a repeated run from posting twice. If a timeout, crash, or ambiguous provider response leaves delivery unknown, Osaurus never retries automatically. You can inspect the item and mark it sent, discard it, or explicitly resend it. Unresolved items are retained; terminal history is removed after 30 days.
+
+## Tools and formatting
+
+Provider adapters expose the same `agent_channel_*` actions for diagnostics, discovery, reading, search, drafts, sends, replies, edits, deletes, typing, and reactions where supported. `agent_channel_list_connections` reports which actions are available and which require confirmation. Tools load on demand and are denied to external HTTP and MCP callers; they must run inside the app, where local policy and credentials are available.
+
+Agent Markdown is rendered for each destination:
+
+- Slack receives native Markdown; Discord receives its Markdown subset.
+- Telegram receives escaped Bot API HTML.
+- iMessage receives readable plain text instead of literal Markdown markers.
+
+Long output is split at block, line, then grapheme boundaries so code fences, links, and emoji stay intact. One logical send can create at most five native messages. Reactions accept familiar aliases or Unicode and are normalized for Slack, Discord, and Telegram. iMessage tapbacks are an advanced private-API action. Reactions use the same write allowlists, confirmation policy, and global sending switch as messages.
 
 ## Safe by default
 
-Channels are built so an agent — or someone messaging your agent from outside — can't overstep:
-
-- **Read and write allowlists.** A connection can only read rooms on its read allowlist and only write to rooms on its write allowlist. Writes also require the connection's `writeEnabled` flag. Discovery pickers are selection assistance only — they never grant access automatically.
-- **Confirmed writes.** `send_message` and `reply_thread` require an explicit confirmation (`confirm_send: true`) — an agent can draft freely but can't fire a message without it.
-- **Inbound authorization, deny by default.** Before any external message reaches an agent, it must pass a gate: a stable provider event id (no replays), an allowlisted server and room, an allowlisted sender, and no bot or self messages unless explicitly allowed. Anything else is dropped, with an audit reason recorded.
-- **Untrusted by construction.** Message content from a channel enters the agent as untrusted external data, never as instructions.
-- **Duplicate suppression.** Message state lives in a local store keyed by provider ids, so a replayed webhook or repeated read can't dispatch the same message twice. Write actions support idempotency keys so a retry can't double-post.
-- **Rate limits and reply-token proof.** A shared safety gate rate-limits remote senders and requires fresh reply-token proof before any dangerous remote approval — so a message in a shared room can't trigger privileged actions on your Mac.
-- **Redacted audit trail.** Every receive decision — accepted, denied, or duplicate — is recorded with a typed reason. An **Inbox & Audit workbench** in the connection center shows recent redacted snapshots, decision counts, and a copyable redacted JSON export, so you can always answer "why did (or didn't) my agent respond to that?"
+- **Separate read and write access.** Discovery only helps you choose; it never grants access. Reads, writes, and inbound senders each have explicit allowlists, and channel sending must be enabled.
+- **Global pause.** **Allow Agents to Send Messages** in Settings → Channels is the master switch for Replies and New Messages. Turning it off leaves allowlisted reading available but blocks every channel write.
+- **Deny-by-default inbound handling.** Incoming events need a stable provider event ID, an allowlisted server or workspace when applicable, an allowlisted conversation and sender, and no bot or self origin unless explicitly allowed.
+- **Untrusted content.** External message text and attachments enter agent context as untrusted data, not instructions.
+- **Confirmed provider writes.** Mutating `agent_channel_*` actions require the host's `confirm_send` proof. Interactive approvals, Reply Automatically, and Auto-send only supply that proof after their own policy checks pass.
+- **Replay and duplicate protection.** Provider events are deduplicated locally; outbound sends use durable intent or idempotency keys.
+- **Remote-action limits.** Authorized senders are rate-limited, and dangerous remote approvals require fresh reply-token proof.
+- **Redacted audit evidence.** **Activity** and the Inbox & Audit workbench record accepted, denied, duplicate, dispatched, and replied states. Exports omit raw provider payloads and apply best-effort redaction to known credential and personal-data shapes.
 
 ## Slack
 
-Slack receive runs over **Socket Mode** — no public webhook, no port forwarding. The guided setup walks through creating the app, saving the bot token and Socket Mode app token (stored in **Keychain**), picking channels and authorized senders from workspace discovery, and verifying a live inbound message.
+Slack receives through **Socket Mode**, so it needs no public webhook or port forwarding. The recommended app manifest includes the scopes, subscriptions, Socket Mode setup, and `always_online` flag used for Slack's green presence dot. Existing apps must reapply the manifest for that presence flag to take effect.
 
-Policy lives in `slack.json` (non-secret ids only):
+Save the bot token and App-Level token in Keychain, then choose readable and writable conversations and authorized senders from workspace discovery. Slack supports multiple workspaces; each keeps separate credentials, policy, and receive runtime. Unjoined channels are unavailable.
 
-- `readableChannelIds` / `writableChannelIds` — independent read and write choices per channel; unjoined channels are marked unavailable
-- `senderAllowlist` — which Slack users may trigger inbound handling; empty means inbound dispatch stays off until you pick people
-- `allowBroadcastMentions` — off by default; outbound messages containing `@channel` / `@here` / `@everyone` markup are rejected before any network call
-
-You can connect **multiple workspaces** from the same sheet — each keeps its own tokens, channel/sender policy, and Socket Mode runtime, and actions route through the token that owns the selected channel. Threads work through the canonical thread tools (Slack thread ids are `channel_id:thread_ts`). Outbound posting is conservative: name linking off, no unfurls, replies don't broadcast.
+Threads use the standard thread tools. Outbound posts do not unfurl links or broadcast thread replies, and broadcast mentions such as `@channel`, `@here`, and `@everyone` are blocked unless explicitly allowed.
 
 ## Telegram
 
-Telegram receive runs over **Bot API long polling**. The guided setup covers the BotFather commands, token validation, chat and sender allowlists, and a live verify step. Notes specific to Telegram:
+Telegram receives through **Bot API long polling**. The Bot API does not expose arbitrary prior history, so reads and searches use the local message store populated while receiving is active.
 
-- The Bot API doesn't let bots read arbitrary history, so `read_messages` / `search_messages` read from the **local message store** populated by the receive runtime.
-- Chat allowlists accept numeric ids and `@username` handles — but use numeric ids for private groups, since Telegram may omit the username on updates.
-- Long polling conflicts with an active webhook on the same bot token; setup flags that instead of silently receiving nothing.
+- Use numeric chat IDs for private groups; Telegram can omit an `@username` from updates.
+- An existing webhook conflicts with long polling. Setup can check and remove the webhook.
+- Telegram does not expose bot presence.
 
 ## Discord
 
-Discord receive uses cursor-based REST **polling** (the first poll establishes a cursor — no replay of history). The guided setup covers Developer Portal intents and the invite URL, then discovery-first pickers for servers, channels, and authorized senders (servers that restrict member listing keep a manual sender-ID fallback).
+Discord receives through cursor-based REST polling. The first poll establishes the cursor and does not replay history. Enable Message Content and Server Members intents in the Developer Portal, then choose servers, channels, and authorized senders. A manual sender-ID fallback remains available when member discovery is restricted.
 
-Policy fields: `configuredGuildIds` (servers it may inspect), `readableChannelIds`, `writableChannelIds`, `writeEnabled`, and `senderAllowlist`. The bot token lives in Keychain; the configuration stores only ids and policy. Read and write are independent explicit choices.
+REST polling alone leaves a Discord bot offline, so Osaurus also keeps a lightweight presence-only Gateway session while the app is running, including for send-only setups. Message receiving remains on REST polling.
+
+## iMessage
+
+iMessage is a native, local channel backed by this Mac's Messages app. It uses no bot token or remote service. From **Connect**, download the small `imsg` helper on demand. The helper release, archive, executable, and bridge digests are pinned in Osaurus; every launch verifies the installed executable before it can run.
+
+Basic setup has two permission paths:
+
+- **Send only:** download the helper, grant **Messages Automation**, enable iMessage sending, and choose writable chats. Full Disk Access and receiving are not required.
+- **Receive and reply:** also grant **Full Disk Access**, turn on **Receive Messages** and local message storage, load recent chats, choose readable chats, and allow the people whose messages may be handled. Messages.app must be signed in.
+
+Chat discovery reads the local Messages database and remains on the Mac. Searchable selectors show chat names, types, and participant handles; direct chat GUIDs and handles remain available under Advanced. The Test section verifies the local watch stream from a fresh authorized iMessage.
+
+### Advanced iMessage actions
+
+:::warning
+Editing, unsending, tapbacks, typing indicators, attachments, effects, polls, and group changes use Apple's private iMessage APIs. They require **System Integrity Protection (SIP)** and **Library Validation** to be disabled, which is a significant system-wide security reduction. Osaurus only diagnoses this state and never changes either protection. Use these actions only on a dedicated Mac.
+:::
+
+Basic send and receive continue to work with SIP and Library Validation enabled. Advanced actions have a separate master switch and per-action switches, and every mutation still passes the normal confirmation and write gates.
 
 ## Custom JSON channels
 
-For services with a simple JSON API, you can define a channel in configuration alone — no code. Each action maps to one of the standard verbs and describes an HTTP request template:
+Use **Custom JSON** to map standard channel actions to HTTP request and response templates without writing a plugin. **Check Configuration** validates URLs, action maps, allowlists, response mappings, idempotency, and Keychain secret references without making a network request.
 
-```json
-{
-  "id": "ops-webhook",
-  "name": "Ops Webhook",
-  "kind": "custom_http",
-  "supportedActions": ["diagnostics", "send_message"],
-  "writeEnabled": true,
-  "writeRoomAllowlist": ["alerts"],
-  "inboundAuthorization": {
-    "senderAllowlist": ["user-1"],
-    "roomAllowlist": ["alerts"],
-    "allowBotMessages": false,
-    "requireProviderEventId": true
-  },
-  "secrets": [{ "name": "bearer", "keychainId": "ops_webhook_token" }],
-  "customHTTP": {
-    "baseURL": "https://hooks.example.test",
-    "actions": {
-      "send_message": {
-        "method": "POST",
-        "path": "/rooms/{{input.room_id}}/messages",
-        "headers": { "Authorization": "Bearer {{secret.bearer}}" },
-        "bodyTemplate": "{\"text\":{{input.content}}}"
-      }
-    }
-  }
-}
-```
-
-The custom-channel sheet is a stepped editor with required fields labeled, editable inbound authorization (sender/room allowlists, bot/self toggles), and a pre-save **Check Configuration** validator that flags bad URLs, invalid action maps, empty write allowlists, and malformed secret references before anything is saved.
-
-The runner is a bounded HTTP adapter, not a general web client:
+The runner is a bounded connector, not a general web client:
 
 - HTTPS required (unless explicitly overridden), hosts and methods allowlisted, redirects disabled
 - Localhost, private ranges, and cloud-metadata addresses are refused before dispatch
@@ -124,7 +139,7 @@ The runner is a bounded HTTP adapter, not a general web client:
 - Template placeholders render as safe JSON literals, so user content can't inject into sibling fields
 - Repeated writes with the same idempotency key are suppressed (`duplicate_suppressed`) instead of double-posting
 
-Configuration lives in `agent-channels.json`; message state and the audit ledger live in `agent-channels/messages.sqlite`, stored through the same SQLCipher-aware storage stack as chat history (see [Storage](/storage)).
+Custom JSON definitions and proactive destination bindings live in `agent-channels.json`; native provider policy uses its provider-specific configuration. Message, audit, and Outbox state lives in `agent-channels/messages.sqlite`, using the same SQLCipher-aware storage stack as chat history (see [Storage](/storage)).
 
 ---
 

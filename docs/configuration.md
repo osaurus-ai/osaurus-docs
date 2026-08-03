@@ -48,6 +48,10 @@ When you `--expose`, anyone on your network can reach your Osaurus. Use access k
 
 Each agent has a tool mode in its **Capabilities** settings. In **Auto** mode (the default), the model starts with a small always-loaded set and pulls in more of your enabled tools, skills, and methods on demand via `capabilities_discover` / `capabilities_load`. In **Manual** mode, all enabled capabilities are sent every turn at the cost of larger system prompts. [Skills →](/skills) · [Methods →](/methods)
 
+## Chat
+
+**Management → Settings → Chat → Compaction Model** selects the model used to summarize older messages when a conversation approaches its context limit. Local, Foundation, and remote models are supported; remote compaction requests honor your [Privacy Filter](/privacy-filter) settings. If unset, Osaurus asks you to choose a model the first time compaction runs rather than silently using the active chat model. [Chat compaction →](/chat#context-compaction)
+
 ## Memory
 
 Memory is on by default, with ten settings. Edit them in **Management → Memory** or in `~/.osaurus/config/memory.json`:
@@ -80,7 +84,11 @@ Memory is on by default, with ten settings. Edit them in **Management → Memory
 
 ### Concurrency & Batching
 
-**Server → Settings → Concurrency & Batching** controls same-model concurrency. With **Continuous Batching** off (the default), the batch size is pinned to `1` — that deliberately keeps vmlx's compiled-decode fast path engaged for single-user chat. Turning it on lets **Max Concurrent Sequences** raise the ceiling (clamped to 32) for server-style multi-user deployments, at the cost of the compile speedup and more wired memory.
+**Server → Settings → Concurrency & Batching → Concurrent Sessions** is the shared concurrency limit for same-model requests and subagent batches. The same value appears in Main Chat Spawn and every agent's **Max subagents per batch** control; editing either surface updates the canonical limit.
+
+Leave the field empty for **Automatic**, which resolves a safe value from the active Memory Safety profile. Values are clamped to 1–32. RAM admission, current engine occupancy, and local-model residency can still split a subagent batch into smaller waves.
+
+With **Continuous Batching** off (the default), each local model is pinned to one active job even when Concurrent Sessions is higher. Turning it on allows same-model requests to decode together. A limit of `1` keeps vmlx's compiled-decode fast path; higher limits trade that speedup and additional wired memory for throughput. Remote jobs can still overlap when local continuous batching is off.
 
 The legacy `defaults` knob still works when no runtime setting is present:
 
@@ -88,7 +96,7 @@ The legacy `defaults` knob still works when no runtime setting is present:
 defaults write ai.osaurus ai.osaurus.scheduler.mlxBatchEngineMaxBatchSize -int 8
 ```
 
-Default `1`, clamped to `[1, 32]`. [Inference Runtime details →](/inference-runtime)
+The legacy value is clamped to `[1, 32]`; the Server setting takes precedence. [Inference Runtime details →](/inference-runtime)
 
 ## Sandbox
 

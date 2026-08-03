@@ -83,14 +83,14 @@ flowchart TB
 | **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
 | **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
-| **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use)), 20+ native plugins (Mail, Calendar, Vision, Git, …), remote MCP aggregation, the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
+| **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use)), registry plugins, remote MCP aggregation, and the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
 | **Foundations** | Identity (signed requests, `osk-v1` keys), local storage (opt-in SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
 
 ## Entry points
 
 ### Chat overlay
 
-A glass-style overlay summoned with `⌘;` from anywhere on macOS. Holds zero, one, or many chat windows. Each window has its own active agent, working folder / Sandbox state, model selection, and conversation history. Multi-window mode lets you run several agents side by side.
+A glass-style overlay summoned with `⌘;` from anywhere on macOS. Holds zero, one, or many chat windows. Each window has its own active agent, trusted-folder / Sandbox mode, model selection, and conversation history. Multi-window mode lets you run several agents side by side.
 
 The overlay is also where voice input lives: the microphone in the input bar, plus VAD wake-word activation and global Transcription Mode.
 

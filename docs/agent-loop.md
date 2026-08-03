@@ -1,7 +1,7 @@
 ---
 title: Tasks
 sidebar_label: Tasks
-description: What happens when you ask Osaurus to do something — a live to-do list, real tool calls, artifact cards — plus the working folder and Sandbox power-ups.
+description: What happens when you ask Osaurus to do something — a live to-do list, real tool calls, artifact cards — plus trusted-folder and Sandbox modes.
 ---
 
 # Tasks
@@ -38,20 +38,20 @@ Every chat has this built in. The same chat window handles a quick question or a
 
 Three special tools drive that experience: a "todo" tool publishes the live checklist, a "clarify" tool pauses to ask one critical question, and a "complete" tool ends the run with a verified summary. None of this needs configuration. (For the formal schemas, see [Tool Contract → Loop tools](/tool-contract#loop-tools).)
 
-## Power-ups: working folder and Sandbox
+## Power-ups: trusted folder or Sandbox
 
-By default, the agent has a strong general tool kit selected automatically based on your message — web search, fetch, your installed plugins. Two toggles on the chat input bar give it more:
+By default, the agent has a strong general tool kit selected automatically based on your message — web search, fetch, your installed plugins. Two choices on the chat input bar give it more:
 
 | Power-up | What it adds | When to use |
 |---|---|---|
-| **Working folder** | Scoped file/search/git tools for one folder | Editing code in a real repo, reorganizing a directory, summarizing a project |
+| **Trusted folder** | Scoped file/search/git tools for one folder | Editing code in a real repo, reorganizing a directory, summarizing a project |
 | **Sandbox** | Shell access in an isolated environment — a Linux VM on macOS 26+, a Seatbelt-confined host runner on macOS 15 | Running scripts, installing packages, scraping URLs, building/testing |
 
-You can enable either, or **both at once**. In combined mode the agent reads your folder on the host while all execution happens in the sandbox — see [Combined mode](#combined-mode-folder--sandbox) below.
+These modes are **mutually exclusive**. Selecting a folder uses trusted-folder mode and disables Sandbox for that agent. Enabling Sandbox is also agent-scoped: it clears folder selections from visible chats using that agent, so host paths and folder tools disappear. Turn Sandbox off and reselect a folder when you want trusted-folder access again.
 
-### Pick a working folder
+### Pick a trusted folder
 
-Click the folder icon next to the input bar and pick a folder. The agent loads the folder's tree, manifest, and git status, and gets file tools scoped to just that folder:
+Click the folder icon next to the input bar and pick a folder. The agent loads the folder's tree, manifest, and git status, and gets file tools scoped to just that folder. If Sandbox was active, folder selection switches the chat back to trusted-folder mode.
 
 | Tool | What it does |
 |---|---|
@@ -80,14 +80,7 @@ What's available inside (Linux VM):
 
 Read-only sandbox tools are always available. Write, exec, install, and secret tools require `autonomous_exec` enabled on the agent.
 
-### Combined mode (folder + Sandbox)
-
-With a working folder *and* the Sandbox enabled, the agent gets both filesystems with a deliberate trust boundary between them:
-
-- Your folder is exposed **read-only** on the host (`file_read` / `file_search`) by default; host shell and git tools stay hidden. Two per-agent opt-ins loosen this: **Edit Folder Files** allows creating and editing folder files (tracked and undoable in Changes), and **Read Secret Files** allows reading `.env` / keys / credentials — both off by default (see [Sandbox permissions](/agents#sandbox-permissions)).
-- All execution happens in the sandbox, which has **no mount** of your folder — sandboxed code can never touch it directly.
-- **`file_copy`** bridges the two: it copies raw bytes between the workspace and the sandbox (the only way binary files like PDFs, images, or archives cross the boundary — nothing passes through the conversation).
-- Changes are tracked per chat in a **Changes** view with conflict-aware undo: anything modified afterwards by another chat or by you is flagged as conflicted instead of being overwritten.
+Sandbox mode never exposes or mounts a host folder. Turn Sandbox off and choose the folder again to return to trusted-folder mode.
 
 ## Sharing artifacts
 
@@ -99,15 +92,14 @@ Artifacts are persisted under `~/.osaurus/artifacts/{session}/` and rendered inl
 
 | You want to… | Mode |
 |---|---|
-| Ask a question, summarize, brainstorm | Plain (no folder, no sandbox) |
-| Edit code in a real repo | Working folder |
+| Ask a question, summarize, brainstorm | Plain (no folder, no Sandbox) |
+| Edit code in a real repo | Trusted folder |
 | Run a script, scrape a URL, install a package, build/test | Sandbox |
-| Analyze or process files from a project without letting code touch it | Working folder + Sandbox (combined) |
 
 ## Best practices
 
 - **Be specific.** "Add a logout button to the navbar" beats "update the UI".
-- **Pick the right power-up.** Working folder for code in a real repo. Sandbox for "run this", "scrape that", "install this". Neither for plain Q&A.
+- **Pick the right power-up.** Trusted folder for code in a real repo. Sandbox for "run this", "scrape that", "install this". Switch between them when a task needs the other environment.
 - **Trust the live checklist.** Watch it as the agent works — you'll catch anything heading the wrong direction early.
 - **Trust the "Completed" summary.** If the task is partial, the agent will say so honestly — vague summaries like "done" or "looks good" are rejected.
 
@@ -117,7 +109,7 @@ Plugins, schedules, watchers, and the HTTP API all dispatch the same task experi
 
 **Related:**
 
-- [Sandbox Internals](/sandbox) — VM, plugin recipes, host bridge, security
+- [Sandbox Internals](/sandbox) — VM, plugin recipes, and security
 - [Tools & Plugins](/tools) — what tools exist and how they're built
 - [Tool Contract](/tool-contract) — the success/failure envelope every tool returns; full loop-tool schemas
 - [Agents](/agents) — `autonomous_exec` flag and per-agent settings

@@ -1,18 +1,18 @@
 ---
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
-description: Twenty-plus native Swift/Rust plugins across an append-only v1–v6 host ABI. Agents start with a small hot set and discover more tools on demand.
+description: Built-in tools, native Swift/Rust plugins, remote MCP providers, and an append-only v1–v6 host ABI.
 ---
 
 # Tools & Plugins
 
-Osaurus ships with 20+ native plugins for everything from filesystem operations to Mail, Calendar, Git, and Vision. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client** — aggregate tools from remote MCP servers alongside locally installed plugins.
+Osaurus combines built-in tools, native plugins from its registry, and tools from remote MCP providers. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client**.
 
 In the default **Auto** mode, agents start each session with a small always-loaded set of tools and pull in more from your enabled capabilities on demand — the same discovery mechanism that loads skills and methods. See [Skills](/skills) and [Methods](/methods) for how that works.
 
 ## Why Native Tools?
 
-Osaurus tools are pure native **Swift and Rust** implementations—not Python scripts running through interpreters. This matters for production AI agents:
+Osaurus's built-in and native-plugin tools are compiled **Swift and Rust** implementations, not Python plugin scripts running through interpreters. This matters for production AI agents:
 
 | Aspect           | Python/uv MCPs                                      | Native Swift Tools                               |
 | ---------------- | --------------------------------------------------- | ------------------------------------------------ |
@@ -23,28 +23,23 @@ Osaurus tools are pure native **Swift and Rust** implementations—not Python sc
 
 For agents that make dozens of tool calls per session, these differences compound.
 
-## Official System Tools
+## Built-in Osaurus assistant tools
 
-These tools are maintained by the Osaurus team and available from the central registry:
+The built-in **Osaurus** assistant has a read-only agent definition and serves as a configure-and-explain surface. Its read tools are always available:
 
-| Plugin ID            | Description                      |
-| -------------------- | -------------------------------- |
-| `osaurus.files`      | File system operations           |
-| `osaurus.shell`      | Run shell commands               |
-| `osaurus.git`        | Git repository utilities         |
-| `osaurus.fetch`      | HTTP client for web requests     |
-| `osaurus.mail`       | Apple Mail integration           |
-| `osaurus.calendar`   | Calendar events                  |
-| `osaurus.reminders`  | Apple Reminders                  |
-| `osaurus.messages`   | Apple Messages                   |
-| `osaurus.vision`     | Image analysis and OCR           |
-| `osaurus.xlsx`       | Excel / CSV spreadsheet operations |
-| `osaurus.pptx`       | PowerPoint presentation tools    |
-| `osaurus.music`      | Apple Music control              |
+- `osaurus_status` summarizes the default agent, server, models, providers, MCP, plugins, schedules, watchers, skills, knowledge, channels, memory, and Sandbox, then suggests useful next steps.
+- `osaurus_list` and `osaurus_describe` inspect agents, models, providers, MCP providers, plugins, schedules, skills, watchers, knowledge collections, themes, slash commands, channels, and search providers.
+- `osaurus_help` lists or reads the bundled `guide-*` topics, so product explanations are grounded in the guide shipped with the app rather than model memory.
 
-Browse the full, current catalog (with each plugin's tool list) in **Management → Plugins**, or search it with `osaurus tools search`.
+Permissioned change tools let the assistant configure Osaurus after a one-tap approval. `osaurus_settings` reads or changes supported server, default-agent, chat, app, memory, and voice settings. `osaurus_watcher` creates, updates, enables, disables, or deletes folder watchers. Other helpers manage custom agents, models, providers, MCP, search providers, plugins, and schedules. Custom-agent updates include supported capability toggles, and a schedule update can move that schedule to another custom agent.
 
-A few capabilities that used to be plugins are now **built in**: [web search](/web-search) (replacing `osaurus.search`), [browser automation](/browser-use) (replacing `osaurus.browser`), the clock (`get_current_time`), and [Computer Use](/computer-use) (macOS UI automation) all ship with the app rather than installing as `osaurus.*` plugins. Existing installs of a superseded plugin keep their card in Settings → Plugins with a "Built into Osaurus" banner, but their tools no longer load.
+Security-sensitive controls such as delegation budgets, autonomy ceilings, identity and pairing keys, privacy settings, and blanket tool approval remain UI-only.
+
+## Native plugin catalog
+
+The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Management → Plugins**, or search it with `osaurus tools search`.
+
+[Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), and [Computer Use](/computer-use) ship as built-in capabilities rather than registry plugins.
 
 ## Installing Tools
 
@@ -52,10 +47,10 @@ Use the Osaurus CLI to manage tools:
 
 ```bash
 # Install a tool from the registry
-osaurus tools install osaurus.files
+osaurus tools install <plugin-id>
 
 # Install multiple tools
-osaurus tools install osaurus.git osaurus.vision
+osaurus tools install <plugin-id> <another-plugin-id>
 
 # List installed tools
 osaurus tools list
@@ -64,7 +59,7 @@ osaurus tools list
 osaurus tools search calendar
 
 # Uninstall a tool
-osaurus tools uninstall osaurus.time
+osaurus tools uninstall <plugin-id>
 
 # Dev mode with hot reload
 osaurus tools dev com.acme.my-plugin

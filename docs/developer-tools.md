@@ -253,12 +253,16 @@ Currently env-gated:
 
 ### CI cache controls
 
-The `test-core` job caches `~/Library/Developer/Xcode/DerivedData` keyed on Swift sources, manifests, resources, the pinned Xcode version, and a manual `CACHE_SALT`. Two recovery levers:
+Treat the pinned [`ci.yml`](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/.github/workflows/ci.yml) as the source of truth; cache keys and salts are implementation details and change over time.
 
-1. **One-shot cold build** — trigger CI manually via the **Run workflow** button and check `clear_cache`. Skips the restore for that one run.
-2. **Permanent bust** — bump `CACHE_SALT` (currently `v2-vmlx-5b84387`) at the top of `.github/workflows/ci.yml` and merge. Every cache key invalidates immediately.
+At the documented baseline, `test-core`:
 
-The cache only **saves** on `main` pushes — PRs read from it but never overwrite, so a half-baked branch can't poison everyone.
+- caches Swift package sources separately from Xcode build products;
+- restores `DerivedData` only for an exact-key `main` push or manual run;
+- cold-builds `DerivedData` for pull requests, re-runs, and manual runs with `clear_cache`;
+- saves successful `DerivedData` results only on `main`.
+
+Use **Run workflow → `clear_cache`** for a one-shot cold build. Maintainers can change the workflow's cache salt for a repository-wide invalidation, but documentation should not pin its current value.
 
 ### Where the logs live
 

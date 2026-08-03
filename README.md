@@ -38,6 +38,26 @@ npm run serve
 npm run typecheck
 ```
 
+## Sync with upstream
+
+`upstream-baseline.json` records the Osaurus source and stable release covered by these docs. Before a refresh:
+
+```bash
+UPSTREAM=osaurus-ai/osaurus
+BASE=$(jq -r .documented_commit upstream-baseline.json)
+DOCUMENTED_RELEASE=$(jq -r .documented_release upstream-baseline.json)
+LATEST_RELEASE=$(gh release view --repo "$UPSTREAM" --json tagName --jq .tagName)
+DOCUMENTED_RELEASE_SHA=$(gh api "repos/$UPSTREAM/commits/$DOCUMENTED_RELEASE" --jq .sha)
+
+gh release view "$LATEST_RELEASE" --repo "$UPSTREAM"
+gh api "repos/$UPSTREAM/compare/$BASE...main" \
+  --jq '{status, ahead_by, commits: [.commits[] | {sha, message: .commit.message}]}'
+gh api "repos/$UPSTREAM/compare/$DOCUMENTED_RELEASE_SHA...$BASE" \
+  --jq '{status, ahead_by, commits: [.commits[] | {sha, message: .commit.message}]}'
+```
+
+The first comparison finds drift since the last review. The second identifies behavior documented from `main` but not yet present in the recorded stable release, so those claims can be labeled clearly. Reconcile every affected document against the latest stable release and source diff, then run `npm run typecheck` and `npm run build`. Advance the baseline only after that review and both gates complete successfully.
+
 ## Project layout
 
 | Path | Purpose |
