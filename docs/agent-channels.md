@@ -38,6 +38,14 @@ Channels are built so an agent — or someone messaging your agent from outside 
 - **Rate limits and reply-token proof.** A shared safety gate rate-limits remote senders and requires fresh reply-token proof before any dangerous remote approval — so a message in a shared room can't trigger privileged actions on your Mac.
 - **Redacted audit trail.** Every receive decision — accepted, denied, or duplicate — is recorded with a typed reason, and exports are scrubbed of secrets, so you can always answer "why did (or didn't) my agent respond to that?"
 
+## Replying to incoming messages
+
+When an incoming channel message dispatches an agent, the agent's response is delivered back to the channel by the app itself — and only when the connection's **Reply Automatically** toggle is on. With it off, incoming messages still run the agent, but the reply stays local in Osaurus; the connection's activity list records the turn as "Agent replied (auto-reply off)" and the settings pane shows a warning under the toggle.
+
+Runs triggered by an inbound channel message deliberately cannot post through the `agent_channel_*` write tools or proactive destination bindings: an outside sender must never be able to steer your agent into publishing somewhere else. (This gate is enforced from 0.22.17 on — earlier versions let channel-triggered runs reply through the channel tools, so setups that relied on that need Reply Automatically enabled after upgrading.)
+
+Auto-replies are sanitized before posting and still respect the platform's write gates and allowlists.
+
 ## Discord
 
 Discord is the first native connection. The bot token lives in your macOS **Keychain** — the JSON configuration stores only non-secret ids and policy. Discord connections use their own field names:
