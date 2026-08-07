@@ -102,6 +102,14 @@ Telegram receives through **Bot API long polling**. The Bot API does not expose 
 - An existing webhook conflicts with long polling. Setup can check and remove the webhook.
 - Telegram does not expose bot presence.
 
+## Replying to incoming messages
+
+When an incoming channel message dispatches an agent, the agent's response is delivered back to the channel by the app itself — and only when the connection's **Reply Automatically** toggle is on. With it off, incoming messages still run the agent, but the reply stays local in Osaurus; the connection's activity list records the turn as "Agent replied (auto-reply off)" and the settings pane shows a warning under the toggle.
+
+Runs triggered by an inbound channel message deliberately cannot post through the `agent_channel_*` write tools or proactive destination bindings: an outside sender must never be able to steer your agent into publishing somewhere else. (This gate is enforced from 0.22.17 on — earlier versions let channel-triggered runs reply through the channel tools, so setups that relied on that need Reply Automatically enabled after upgrading.)
+
+Auto-replies are sanitized before posting and still respect the platform's write gates and allowlists.
+
 ## Discord
 
 Discord receives through cursor-based REST polling. The first poll establishes the cursor and does not replay history. Enable Message Content and Server Members intents in the Developer Portal, then choose servers, channels, and authorized senders. A manual sender-ID fallback remains available when member discovery is restricted.
