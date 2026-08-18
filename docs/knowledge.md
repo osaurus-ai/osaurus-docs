@@ -72,6 +72,8 @@ Grants are per-agent and explicit, and there are two places to manage them:
 
 An agent can only ever search and read collections it's been granted — the grant is enforced when tools execute, not just hidden from the schema. Deleting a collection removes its index and grants; the source folder on disk is never touched.
 
+You can also grant a collection to a whole **[project](projects.md)**, in which case every chat in that project can search it — regardless of the chatting agent's own knowledge settings.
+
 The Abilities context estimate includes the cost of the knowledge tools and grant manifest, so you can see what enabling it adds to the agent's startup context.
 
 ## The agent's tools
