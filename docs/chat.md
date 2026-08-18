@@ -63,6 +63,8 @@ Each session shows:
 
 The badge filter rail across the top lets you narrow by source. It hides itself when only one source is present.
 
+The sidebar has two lenses at the top: **Chats** (your history) and **Projects**. Switch to Projects to group related chats so they share instructions, knowledge, and memory — see [Projects](projects.md). Right-click any chat to **Move to Project**.
+
 ### Active conversations
 
 History floats active conversations to the top. A row shows **Running…** while work is active or queued, and **Needs your input** when the agent is waiting on a clarification or secret prompt. Use the row's visible **Stop** control (or right-click → **Stop**) to halt that run without opening it first.

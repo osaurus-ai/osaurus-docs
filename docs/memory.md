@@ -85,6 +85,8 @@ Done. The next message in any chat with this agent will include it.
 
 Each agent has its own memory. Your Code Assistant doesn't carry over context from your Therapy Buddy. Identity overrides are also per-agent unless you set them globally. If you want a fully stateless agent, flip **Disable memory** on it — nothing is injected on read, nothing is recorded on write. [Agents →](/agents)
 
+The exception is a **[project](projects.md)**: chats inside a project share one memory pool across every agent used there, so a fact from one chat is recalled in another — immediately, and even by agents whose own memory is off (they read and add to the project's pool without building any personal memory).
+
 ## Privacy
 
 Everything stays on your Mac:
