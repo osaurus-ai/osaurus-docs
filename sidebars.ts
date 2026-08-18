@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
       items: [
         { type: "doc", id: "chat", label: "Chat" },
         { type: "doc", id: "agents", label: "Agents" },
+        { type: "doc", id: "projects", label: "Projects" },
         { type: "doc", id: "agent-loop", label: "Tasks" },
         { type: "doc", id: "subagents", label: "Subagents" },
         { type: "doc", id: "image-generation", label: "Image Generation" },
