@@ -18,8 +18,8 @@ Imported plugins live in the **Plugins** management tab alongside Osaurus's nati
 | `skills/<name>/scripts`, `references`, `assets`, `templates` | Skill references/assets | Attached to the owning skill |
 | `agents/<name>.md` | A schedule (disabled until a cadence is set) | Management → Schedules |
 | `commands/<name>.md` | A slash command | The chat input |
-| `.mcp.json` (HTTP/SSE) | An MCP provider | Management → Providers (MCP) |
-| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Management → Providers (MCP) |
+| `.mcp.json` (HTTP/SSE) | An MCP provider | Management → Tools → Connections |
+| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Management → Tools → Connections |
 | `CLAUDE.md`, `CONNECTORS.md`, `README.md` | Reference files | Attached to every imported skill |
 
 Once imported, skills, references, slash commands, and MCP tools are discovered and loaded on demand through the same capability discovery used for built-in [skills](/skills) — there's nothing extra to wire up. `SKILL.md` bodies that point at `${CLAUDE_PLUGIN_ROOT}/…` paths or relative links are rewritten at import time to the local files Osaurus bundled.
