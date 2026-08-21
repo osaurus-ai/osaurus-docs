@@ -20,11 +20,15 @@ Where [Remote Providers](/remote-providers) provide *inference* (cloud models), 
 ## Adding an MCP provider
 
 1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Providers** → scroll to the **MCP Providers** section
-3. Click **Add MCP Provider**
-4. Enter the server URL
-5. Configure authentication if required
-6. Click **Save**
+2. Click **Tools** in the sidebar (under Agents & Automation), then open the **Connections** tab
+3. Click **+ Add Provider**
+4. Pick a service from the catalog, or choose **Custom Server** to enter your own URL
+5. Configure authentication if required (OAuth sign-in, API key, or none)
+6. Click **Add Provider**
+
+:::note
+Use the **Tools** sidebar item, not the top-level **Providers** item. **Providers** manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools → Connections**.
+:::
 
 ## Configuration
 
