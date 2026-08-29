@@ -53,10 +53,14 @@ vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server �
 | **Prefix Cache** | Master switch for content-addressed prompt reuse. Turning it off also disables GPU and SSD reuse. |
 | **GPU Cache (Paged KV)** | Optional hot prefix tier in unified memory. Some hybrid cache topologies are not page-compatible. |
 | **SSD Cache (L2)** | Persists prompt checkpoints across requests and restarts, even when GPU Cache is off. The default path is `~/.osaurus/cache/kv_v2/`. |
+| **Disk Cache Size (% of disk)** | Shared cap for every model on the cache volume. Blank resolves to 10% of capacity; at model load the runtime also limits use to 25% of currently free space. |
+| **Clear SSD Cache** | Safely locks cache I/O, removes indexed checkpoints and orphaned payload files, and reclaims the space. |
 | **KV Retention Override** | Explicit per-session retention cap; blank uses the active Memory Safety profile. This is separate from the model's context maximum. |
 | **On-the-fly Compression** | `Engine Selected` keeps native cache types. TurboQuant is an explicit opt-in and is not forced onto hybrid or companion caches. |
 
-Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory, ownership problem, or full disk disables the disk tier rather than writing elsewhere. Current main, after 0.22.15, logs the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
+Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory, ownership problem, or full disk disables the disk tier rather than writing elsewhere. The diagnostics log the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
+
+The cap is root-wide, not per model. At model load it is constrained to 25% of currently free disk, and the SSD tier is disabled when that allowance is below 1 GB. The Context Budget popover shows used space and the resolved cap while it is open; after 75% it warns that older checkpoints may be evicted and long chats may need to prefill again. Existing installs migrate from the old flat 10 GB default to percentage sizing once, while a deliberate later choice remains yours.
 
 ### Multi-turn KV cache reuse
 
@@ -74,7 +78,22 @@ The deterministic last-resort trimmer also keeps its decisions sticky within a r
 
 DeepSeek V4 Flash uses a hybrid, paged-incompatible cache topology. Its SSD L2 tier is therefore the only cross-request prefix-reuse tier; if Disk Cache is disabled or its directory is not writable, every tool round must prefill the growing transcript again.
 
-Current main, after 0.22.15, also rejects inconsistent SSD checkpoints before storing them. If DSV4 reasoning began looping or degrading after cache restores on an older build, update and clear the SSD KV cache once so pre-fix entries cannot be reused.
+Osaurus also rejects inconsistent SSD checkpoints before storing them. If DSV4 reasoning began looping or degrading after cache restores on an older build, update and clear the SSD KV cache once so pre-fix entries cannot be reused.
+
+## Sampling and speculative decoding
+
+Effective local generation settings resolve in this order:
+
+1. values supplied by the request or agent;
+2. your **Server → Settings → Sampling Defaults**;
+3. the model bundle's `generation_config.json`; and
+4. vmlx engine defaults.
+
+Leaving a user default blank is what lets the model value win. An explicit `temperature: 0` selects greedy decoding and makes top-p, top-k, and min-p inert. Presence and frequency penalties resolve from a per-request value and then the model bundle; they do not have user-default fields.
+
+**Server → Settings → Live Activity → Sampler last used** shows the exact temperature, top-p, top-k, min-p, maximum output, and repetition penalty that ran for each model. Warm-up prefills are excluded so the row describes a real request.
+
+For compatible models, speculative controls include an MTP mode/depth and a validated **DFlash 2** drafter selection. Changing these controls may reload the model so the next launch plan uses the new speculative path.
 
 ## Concurrency
 
@@ -90,6 +109,8 @@ Current main, after 0.22.15, also rejects inconsistent SSD checkpoints before st
 ### Live diagnostics
 
 Open **Server → Settings → Live Activity** for a read-only BatchEngine snapshot that refreshes every two seconds. It reports active and queued slots, per-model configured capacity, high-water marks, engine status, loaded/cache-enabled models, prefix hits and misses, SSD L2 hits/misses/stores, paged evictions, TurboQuant compressions, and hybrid SSM re-derivations. No model loaded means there is no engine snapshot yet.
+
+When macOS swap pressure becomes unsafe for local inference, chat shows a warning with unload and recovery guidance. Treat it as a host-memory signal: stop or unload large local models, close other memory-heavy apps, and retry after pressure falls.
 
 ## Model loading and eviction
 
@@ -108,7 +129,7 @@ Configurable in **Management → Server → Settings → Model Memory:**
 
 ### Idle residency
 
-**Settings → Local Inference → Model Management → Keep model loaded after use** controls how long weights stay resident after the last stream releases its lease. The default is **15 minutes**, so follow-up turns don't pay a full cold load; choices are 5/15/30/60 minutes, **Immediately** (the old window-close GC behavior, still useful on low-memory Macs), or **Never**.
+**Management → Server → Settings → Model Management → Keep model loaded after use** controls how long weights stay resident after the last stream releases its lease. The default is **15 minutes**, so follow-up turns don't pay a full cold load; choices are 5/15/30/60 minutes, **Immediately** (the old window-close GC behavior, still useful on low-memory Macs), or **Never**.
 
 This is a memory-residency policy only — it unloads weights and runtime buffers, never downloaded models or disk KV-cache entries. Strict single-model eviction, manual unload, app quit, and memory cleanup still win over idle timers. `/health` reports `resident_models[]` with per-model `idle_unload_at` and `idle_seconds_remaining`.
 

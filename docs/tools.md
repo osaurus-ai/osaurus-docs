@@ -23,21 +23,29 @@ Osaurus's built-in and native-plugin tools are compiled **Swift and Rust** imple
 
 For agents that make dozens of tool calls per session, these differences compound.
 
-## Built-in Osaurus assistant tools
+## Built-in Orchestrator tools
 
-The built-in **Osaurus** assistant has a read-only agent definition and serves as a configure-and-explain surface. Its read tools are always available:
+The built-in **Osaurus Orchestrator** has a read-only agent definition and a compact management surface:
 
-- `osaurus_status` summarizes the default agent, server, models, providers, MCP, plugins, schedules, watchers, skills, knowledge, channels, memory, and Sandbox, then suggests useful next steps.
-- `osaurus_list` and `osaurus_describe` inspect agents, models, providers, MCP providers, plugins, schedules, skills, watchers, knowledge collections, themes, slash commands, channels, and search providers.
+- `osaurus_inspect` reads current state and describes agents, models, providers, MCP, native and Claude plugins, schedules, watchers, skills, knowledge, channels, memory, Sandbox, settings, and the declarative configuration schema.
+- `osaurus_config` validates and applies approval-gated configuration changes. It can create a specialist agent and activate that agent for delegation in the same chat turn.
 - `osaurus_help` lists or reads the bundled `guide-*` topics, so product explanations are grounded in the guide shipped with the app rather than model memory.
 
-Permissioned change tools let the assistant configure Osaurus after a one-tap approval. `osaurus_settings` reads or changes supported server, default-agent, chat, app, memory, and voice settings. `osaurus_watcher` creates, updates, enables, disables, or deletes folder watchers. Other helpers manage custom agents, models, providers, MCP, search providers, plugins, and schedules. Custom-agent updates include supported capability toggles, and a schedule update can move that schedule to another custom agent.
+The same desired-state model is available through [`osaurus config`](/configuration#declarative-configuration), loopback HTTP, and YAML or JSON files. Sensitive controls that are intentionally outside the declarative schema remain UI-only.
 
 Security-sensitive controls such as delegation budgets, autonomy ceilings, identity and pairing keys, privacy settings, and blanket tool approval remain UI-only.
 
 ## Native plugin catalog
 
-The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Management → Plugins**, or search it with `osaurus tools search`.
+The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Management → Tools → Native Plugins**, or search it with `osaurus tools search`.
+
+The Tools manager has three tabs:
+
+- **All Tools** — a flattened inventory grouped by source, with per-agent permission controls.
+- **MCP** — connections to external MCP servers.
+- **Native Plugins** — installed and available compiled plugins.
+
+There is no global **Disable Tools** switch. Tool availability is configured per agent under **Abilities → Overview** and **Abilities → Tools**.
 
 [Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), and [Computer Use](/computer-use) ship as built-in capabilities rather than registry plugins.
 
@@ -217,7 +225,7 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 ### Adding a Remote MCP Provider
 
 1. Open the Management window (`⌘ ⇧ M`)
-2. Navigate to **MCP Providers**
+2. Navigate to **Tools → MCP**
 3. Click **Add Provider**
 4. Enter the provider details
 

@@ -97,7 +97,11 @@ References ride along on both delivery paths: `/skill-name` invocation includes 
 
 ## Managing the library
 
-The Skills view groups the library by source — **All**, **Built-in**, **Yours**, and **From Plugins**:
+The Skills view has three tabs:
+
+- **All** — built-in, custom, and imported skills in one library.
+- **Custom** — skills you created or imported directly.
+- **Claude Plugins** — installed Claude plugin bundles and the skills they supplied.
 
 | Action | How |
 |---|---|
@@ -105,7 +109,7 @@ The Skills view groups the library by source — **All**, **Built-in**, **Yours*
 | **Export** | Expand a skill → **Export** → JSON, Markdown, or ZIP |
 | **Delete** | **Delete** on a custom skill. Built-ins can't be deleted; plugin skills are removed by uninstalling their plugin. |
 
-When you've imported a full Claude plugin, an **Installed Plugins** card at the top of the view shows each plugin with chips for its skill/schedule/command/MCP counts and a one-shot **Uninstall**. See [Claude Plugins](/claude-plugins).
+When you've imported a full Claude plugin, manage the bundle from **Skills → Claude Plugins**. Each entry shows its skill/schedule/command/MCP counts and supports update, configuration, details, and uninstall. See [Claude Plugins](/claude-plugins).
 
 ### File format
 

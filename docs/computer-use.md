@@ -8,7 +8,7 @@ description: Let an agent drive real macOS apps — fill forms, flip settings, e
 
 Computer Use lets an agent drive a real macOS app on your behalf: fill a form, flip a setting, navigate an app, extract on-screen text. The agent works primarily from the **accessibility tree** — no pixels — and falls back to a screenshot only when an element can't be resolved that way.
 
-It is **off by default**, enabled **per agent** (custom agents only — the built-in Default agent can't use it), and every action passes through a **safe-by-default autonomy gate** before it runs.
+It is **off by default**, enabled **per agent** (custom agents only — the built-in Orchestrator can't use it), and every action passes through a **safe-by-default autonomy gate** before it runs.
 
 :::info[Experimental]
 Computer Use is an experimental feature. Start with the default `balanced` autonomy preset, which confirms every edit and consequential action with you before it runs.

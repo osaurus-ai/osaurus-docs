@@ -18,7 +18,7 @@ There are exactly two tools:
 The pattern the tools push models toward: use `web_search` to find sources, then `search_and_extract` to actually read one — rather than rephrasing the search over and over.
 
 :::info[Replaces the osaurus.search plugin]
-Native search supersedes the retired `osaurus.search` plugin. An existing install keeps its card in **Settings → Plugins** with a "Built into Osaurus" banner, but the plugin's tools no longer load. Provider choices and API keys are managed in **Settings → Search**.
+Native search supersedes the retired `osaurus.search` plugin. An existing install keeps its card under **Tools → Native Plugins** with a "Built into Osaurus" banner, but the plugin's tools no longer load. Provider choices and API keys are managed in **Settings → Web Search**.
 :::
 
 ## Providers and fallback
@@ -41,7 +41,7 @@ Osaurus races and falls back across three tiers, and stamps every result set wit
 
 3. **Built-in keyless providers** — Brave and Bing result scrapers work with no setup at all, with DuckDuckGo as a deliberate last resort (its anti-bot layer can serve decoy results to automated clients).
 
-Set up providers in **Settings → Search**: each card shows sign-up instructions, and keys are stored encrypted. You can also define **custom providers** with the same declarative request/response schema the bundled ones use — there is no privileged built-in path.
+Set up providers in **Settings → Web Search**: each card shows sign-up instructions, and keys are stored encrypted. You can also define **custom providers** with the same declarative request/response schema the bundled ones use — there is no privileged built-in path.
 
 ## What the model can ask for
 
@@ -72,7 +72,7 @@ The tools are deliberately forgiving with small local models: an unknown categor
 
 ## When nothing is found
 
-A no-results outcome is reported as a structured failure with the providers that were attempted and an actionable hint — broaden the query, drop `site:`/`filetype:`/time filters, or (if you haven't added one) configure an API provider in **Settings → Search**.
+A no-results outcome is reported as a structured failure with the providers that were attempted and an actionable hint — broaden the query, drop `site:`/`filetype:`/time filters, or (if you haven't added one) configure an API provider in **Settings → Web Search**.
 
 ---
 

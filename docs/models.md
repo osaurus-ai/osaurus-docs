@@ -15,7 +15,7 @@ Osaurus is model-agnostic. Run a fast 2B local model on the train, switch to GPT
 | **MLX (local)** | On your Mac, Apple Silicon | 15.5+ | Download once via Model Manager |
 | **Apple Foundation** | On your Mac, Apple Neural Engine | 26+ | Zero — model name is just `foundation` |
 | **Liquid Foundation** | On your Mac | 15.5+ | Download via Model Manager |
-| **Cloud providers** | Their servers | 15.5+ | API key in **Management → Providers** |
+| **Cloud providers** | Their servers | 15.5+ | API key in **Management → Cloud Models** |
 
 ## Local models (MLX)
 
@@ -23,7 +23,7 @@ Local models run through MLX, Apple's array framework with first-class GPU suppo
 
 ### Downloading
 
-1. Open the Management window (`⌘ ⇧ M`) → **Models**
+1. Open the Management window (`⌘ ⇧ M`) → **Local Models**
 2. Browse or search the catalog
 3. Click **Download** on a model
 4. Watch progress in the queue
@@ -31,6 +31,8 @@ Local models run through MLX, Apple's array framework with first-class GPU suppo
 Each entry shows name, parameter count, quantization (MXFP8 / MXFP4 / JANGTQ / JANG / 4-bit / 8-bit), and total disk size.
 
 The catalog is **dynamic**: a curated set of OsaurusAI models is merged with a live fetch of the [OsaurusAI Hugging Face org](https://huggingface.co/OsaurusAI), and searching also discovers MLX-compatible repos from `mlx-community` and beyond. You can paste any Hugging Face URL or `org/repo` id straight into the search field to import a model directly — Osaurus checks MLX compatibility before offering the download.
+
+For a private Hugging Face repository, configure your Hugging Face token first. Catalog lookup, metadata validation, and download requests then authenticate with that token; the public OsaurusAI registry remains curated separately. A private repo still needs the normal MLX model files to be importable.
 
 ### Where models live
 
@@ -59,8 +61,9 @@ Osaurus maintains its own [optimized model library on Hugging Face](https://hugg
 
 | Family | What it is |
 |---|---|
-| **Bonsai 27B** (1-bit / Ternary JANG) | Dense 27B vision model at extreme low-bit — ~4.7–8 GB on disk. The mainstream-RAM recommendation. |
-| **Ornith 1.0** (9B / 35B MXFP8) | Vision-language models tuned for agentic coding, near-lossless MXFP8 precision. The larger-RAM recommendation. |
+| **Ornith 1.5** (9B / 35B-A3B MXFP8) | Vision-language models tuned for agentic coding at near-lossless MXFP8 precision. |
+| **Nanbeige 4.2 3B** (JANG_6M) | Compact local model offered as an onboarding Top Pick for smaller memory budgets. |
+| **Gemma 4 E2B / E4B** (8-bit) | Small multimodal choices for lower-memory Macs. |
 | **Gemma 4 12B MXFP8** | Google's multimodal Gemma — images, video, and audio in, high-precision MXFP8. |
 | **LFM2.5 8B MoE** | Liquid AI's hybrid MoE (~1B active) — very fast Apple Silicon chat. |
 
@@ -165,6 +168,7 @@ Connect to cloud providers when you need more power. Each provider's models appe
 | **xAI / Grok** | xAI's Grok — API key or browser sign-in |
 | **Mistral** | Mistral models, with a reasoning-effort control for adjustable reasoning |
 | **DeepSeek** | DeepSeek V-series via OpenAI-compatible endpoint |
+| **Fireworks AI** | Hosted open models through an OpenAI-compatible API |
 | **MiniMax** | MiniMax M-series models |
 | **Venice AI** | Privacy-focused, uncensored, no data retention |
 | **AtlasCloud** | DeepSeek, Qwen, GLM, Kimi, MiniMax under one key |
@@ -174,9 +178,11 @@ Connect to cloud providers when you need more power. Each provider's models appe
 | **LM Studio** | LM Studio's local server (via Custom) |
 | **[Osaurus Router](/osaurus-router)** | Hosted inference tied to your Osaurus account — no key to paste |
 
-Add a provider via **Management → Providers → Add Provider**. Connect with an API key (stored in the macOS Keychain) or a browser sign-in where supported. [Remote Providers →](/remote-providers)
+Add a provider via **Management → Cloud Models → Add Provider**. Connect with an API key (stored in the macOS Keychain) or a browser sign-in where supported. [Remote Providers →](/remote-providers)
 
 Memory and agent context persist across providers — switching from your local Gemma to Claude 4 or GPT-4o doesn't lose your agent's memory.
+
+Custom providers can advertise model context windows through `/models`. Osaurus recognizes positive integer `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), and `context_window`, displays the value in the picker, and uses it for context budgeting. Missing or malformed values fall back safely without failing provider discovery.
 
 ## Model naming
 
@@ -185,7 +191,7 @@ API model names are the model's display name in lowercase with hyphens for space
 | Display name | API name |
 |---|---|
 | `Gemma 4 E2B it 4bit` | `gemma-4-e2b-it-4bit` |
-| `Ornith 1.0 9B MXFP8` | `ornith-1.0-9b-mxfp8` |
+| `Ornith 1.5 9B MXFP8` | `ornith-1.5-9b-mxfp8` |
 | `Mistral Medium 3.5 128B JANGTQ` | `mistral-medium-3.5-128b-jangtq` |
 
 List models from any client:
@@ -224,11 +230,15 @@ Recommended temperature ranges:
 
 Osaurus picks a sane default for each model's context limit automatically. Multi-turn caching is also automatic — repeating the same system prompt across messages is cheap. For tunables, see [Inference Runtime](/inference-runtime).
 
+## Audio-capable local models
+
+Osaurus detects audio support from the installed checkpoint, not only the model name. Compatible Gemma 4 and Nemotron Omni bundles show a waveform badge and allow audio files in the attachment picker. Audio is delivered to the local model alongside text and images; support is model-specific, so rely on the picker badge rather than assuming every multimodal bundle accepts sound.
+
 ## Troubleshooting
 
 ### "Model not found"
 
-- Check it's downloaded: **Management → Models → Downloaded**
+- Check it's downloaded: **Management → Local Models → Downloaded**
 - List API model names: `curl http://127.0.0.1:1337/v1/models`
 - Match the API name exactly (lowercase, hyphens)
 
@@ -254,7 +264,7 @@ Osaurus picks a sane default for each model's context limit automatically. Multi
 
 ## Image models
 
-Chat models aren't the only kind — Osaurus also runs local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) for fully offline image generation and editing. They're installed from the **Images** tab in the Management window and covered separately: [Image Generation →](/image-generation)
+Chat models aren't the only kind — Osaurus runs local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) for fully offline image generation and editing, and can expose catalog-driven hosted image/video targets from Venice and Osaurus Cloud. [Image & Video Generation →](/image-generation)
 
 ## Under the hood
 

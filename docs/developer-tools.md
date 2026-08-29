@@ -253,7 +253,7 @@ Currently env-gated:
 
 ### CI cache controls
 
-Treat the pinned [`ci.yml`](https://github.com/osaurus-ai/osaurus/blob/48c6d197c3e4c12482225f0119eafbb8f8f6353f/.github/workflows/ci.yml) as the source of truth; cache keys and salts are implementation details and change over time.
+Treat the pinned [`ci.yml`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f/.github/workflows/ci.yml) as the source of truth; cache keys and salts are implementation details and change over time.
 
 At the documented baseline, `test-core`:
 

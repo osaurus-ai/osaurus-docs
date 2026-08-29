@@ -35,7 +35,7 @@ We've designed Osaurus so that even **we** — the maintainers — couldn't read
 | Voice transcription | On-device (FluidAudio) | Interim audio buffers are memory-only; text you send is stored in chat history like any other message |
 | Models you've downloaded | `~/MLXModels/` | Local files (model weights aren't sensitive on their own) |
 
-Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest by macOS FileVault — the most reliable setup, with no app-managed key that can go missing. If you share the Mac account or don't run FileVault, turn on whole-database encryption in **Settings → Storage**. [Storage details →](/storage)
+Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest by macOS FileVault — the most reliable setup, with no app-managed key that can go missing. If you share the Mac account or don't run FileVault, turn on whole-database encryption in **Management → Privacy → Storage**. [Storage details →](/storage)
 
 ---
 
@@ -57,7 +57,7 @@ On macOS 26+, the Sandbox runs agent code in an **isolated Linux VM** (Apple Con
 
 On macOS 15, the Sandbox falls back to a **Seatbelt-confined backend**: commands run as host processes under a deny-by-default profile that can only write inside the sandbox workspace. The isolation boundary is weaker than the VM (host reads aren't blocked), which is why the [Sandbox Internals](/sandbox#seatbelt-fallback-macos-15) page spells out the exact differences.
 
-Sandbox runtime artifacts (the GHCR image, the Linux kernel, the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries.
+Sandbox runtime artifacts (the GHCR image, the production Kata kernel, vminit, and the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries. The guest also runs with restricted OCI capabilities and `noNewPrivileges`; the built-in Orchestrator remains hard-off while new custom agents start sandbox-enabled unless you opt out.
 
 [Tasks →](/agent-loop) · [Sandbox Internals →](/sandbox)
 
@@ -70,7 +70,8 @@ We owe you an honest list:
 | Feature | What can leave | How to control it |
 |---|---|---|
 | **Cloud provider model** | The prompts and conversation context you send to that provider | Stick with local models or `foundation`; or turn on the [Privacy Filter](/privacy-filter) to redact sensitive content before it's sent |
-| **Relay** | Inbound HTTPS for one specific agent via `agent.osaurus.ai` | Per-agent toggle in **Server → Relays**; off by default; revoke any time |
+| **Cloud image/video generation** | Your media prompt and, for image-to-video, the source image; generated output is transient upstream | Use a local image model for offline work. Hosted media is an explicit target with a quote/spend approval and no silent fallback. |
+| **Relay** | Inbound HTTPS for one specific agent via `agent.osaurus.ai` | Per-agent toggle under **Agents → Connections → Network**; off by default; revoke any time |
 | **Sandbox network** | Outbound HTTP from the Linux VM | Set `network: "none"` in `~/.osaurus/config/sandbox.json` |
 | **Voice** | **Nothing** — fully on-device via FluidAudio | Always local |
 | **Memory distillation** | **Nothing** — runs through your Core Model on your Mac | Always local |
@@ -87,6 +88,7 @@ A short, plain-language tour of the things we've built in:
 
 - **At-rest protection** — FileVault covers everything by default. Opt in to SQLCipher and every database is encrypted with a 32-byte key in your Keychain, with large attachments AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
 - **On-device PII redaction** — The optional [Privacy Filter](/privacy-filter) scrubs names, emails, secrets, and more from cloud-bound prompts before they leave, using an on-device classifier. It's fail-closed (a detected leak blocks the send) and verifiable in Insights.
+- **Deterministic file redaction** — Trusted-folder tools can detect or redact PII locally in one pass. Writes are approval-gated, confined to the chosen folder, and undoable. [Tasks →](/agent-loop#bulk-edits-and-on-device-redaction)
 - **Signed requests** — Authenticated calls carry an `osk-v1` key signed by an address you control; revocation is checked on every request. Agent-to-agent traffic over the [Secure Channel](/secure-channel) is additionally sequence-numbered against replays.
 - **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
 - **Pairings expire** — Bonjour-paired devices get **agent-scoped, 90-day** access keys by default. Permanent keys are explicit opt-in.

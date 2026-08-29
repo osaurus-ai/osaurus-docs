@@ -20,7 +20,7 @@ Your agents, memory, and tools work the same across all three.
 
 Router availability follows your local Osaurus identity. When an identity is present, Osaurus adds the Router provider to your remote provider list, where it behaves like any other provider in the model picker and chat.
 
-Router is **on by default**. Turn it off anytime with the toggle in **Management → Credits**, or disable the Router provider from **Management → Providers**.
+Router is **on by default**. Turn it off anytime with the toggle in **Management → Credits**, or disable the Router provider from **Management → Cloud Models**.
 
 Connection stays automatic:
 
@@ -38,12 +38,11 @@ A couple of reliability details Osaurus handles for you:
 - **Sensible output length.** If a request doesn't specify `max_tokens`, Osaurus sends a sane default so a long agent run isn't silently truncated by an upstream cap.
 - **No silent empty answers.** If a response finishes without producing any visible text, Osaurus shows an explicit empty-response notice instead of dropping the bubble.
 
-## Redeem credit codes
+## Credits and code redemption
 
-Version 0.22.15 supports promotion and referral codes in two places:
+The Credits UI uses credits rather than dollar balances: **$1 equals 10,000 credits**. Quotes and usage details can still show the monetary equivalent where it helps you evaluate a metered request.
 
-- On a fresh install, choose **Have a code? → Enter it** on the welcome screen. A successful redemption becomes the wallet's first credit action instead of the automatic welcome-credit claim.
-- Later, open **Management → Credits → Have a code?**. Router and an Osaurus Identity must be enabled; account eligibility remains server-authoritative.
+Redeem promotion and referral codes from **Management → Credits → Have a code?**. Router and an Osaurus Identity must be enabled; account eligibility remains server-authoritative. Code redemption is no longer part of the three-screen first-launch flow.
 
 Codes are trimmed before submission. While a request is running, the field and controls are disabled. Success shows the campaign message, distinguishes an already-redeemed code, refreshes a non-zero balance, and offers **Redeem another code**. Referral campaigns can instead show that the reward remains pending until the first paid top-up.
 
@@ -56,6 +55,8 @@ Errors are intentionally actionable without exposing server eligibility detail:
 - too many attempts: redemption is disabled until the displayed retry countdown ends.
 
 The entered code remains in place after a retryable failure, and editing it clears the prior error.
+
+Hosted image and video generation uses the same account balance. Video jobs are quoted before dispatch, bind the approved amount to the request, and reject expired or mismatched quotes rather than silently charging a different amount.
 
 ## Billing and your privacy
 

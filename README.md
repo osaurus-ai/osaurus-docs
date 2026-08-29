@@ -40,7 +40,7 @@ npm run typecheck
 
 ## Sync with upstream
 
-`upstream-baseline.json` records the Osaurus source and stable release covered by these docs. Before a refresh:
+`upstream-baseline.json` records the exact Osaurus source commit and latest stable release covered by these docs. The commit may be ahead of the release when the docs intentionally track current `main`. Before a refresh:
 
 ```bash
 UPSTREAM=osaurus-ai/osaurus
@@ -56,7 +56,7 @@ gh api "repos/$UPSTREAM/compare/$DOCUMENTED_RELEASE_SHA...$BASE" \
   --jq '{status, ahead_by, commits: [.commits[] | {sha, message: .commit.message}]}'
 ```
 
-The first comparison finds drift since the last review. The second identifies behavior documented from `main` but not yet present in the recorded stable release, so those claims can be labeled clearly. Reconcile every affected document against the latest stable release and source diff, then run `npm run typecheck` and `npm run build`. Advance the baseline only after that review and both gates complete successfully.
+The first comparison finds drift since the last review. The second identifies behavior documented from `main` but not yet present in the recorded stable release. Reconcile every affected document against the chosen source commit and release, then run `npm run typecheck` and `npm run build`. Advance the baseline only after that review and both gates complete successfully.
 
 ## Project layout
 

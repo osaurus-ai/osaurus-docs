@@ -19,7 +19,7 @@ Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, 
 ### Via the UI
 
 1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Providers** in the sidebar
+2. Click **Cloud Models** in the sidebar
 3. Click **Add Provider**
 4. Select a preset or **Custom**
 5. Configure connection settings
@@ -40,6 +40,7 @@ Osaurus ships first-class presets for the providers below — pick one and you o
 | **AtlasCloud** | `api.atlascloud.ai` | 443 | `/v1` | OpenAI-compatible | API key |
 | **Mistral** | `api.mistral.ai` | 443 | `/v1` | OpenAI-compatible | API key |
 | **DeepSeek** | `api.deepseek.com` | 443 | `/v1` | OpenAI-compatible | API key |
+| **Fireworks AI** | `api.fireworks.ai` | 443 | `/inference/v1` | OpenAI-compatible | API key |
 | **MiniMax** | `api.minimax.io` | 443 | `/v1` | OpenAI-compatible | API key |
 | **Venice AI** | `api.venice.ai` | 443 | `/api/v1` | OpenAI-compatible | API key |
 | **Ollama** | `localhost` | 11434 | `/v1` | OpenAI-compatible | None (local) |
@@ -135,6 +136,12 @@ curl http://127.0.0.1:1337/v1/chat/completions \
 
 The model name should match what the remote provider expects.
 
+### Provider metadata and multimodal input
+
+During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), or `context_window`. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
+
+For vision-capable providers, image attachments are resized to provider-safe wire dimensions and sent with the corrected MIME type. Osaurus reports unsupported input instead of silently dropping an attachment.
+
 ## Connection states
 
 | State | Indicator | Description |
@@ -144,6 +151,8 @@ The model name should match what the remote provider expects.
 | **Disconnected** | Gray | Not connected |
 | **Disabled** | Gray | Manually disabled |
 | **Error** | Red | Connection failed (see error message) |
+
+Enabled providers reconnect automatically after app updates, network recovery, and relaunch. Authentication or contract errors remain visible and require correction; transient transport failures retry without leaving the provider permanently unavailable.
 
 ### Troubleshooting
 
@@ -274,7 +283,7 @@ Base:     /api/v1
 Auth:     API key (venice.ai)
 ```
 
-Privacy-first, uncensored inference with no data retention.
+Privacy-first, uncensored inference with no data retention. Compatible Venice media models can also appear as explicit remote image/video targets; media requests remain separately consented and constrained by their catalog metadata.
 
 ### Ollama
 

@@ -64,12 +64,12 @@ A short tour of the things you can do once Osaurus is installed.
 
 ### Everyday AI
 
-- **A guided first launch.** A short onboarding walks you through naming your first agent and giving it a brain — the best local model for your Mac is picked automatically, with Osaurus Cloud included via a free welcome credit, or bring your own API key. Identity is set up silently. No config files.
+- **A guided first launch.** A three-screen onboarding walks you through naming your first agent and giving it a brain — the best local model for your Mac is picked automatically, with Osaurus Cloud included via a free welcome credit, or bring your own API key. Identity is set up silently.
 - **A chat overlay you can open anywhere.** Press `⌘;` to talk to your AI; press it again to dismiss. No browser tab, no context switch.
-- **A built-in Osaurus guide.** The Osaurus assistant has a read-only definition, but can inspect the app, update supported agent capabilities, and manage settings, models, providers, schedules (including reassignment), and watchers behind approvals. Product answers come from the guide bundled with your installed version.
+- **A built-in Orchestrator.** The Osaurus assistant can inspect and configure the app behind approvals, create specialist agents, delegate work to them in the same turn, and bring their results and artifacts back to your chat. Product answers come from the guide bundled with your installed version.
 - **Agents that fit different jobs.** A coding partner, a research assistant, a file organizer — each with its own prompt, theme, and history.
 - **Voice input.** Dictate in chat, talk to an agent hands-free with a wake word, or hold a hotkey to dictate into any app — all on-device.
-- **Image generation, fully offline.** Install a local image model and create or edit pictures right in the chat — nothing is sent to a server.
+- **Image and video generation.** Install a local image model for fully offline creation and editing, or explicitly choose a metered cloud backend for hosted image and video generation.
 - **Themes.** Built-in light/dark, fully editable, importable as JSON.
 
 ### Memory & knowledge
@@ -81,7 +81,7 @@ A short tour of the things you can do once Osaurus is installed.
 
 ### Autonomy & automation
 
-- **A Sandbox for real code.** Toggle it on and the agent can run shell, Python, and Node in isolation — a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15. Trusted-folder and Sandbox modes are mutually exclusive: selecting a folder disables Sandbox, while enabling Sandbox clears folder selections from visible chats using that agent.
+- **A Sandbox for real code.** New custom agents start with sandboxed execution enabled where supported, and can run shell, Python, and Node in isolation — a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15. Selecting a trusted folder disables Sandbox for that agent before granting host access.
 - **Computer Use** *(experimental)*. Let an agent drive real macOS apps — fill forms, flip settings, extract on-screen text — with every action gated by a safe-by-default confirmation policy.
 - **Browser Use.** Give an agent its own persistent, isolated browser — it navigates, reads, and fills forms, with the same safe-by-default action gating. See [Browser Use](/browser-use).
 - **Subagents.** Delegate one task or a parallel batch to saved agents and local or remote models. Same-model local work batches safely; different local models run in serial waves.

@@ -22,15 +22,11 @@ The app is signed and notarized, so it opens without security warnings. Full gui
 
 ## 2. Walk through onboarding
 
-A short wizard greets you on first launch and walks through six quick steps.
+A short, three-screen wizard greets you on first launch:
 
-### Welcome
-
-The hero screen. This is also where the (optional, anonymous) usage-analytics opt-in lives. Click **Get Started**.
-
-### Meet your dino
-
-Name your agent — your "dino." An agent is a saved configuration: a system prompt, theme, default model, memory of its own. One tap; you can rename and customize it anytime in Settings, and create more later. [Agents →](/agents)
+1. **Welcome** — click **Get Started**.
+2. **Create Dino** — name your first agent. You can rename and customize it later, and create specialist agents whenever you need them. [Agents →](/agents)
+3. **Configure AI** — choose how the agent will run.
 
 ### Give your dino a brain
 
@@ -38,19 +34,11 @@ Osaurus **recommends the best local model your Mac can run** — the pick is bas
 
 You don't have to wait for the download: **Osaurus Cloud is included with a free welcome credit**, so you can skip the download and start chatting on hosted models immediately — or use Cloud while the local model downloads in the background.
 
-Prefer your own provider? **Use an API key** drills into OpenAI, Anthropic, and friends, plus a local Ollama server or any custom OpenAI-compatible endpoint. You can always add more later from **Management → Models** or **Management → Providers**.
+Choosing **Set up later** also selects Osaurus Cloud rather than leaving the app without a working model. Apple Foundation Models remain available after onboarding, but are not offered in this first-run step because the onboarding path prioritizes models that support tools and agent work.
 
-### Add a few tools
+Prefer your own provider? **Use an API key** drills into OpenAI, Anthropic, and friends, plus a local Ollama server or any custom OpenAI-compatible endpoint. You can always add more later from **Management → Local Models** or **Management → Cloud Models**.
 
-An optional picker for starter plugins — file access, shell, Calendar, Reminders, Messages. All optional, and you can add or remove any of them later from **Management → Plugins**.
-
-### A quick tour
-
-A three-card carousel: agents do real work with tools, each dino remembers your context, and your data stays on your device.
-
-### One last thing
-
-A crash-report sharing toggle (on by default, and anonymized), then **Finish** — the chat overlay opens and you're ready to go.
+The old plugin picker, walkthrough carousel, consent screen, and in-onboarding code redemption are no longer part of onboarding. After setup, manage native plugins in **Management → Tools → Native Plugins**, privacy choices in **Settings → Privacy**, and credits in **Management → Credits**.
 
 :::info[Identity and Sandbox are automatic]
 There's no identity or sandbox step anymore. Your **identity key** is created silently on completion — it lives in your iCloud Keychain, gated by Face ID / Touch ID. When you have a minute, save your **24-word recovery phrase** from **Management → Identity → View recovery phrase**; it's what restores your identity on a new Mac. The **Sandbox** is configured with defaults and provisions itself lazily the first time an agent actually needs it — no surprise multi-GB download. [Identity →](/identity) · [Sandbox →](/sandbox)
@@ -101,7 +89,7 @@ Try giving the agent a real task — it'll write a plan, use tools, and bring ba
 
 You'll see a live to-do list appear and tick off as the agent reads files, drafts the README, and writes it. The new file shows up as an artifact card right in the chat.
 
-Toggle the **Sandbox** for shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15) — handy for running scripts, scraping URLs, or trying out a package. [Tasks →](/agent-loop)
+New custom agents start with **Sandbox** execution enabled where supported — a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15. Selecting a trusted folder disables Sandbox for that agent so it can work directly in the folder; re-enable it later from **Agents → Abilities** for isolated scripts, downloads, and builds. [Tasks →](/agent-loop)
 
 ### Try voice
 

@@ -46,7 +46,9 @@ Two Seatbelt behavioral notes: denied file lookups surface as "No such file or d
 3. The first run takes about a minute; subsequent boots are seconds
 4. Sandbox tools become available to the active agent automatically
 
-On macOS 26+ the sandbox chip defaults **on** for the Default agent and newly created agents, but the container is not booted eagerly — a never-set-up sandbox stays un-provisioned until the first time the model actually reaches for a sandbox tool, at which point it boots and provisions on demand. Once setup completes, later launches auto-start as normal.
+Sandbox execution defaults **on for every new custom agent** while preserving explicit opt-outs through duplicate, export, and relaunch. The built-in Orchestrator is hard-off and delegates code execution to custom agents instead.
+
+The container is not booted eagerly — a never-set-up sandbox stays un-provisioned until the first time a custom agent reaches for a sandbox tool, at which point it boots and provisions on demand. Once setup completes, later launches auto-start as normal.
 
 A **Provisioning Preflight** report (Management → Sandbox) inspects the resolved paths, config, cached assets, and bridge socket before provisioning, with typed readiness states (`ready` / `needs_setup` / `blocked` / `unproven`) and a concrete repair suggestion per finding. **Copy JSON** produces a support artifact.
 
@@ -72,7 +74,7 @@ A **Provisioning Preflight** report (Management → Sandbox) inspects the resolv
 
 | Component | Description |
 |---|---|
-| **Linux VM** | Alpine Linux with Kata Containers ARM64 kernel, 8 GiB rootfs |
+| **Linux VM** | Alpine Linux with the production Kata 3.32 ARM64 kernel, 8 GiB rootfs |
 | **VirtioFS mounts** | `/workspace` ↔ `~/.osaurus/container/workspace/`, `/output` ↔ `~/.osaurus/container/output/` |
 | **NAT networking** | Container gets `10.0.2.15/24` via `VZNATNetworkDeviceAttachment` |
 | **Vsock bridge** | Unix socket relayed via vsock connects the container to the host bridge |
@@ -107,7 +109,9 @@ Changes require a container restart. Config file: `~/.osaurus/config/sandbox.jso
 
 ## Built-in tools
 
-When the container is running, sandbox tools are registered automatically for the active agent. Read-only tools are always on. Write/exec/install/secret tools require `autonomous_exec.enabled` on the agent. `sandbox_plugin_register` additionally requires `autonomous_exec.pluginCreate`.
+When the runtime is ready, sandbox-backed tools are registered automatically for the active custom agent. The public model-facing names are shared with trusted-folder mode; Osaurus routes them to the sandbox backend from the execution context. Read-only tools are always on. Write/exec/install/secret tools require `autonomous_exec.enabled`; `sandbox_plugin_register` additionally requires `autonomous_exec.pluginCreate`.
+
+Before first setup, the agent receives only `sandbox_init_pending`. Calling it provisions the runtime and the agent environment, then activates the real tool schemas in the same run.
 
 ### Anti-confusion cheat sheet
 
@@ -115,28 +119,29 @@ Always prefer the dedicated tool over a shell command:
 
 | Don't | Do |
 |---|---|
-| `cat`/`head`/`tail` in `sandbox_exec` | `sandbox_read_file` |
-| `grep`/`rg`/`find`/`ls` in `sandbox_exec` | `sandbox_search_files` (`target="content"` for rg, `target="files"` for glob) |
-| `sed`/`awk` | `sandbox_write_file` with `old_string` + `new_string` (in-place edit) |
-| `echo`/heredoc | `sandbox_write_file` |
-| `&` / `nohup` / `disown` | `sandbox_exec(background:true)` + `sandbox_process` |
+| `cat`/`head`/`tail` in `shell_run` | `file_read` |
+| `grep`/`rg`/`find`/`ls` in `shell_run` | `file_search` |
+| `sed`/`awk` | `file_edit` |
+| `echo`/heredoc | `file_write` |
+| `&` / `nohup` / `disown` | `shell_run(background:true)` + `sandbox_process` |
 
-Reserve `sandbox_exec` for builds, installs, processes, network calls, and any work without a dedicated tool. For multi-step logic, write a script with `sandbox_write_file` and run it with `sandbox_exec` (e.g. `python3 script.py`).
+Reserve `shell_run` for builds, processes, network calls, and work without a dedicated tool. For multi-step logic, write a script with `file_write` and run it with `shell_run` (for example, `python3 script.py`).
 
 ### Read-only (always available)
 
 | Tool | Description |
 |---|---|
-| `sandbox_read_file` | Read a file's contents (supports line ranges, tail, char cap) |
-| `sandbox_search_files` | Search file contents (`target="content"`, ripgrep) **or** find files by name (`target="files"`, glob). Replaces the discrete `sandbox_search_files` + `sandbox_find_files` + `sandbox_list_directory` trio. |
+| `file_read` | Read a file's contents or inspect a directory, with bounded ranges |
+| `file_search` | Search contents or locate files by glob |
 
 ### Requires `autonomous_exec`
 
 | Tool | Description |
 |---|---|
-| `sandbox_write_file` | Write content to a file (creates parent directories), **or** edit in place: pass `old_string` + `new_string` for an exact-match string replacement |
-| `sandbox_exec` | Run a shell command. Foreground by default with an optional idle `timeout` parameter, **or** `background:true` for servers/long tasks (returns `pid` + `log_file` immediately; requires the agent's background-process opt-in) |
-| `sandbox_process` | Manage background jobs from `sandbox_exec(background:true)` — `action="poll"`, `"wait"` (default 60s, max 300s), `"kill"` |
+| `file_write` | Create or overwrite a file |
+| `file_edit` | Make an exact in-place edit |
+| `shell_run` | Run a command. Foreground by default, or `background:true` for servers and long tasks when the agent's background-process setting is enabled |
+| `sandbox_process` | Manage background jobs from `shell_run(background:true)` — poll, wait, or kill |
 | `sandbox_install` | Install packages — `manager` selects `apk` (system, runs as root), `pip` (agent venv at `~/.venv/`), or `npm` (agent workspace at `~/.osaurus/node_workspace/`) |
 | `sandbox_secret_check` | Check whether a secret exists (never reveals the value) |
 | `sandbox_secret_set` | Store a secret directly (`value`) or prompt the user (omit `value`) |
@@ -144,7 +149,7 @@ Reserve `sandbox_exec` for builds, installs, processes, network calls, and any w
 
 `share_artifact` is a [global built-in](/agent-loop#sharing-artifacts) registered on `ToolRegistry`. It's available everywhere, not just in sandbox mode, so it doesn't appear in this sandbox-specific table.
 
-The previously-discrete `sandbox_list_directory`, `sandbox_find_files`, `sandbox_move`, `sandbox_delete`, `sandbox_exec_background`, `sandbox_edit_file`, `sandbox_pip_install`, `sandbox_npm_install`, `sandbox_run_script`, and `sandbox_execute_code` tools were consolidated. Their behavior now comes from a flag or parameter (`background:true` on `sandbox_exec`, `target` on `sandbox_search_files`, `old_string` on `sandbox_write_file`, `manager` on `sandbox_install`) or a direct shell invocation (`mv` / `rm` in `sandbox_exec`). Multi-step Python orchestration is now: write the script with `sandbox_write_file`, run it with `sandbox_exec`.
+Backend-specific names such as `sandbox_read_file`, `sandbox_search_files`, `sandbox_write_file`, and `sandbox_exec` are private adapters, not schemas shown to the model. Legacy discrete operations are expressed through the public tools above or a direct `shell_run` invocation.
 
 ### Install hardening
 
@@ -359,7 +364,7 @@ The prompt path keeps secret values out of conversation history and LLM context 
 
 Storing a secret is only half the problem — the other half is keeping its **value** out of model context and every persisted record afterwards:
 
-- **Output scrubbing.** Agent secrets are injected into the exec environment, so `echo $KEY` would otherwise land the value in the model's context. `SecretScrubber` rewrites every known secret value in `sandbox_exec` stdout/stderr, background-job log tails, and sandbox-plugin tool output to `[REDACTED:<ENV_KEY>]` before the result is enveloped. Longer values scrub first (substring-safe); values under 6 characters are exempt to avoid false positives.
+- **Output scrubbing.** Agent secrets are injected into the exec environment, so `echo $KEY` would otherwise land the value in the model's context. `SecretScrubber` rewrites every known secret value in `shell_run` stdout/stderr, background-job log tails, and sandbox-plugin tool output to `[REDACTED:<ENV_KEY>]` before the result is enveloped. Longer values scrub first (substring-safe); values under 6 characters are exempt to avoid false positives.
 - **Argument redaction (fail-closed).** When the agent uses the direct `value` path of `sandbox_secret_set`, execution receives the original arguments but every *recorded* surface receives a secret-safe representation instead: chat and HTTP agent-run history, plugin events and streamed deltas, approval prompts, debug logs, Insights records, and remote-provider wire snapshots. The exact value is also redacted from any sibling string field it was duplicated into, and malformed or ambiguous secret payloads collapse to a minimal redacted object rather than re-emitting uncertain input. The prompt path never carries the value through the model at all and remains the recommended flow.
 
 ## Security
@@ -371,6 +376,8 @@ All file paths from tool arguments are validated by `SandboxPathSanitizer` befor
 ### Per-agent isolation
 
 Each agent runs as a separate Linux user (`agent-{name}`). Standard Unix permissions prevent agents from accessing each other's files and processes.
+
+The guest runs with a restricted OCI capability set and `noNewPrivileges`, so child processes cannot gain new privileges through setuid binaries or file capabilities. The Seatbelt fallback uses a tightened deny-by-default profile as well.
 
 ### Network policy
 

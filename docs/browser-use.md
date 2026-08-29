@@ -8,10 +8,10 @@ description: Give an agent its own persistent browser — it navigates, reads, c
 
 Give an agent its own browser. `browser_use` runs a self-contained subagent that navigates, reads pages, clicks, types, and verifies each step against a **persistent, per-agent WebKit session** — cookies and sign-ins survive between chats, isolated from other agents and from your regular browser.
 
-Browser Use is **off by default**, enabled **per custom agent** in its Subagents tab (the built-in Default agent never gets browser access), and every action passes through the **same safe-by-default autonomy gate as [Computer Use](/computer-use)** before it runs.
+Browser Use is **off by default**, enabled **per custom agent** in its Subagents tab (the built-in Orchestrator never gets browser access), and every action passes through the **same safe-by-default autonomy gate as [Computer Use](/computer-use)** before it runs.
 
 :::info[Replaces the osaurus.browser plugin]
-Browser Use is the native replacement for the retired `osaurus.browser` plugin. Existing plugin installs keep working as a card in **Settings → Plugins** with a "Built into Osaurus" banner, but their tools no longer load. Each agent's WebKit profile is migrated automatically, so existing sign-ins carry over — see [Migration](#migrating-from-the-osaurusbrowser-plugin).
+Browser Use is the native replacement for the retired `osaurus.browser` plugin. Existing plugin installs remain visible under **Tools → Native Plugins** with a "Built into Osaurus" banner, but their tools no longer load. Each agent's WebKit profile is migrated automatically, so existing sign-ins carry over — see [Migration](#migrating-from-the-osaurusbrowser-plugin).
 :::
 
 ## How it works
@@ -31,7 +31,7 @@ Under the hood, the subagent works with primitives like navigate, snapshot (numb
 
 - **One isolated profile per agent.** Each agent's session runs on a persistent WebKit data store. Cookies, localStorage, and sign-ins survive across chats and app restarts — and are never shared with other agents or your regular browser.
 - **Sign-ins are yours, not the agent's.** The agent never types credentials. When it hits a login wall, it opens a **secure sign-in window** on the agent's profile; you sign in directly, and the run resumes logged-in when the window closes.
-- **Settings → Browser** lists every session with its live/saved state, last page, and per-service sign-in badges. **Open** attaches the live view, **Close** detaches without touching data, **Reset** wipes the profile after confirmation.
+- **Settings → Browser Use** lists every session with its live/saved state, last page, and per-service sign-in badges. **Open** attaches the live view, **Close** detaches without touching data, **Reset** wipes the profile after confirmation.
 - **Lifecycle.** Deleting an agent wipes its browser profile; factory reset wipes every profile. Idle live sessions close after 15 minutes (the saved profile restores at its last page on next use).
 - **No uploads or downloads.** File choosers are declined and downloads fail with a typed error — pages can never be handed local files.
 
@@ -68,7 +68,7 @@ Only custom agents can enable Browser Use — the built-in Default agent is lock
 The migration is automatic and requires no action:
 
 - At launch, each agent's exact WebKit profile is copied from the plugin's records into the native session catalog, so **existing sign-ins carry over**.
-- The plugin's tools and skill no longer load; the installed card stays in Settings → Plugins with a "Built into Osaurus" banner deep-linking to **Settings → Browser**, and uninstall works normally.
+- The plugin's tools and skill no longer load; the installed card stays under **Tools → Native Plugins** with a "Built into Osaurus" banner, and uninstall works normally.
 - One behavior deliberately did not carry over: the plugin sometimes shared the default agent's authenticated session with other agents. Native sessions are strictly per-agent.
 
 ---

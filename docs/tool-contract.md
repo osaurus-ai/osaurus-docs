@@ -15,7 +15,7 @@ The type lives at `Packages/OsaurusCore/Tools/ToolEnvelope.swift` in the osaurus
 ```json
 {
   "ok": true,
-  "tool": "sandbox_write_file",
+  "tool": "file_write",
   "result": { "path": "/home/agent/foo.txt", "size": 123 },
   "warnings": ["slow disk"]
 }
@@ -47,7 +47,7 @@ which is sugar for `result: { "text": "..." }`. The chat UI's tool-call card det
   "message": "Missing required argument `content` (string).",
   "field": "content",
   "expected": "non-empty string of file contents",
-  "tool": "sandbox_write_file",
+  "tool": "file_write",
   "retryable": true
 }
 ```
@@ -134,14 +134,14 @@ Prefer:
 
 The chat-layer wrapper differentiates four failure modes for `share_artifact` so the model can self-correct on the next turn instead of retrying the same path. Each maps to a specific `ToolEnvelope.failure` shape:
 
-- **Path rejected** (`pathRejected`) → `kind: invalid_args`, `field: "path"`, message names the trusted root and suggests `sandbox_search_files`.
+- **Path rejected** (`pathRejected`) → `kind: invalid_args`, `field: "path"`, message names the trusted root and suggests `file_search`.
 - **File not found** (`fileNotFound`) → `kind: execution_error`, message enumerates every candidate path the resolver tried (e.g. `<home>/foo.png`, `<home>/output/foo.png`, `<home>/dist/foo.png`, …) so the model knows exactly where to look next.
 - **Copy failed** (`copyFailed`) → `kind: execution_error`, message carries the FS error string (disk full, perms) plus the source path.
 - **Filename rejected** (`destinationRejected`) → `kind: invalid_args`, `field: "filename"`, asks for a plain basename.
 
 Empty-string filler in optional fields (`content: ""`, `filename: ""`) is treated as absent on entry — many models pass empty placeholders for unused fields, and rejecting that as `invalid_args` was a footgun.
 
-### `sandbox_exec` background flag
+### `shell_run` background flag
 
 Foreground (default): returns `{stdout, stderr, exit_code, cwd}` when the command finishes. The optional `timeout` parameter is an **idle** timeout — the command is killed if it produces no output for that many seconds; when omitted, it runs to completion (the user can terminate from the chat card). Pass `background:true` to spawn a detached process — the tool returns `{pid, log_file, cwd, background:true}` as soon as the spawn shim returns. Manage the resulting job through `sandbox_process` (poll/wait/kill).
 

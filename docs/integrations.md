@@ -104,7 +104,7 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 ### Adding a Provider
 
 1. Open the Management window (`⌘ ⇧ M`)
-2. Navigate to **Providers**
+2. Navigate to **Cloud Models**
 3. Click **Add Provider**
 4. Choose a preset or configure a custom endpoint
 

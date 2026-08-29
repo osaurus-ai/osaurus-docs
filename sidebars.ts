@@ -22,11 +22,12 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         { type: "doc", id: "chat", label: "Chat" },
+        { type: "doc", id: "orchestrator", label: "Orchestrator" },
         { type: "doc", id: "agents", label: "Agents" },
         { type: "doc", id: "projects", label: "Projects" },
         { type: "doc", id: "agent-loop", label: "Tasks" },
         { type: "doc", id: "subagents", label: "Subagents" },
-        { type: "doc", id: "image-generation", label: "Image Generation" },
+        { type: "doc", id: "image-generation", label: "Image & Video" },
         { type: "doc", id: "computer-use", label: "Computer Use" },
         { type: "doc", id: "browser-use", label: "Browser Use" },
         { type: "doc", id: "web-search", label: "Web Search" },
@@ -117,7 +118,7 @@ const sidebars: SidebarsConfig = {
           label: "Configuration",
           collapsed: true,
           items: [
-            { type: "doc", id: "configuration", label: "Server Settings" },
+            { type: "doc", id: "configuration", label: "Configuration" },
             { type: "doc", id: "global-proxy", label: "Global Proxy" },
             { type: "doc", id: "storage", label: "Storage & Encryption" },
           ],

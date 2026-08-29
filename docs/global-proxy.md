@@ -24,7 +24,7 @@ Local loopback health checks deliberately stay direct — a proxy setting never 
 
 ### CLI coverage
 
-The setting is not a process-wide proxy for every `osaurus` CLI request. Registry-based plugin refreshes and installs use the shared repository proxy policy, but these direct CLI download paths do not read `globalProxyURL` in 0.22.15:
+The setting is not a process-wide proxy for every `osaurus` CLI request. Registry-based plugin refreshes and installs use the shared repository proxy policy, but these direct CLI download paths do not read `globalProxyURL`:
 
 - `osaurus pull <model_id>`
 - `osaurus tools install https://…` (the direct archive URL form)
@@ -58,7 +58,7 @@ Server settings show a live proxy status line:
 
 Provider and MCP provider cards each expose a copyable **Global proxy** diagnostic row, so a proxy problem is visible where you'd be debugging a connection: a valid proxy shows its redacted endpoint, no proxy shows that requests go direct, and an invalid saved value is shown as *ignored* with the validation reason — instead of silently looking like a network failure.
 
-The value persists as `globalProxyURL` in `server.json` (see [Server Settings](/configuration)). If the saved value is ever missing or invalid, Osaurus fails closed to direct networking rather than guessing.
+The value persists as `globalProxyURL` in `server.json` (see [Configuration](/configuration)). If the saved value is ever missing or invalid, Osaurus fails closed to direct networking rather than guessing.
 
 ## Security properties
 
@@ -70,7 +70,7 @@ The value persists as `globalProxyURL` in `server.json` (see [Server Settings](/
 
 **Related:**
 
-- [Server Settings](/configuration) — where the proxy URL lives
+- [Configuration](/configuration) — where the proxy URL lives
 - [Remote Providers](/remote-providers) — the largest traffic family the proxy covers
 - [Remote MCP Providers](/remote-mcp-providers) — proxied discovery and auth probes
 - [Security & Privacy](/security) — Osaurus's broader network posture

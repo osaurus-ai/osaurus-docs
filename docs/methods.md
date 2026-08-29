@@ -45,7 +45,7 @@ In Auto mode, the agent expands its kit while a chat is in progress via two alwa
 
 | Tool | What it does |
 |---|---|
-| `capabilities_discover` | Search enabled methods, tools, and skills in one call; returns ranked IDs like `tool/sandbox_exec` or `skill/plot-data` |
+| `capabilities_discover` | Search enabled methods, tools, and skills in one call; returns ranked IDs like `tool/shell_run` or `skill/plot-data` |
 | `capabilities_load` | Load specific capabilities by ID into the active session |
 
 Loading a method through `capabilities_load` automatically loads its referenced tools and skills.

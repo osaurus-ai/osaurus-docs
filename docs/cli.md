@@ -1,12 +1,12 @@
 ---
 title: CLI
 sidebar_label: CLI
-description: Command-line control of the Osaurus server, models, MCP, and plugins.
+description: Command-line control of the Osaurus server, models, declarative configuration, MCP, and plugins.
 ---
 
 # CLI
 
-The Osaurus CLI controls your local LLM server, MCP tools, and models from the terminal.
+The Osaurus CLI controls your local LLM server, desired-state configuration, MCP tools, and models from the terminal.
 
 ## Quick Start
 
@@ -281,6 +281,39 @@ Display the Osaurus version (also `--version` / `-v`).
 ```bash
 osaurus version
 ```
+
+### osaurus config
+
+Export, inspect, plan, and apply declarative Osaurus configuration. Every command targets `127.0.0.1` and starts the local server if needed.
+
+```bash
+# Print or save the current state; secrets are never exported
+osaurus config export
+osaurus config export -o osaurus-config.yaml
+osaurus config export --format json
+
+# Print the annotated YAML schema or machine-readable JSON Schema
+osaurus config schema
+osaurus config schema --format json
+
+# Validate and preview without changing anything
+osaurus config plan <file.yaml|file.json> [--prune]
+
+# Apply; confirm high-risk changes explicitly
+osaurus config apply <file.yaml|file.json> [--prune] [--yes|-y]
+```
+
+Documents merge by default: absent keys remain untouched, explicit `null` clears an optional override, and named entities match case-insensitively. `--prune` additionally deletes unlisted entries in sections the document declares, so it is always treated as destructive. Browser/Computer Use grants, relay or channel exposure, new MCP endpoints, automatic tool approval, and similar high-risk changes are also refused until apply is repeated with `--yes`.
+
+Configuration files are capped at 512 KiB. Apply exit codes are scriptable:
+
+| Exit | Meaning |
+|---|---|
+| `0` | Fully applied, or already converged |
+| `1` | Validation, cancellation, or at least one failed change |
+| `3` | Applied, but an interactive step remains in the app (usually credential entry) |
+
+See [Declarative configuration](/configuration#declarative-configuration).
 
 ### osaurus tools
 

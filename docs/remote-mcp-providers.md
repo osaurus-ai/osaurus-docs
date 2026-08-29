@@ -20,14 +20,14 @@ Where [Remote Providers](/remote-providers) provide *inference* (cloud models), 
 ## Adding an MCP provider
 
 1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Tools** in the sidebar (under Agents & Automation), then open the **Connections** tab
+2. Click **Tools** in the sidebar, then open the **MCP** tab
 3. Click **+ Add Provider**
 4. Pick a service from the catalog, or choose **Custom Server** to enter your own URL
 5. Configure authentication if required (OAuth sign-in, API key, or none)
 6. Click **Add Provider**
 
 :::note
-Use the **Tools** sidebar item, not the top-level **Providers** item. **Providers** manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools → Connections**.
+Use the **Tools** sidebar item, not **Cloud Models**. Cloud Models manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools → MCP**.
 :::
 
 ## Configuration
@@ -64,8 +64,11 @@ When you connect:
 
 1. Osaurus opens a connection to the MCP server
 2. Sends a `tools/list` request
-3. Registers each tool with a namespaced name
-4. Tools become available for inference
+3. Builds a complete namespaced catalog
+4. Atomically swaps the provider's previous catalog for the new one
+5. Tools become available for inference
+
+Reconnects and discovery refreshes never expose a half-updated catalog: the old set remains active until the replacement is ready.
 
 ### Tool namespacing
 

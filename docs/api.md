@@ -1,12 +1,12 @@
 ---
 title: HTTP API
 sidebar_label: HTTP API
-description: OpenAI, Anthropic, Open Responses, Ollama, MCP, and Memory endpoints. Drop-in compatible at the same port.
+description: OpenAI, Anthropic, Open Responses, Ollama, MCP, Memory, media, and loopback configuration endpoints at the same port.
 ---
 
 # HTTP API
 
-Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP server endpoints, the Memory API, and a few Osaurus-specific paths. Use whichever your SDK already speaks.
+Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP, Memory, media, agent-loop, and loopback configuration endpoints. Use whichever your SDK already speaks.
 
 ## Compatible APIs
 
@@ -57,13 +57,33 @@ Override the port with the `OSU_PORT` environment variable.
 
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
-| `/v1/images/generations` | POST | Text-to-image with a local image model |
-| `/v1/images/edits` | POST | Image editing (edit-capable models) |
-| `/v1/images/upscale` | POST | Upscale an image (upscale-capable models) |
+| `/v1/images/generations` | POST | Text-to-image with an explicit local, remote-provider, or Osaurus Cloud target |
+| `/v1/images/edits` | POST | Local image editing (edit-capable models) |
+| `/v1/images/upscale` | POST | Local image upscaling (upscale-capable models) |
 | `/v1/images/cancel` | POST | Cancel an in-flight image job |
-| `/images/models` | GET | List installed image models with per-model capabilities (`generations`, `edits`, `upscale`) |
+| `/v1/images/models` | GET | List installed local image models with per-model capabilities (`generations`, `edits`, `upscale`) |
 
-See [Image Generation](/image-generation) for model setup and examples.
+### Video endpoints
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/v1/videos/quote` | POST | Get a short-lived quote for text-to-video or image-to-video |
+| `/v1/videos/generations` | POST | Start a quoted durable cloud video job |
+| `/v1/videos/jobs/{id}` | GET | Poll durable job status |
+| `/v1/videos/jobs/{id}/content` | GET | Download completed `video/mp4` content |
+
+See [Image & Video Generation](/image-generation) for model setup, consent, and examples.
+
+### Declarative configuration
+
+These routes are intentionally loopback-only:
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/admin/config/export?format=yaml|json` | GET | Export current desired state without secrets |
+| `/admin/config/schema?format=yaml|json` | GET | Get the annotated YAML reference or JSON Schema |
+| `/admin/config/plan` | POST | Validate and preview a YAML/JSON document |
+| `/admin/config/apply` | POST | Apply a planned desired state |
 
 ### Memory Endpoints
 
@@ -103,8 +123,61 @@ See [Image Generation](/image-generation) for model setup and examples.
 Path prefixes are normalized before handler matching: `/v1/…`, `/api/…`, and `/v1/api/…` resolve to the same registered route, so `/v1/chat/completions` and `/chat/completions` are equivalent.
 
 :::note[Public vs. internal routes]
-A few `/admin/*` routes (cache stats, generation/runtime settings) exist for the app's own diagnostics. They're loopback-oriented and not part of the stable public contract — don't build integrations on them.
+Most `/admin/*` routes are app diagnostics and not a stable public contract. The `/admin/config/*` family is the supported exception for local automation, but remains loopback-only and must never be exposed over LAN.
 :::
+
+## Declarative configuration
+
+The config API uses the same strict planner and applier as `osaurus config` and the Orchestrator. It requires a physical `127.0.0.1` or `::1` connection; relay traffic and remote access-key callers cannot authorize it, even when the server is exposed.
+
+Export or inspect the schema:
+
+```bash
+curl 'http://127.0.0.1:1337/admin/config/export?format=yaml'
+curl 'http://127.0.0.1:1337/admin/config/schema?format=json'
+```
+
+Plan a document without changing anything:
+
+```bash
+curl http://127.0.0.1:1337/admin/config/plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "yaml": "version: 1\nmemory:\n  enabled: true\n",
+    "prune": false
+  }'
+```
+
+Apply uses the same body at `POST /admin/config/apply`. A high-risk response lists the risks and requires a second request with `"confirm_high_risk": true`. `prune` deletes unlisted entities only from sections declared in the document.
+
+Secrets are never exported and raw credentials are not accepted in documents. Use `env:` or `keychain:` references, or an interactive credential-sheet request. See [Declarative configuration](/configuration#declarative-configuration).
+
+## Cloud media jobs
+
+Remote image requests add a target and explicit spend consent to the normal image body:
+
+```json
+{
+  "prompt": "a cinematic dinosaur observatory",
+  "target": {
+    "backend": "osaurus_cloud",
+    "model": "provider/model"
+  },
+  "aspect_ratio": "16:9",
+  "allow_remote_media_spend": true
+}
+```
+
+`target.backend` is `local`, `remote_provider`, or `osaurus_cloud`; `remote_provider` also requires `provider_id` and currently recognizes configured Venice providers. Osaurus enforces the selected catalog model's advertised sizes, aspect ratios, quality options, and other constraints. A bare `model` selects a local bundle. Local generation currently returns one image; remote generation accepts `n` from 1–4.
+
+Video generation is quote-bound:
+
+1. `POST /v1/videos/quote` with `target`, `duration`, and optional `aspect_ratio`, `resolution`, `audio`, or source image details.
+2. Review the returned `quote_usd`, `quote_token`, and expiry.
+3. `POST /v1/videos/generations` with the same generation fields, `quote_token`, and `allow_remote_media_spend: true`.
+4. Poll `GET /v1/videos/jobs/{id}` and retrieve `/content` after completion.
+
+Jobs and their idempotency records survive disconnects and relaunches. Changed or expired quotes fail instead of silently changing the charge. See [Image & Video Generation](/image-generation).
 
 ## Core Endpoints
 
@@ -235,7 +308,7 @@ If you want server-side autonomous tool loops, use `POST /agents/{id}/run` inste
 | `stream` | boolean | No | Enable SSE streaming (default: false) |
 | `tools` | array | No | Function/tool definitions |
 | `tool_choice` | string/object | No | Tool selection strategy |
-| `session_id` | string | No | Reuse the same conversation's KV cache across turns (per `(model, session_id)`) |
+| `session_id` | string | No | Group conversation history and session bookkeeping across turns; KV reuse is content-addressed |
 
 When `max_tokens`, `temperature`, or `top_p` are omitted, Osaurus defers to the model's own `generation_config.json` and engine defaults rather than inventing app-wide values.
 
@@ -332,6 +405,25 @@ Manage a dispatched task by the id returned from `/dispatch`:
 - **`GET /tasks/{task_id}`** — poll status; returns the serialized task state (running, waiting on clarification, completed with result, failed), or `404` for unknown ids
 - **`DELETE /tasks/{task_id}`** — cancel; returns `204 No Content`
 - **`POST /tasks/{task_id}/clarify`** with `{"response": "…"}` — answer a clarifying question the task is blocked on
+
+### POST /api/show
+
+Return Ollama-compatible model metadata. The response includes a `capabilities` array so clients can distinguish ordinary text completion from multimodal support:
+
+```json
+{
+  "details": {
+    "family": "gemma4",
+    "parameter_size": "2B",
+    "quantization_level": "4-bit"
+  },
+  "capabilities": ["completion", "vision"]
+}
+```
+
+`completion` is reported for generative chat models. `vision` is included when the selected bundle accepts image input.
+
+`/api/show` reads installed local MLX metadata plus the special `foundation` alias. Remote-provider model IDs return `404`, and current capability strings do not report tools, audio, or video.
 
 ### POST /api/chat
 

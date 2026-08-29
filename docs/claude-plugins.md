@@ -8,7 +8,7 @@ description: Import full Claude plugins from any GitHub repo — skills, schedul
 
 Osaurus can import **full Claude plugins** straight from a GitHub repository — not just skills, but the whole bundle: skills, scheduled agents, slash commands, MCP providers, and shared `CLAUDE.md` context. Everything lands tagged with a stable id so the bundle installs, updates, and uninstalls as a single unit.
 
-Imported plugins live in the **Plugins** management tab alongside Osaurus's native plugins, each shown as a card with an `Imported` badge, a version pill, an Update button, and a Configure button when the plugin needs settings.
+Imported bundles live under **Skills → Claude Plugins**, separate from compiled native plugins under **Tools → Native Plugins**. Each is shown with an `Imported` badge, a version pill, an Update button, and a Configure button when settings are required.
 
 ## What gets imported
 
@@ -18,16 +18,16 @@ Imported plugins live in the **Plugins** management tab alongside Osaurus's nati
 | `skills/<name>/scripts`, `references`, `assets`, `templates` | Skill references/assets | Attached to the owning skill |
 | `agents/<name>.md` | A schedule (disabled until a cadence is set) | Management → Schedules |
 | `commands/<name>.md` | A slash command | The chat input |
-| `.mcp.json` (HTTP/SSE) | An MCP provider | Management → Tools → Connections |
-| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Management → Tools → Connections |
+| `.mcp.json` (HTTP/SSE) | An MCP provider | Management → Tools → MCP |
+| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Management → Tools → MCP |
 | `CLAUDE.md`, `CONNECTORS.md`, `README.md` | Reference files | Attached to every imported skill |
 
 Once imported, skills, references, slash commands, and MCP tools are discovered and loaded on demand through the same capability discovery used for built-in [skills](/skills) — there's nothing extra to wire up. `SKILL.md` bodies that point at `${CLAUDE_PLUGIN_ROOT}/…` paths or relative links are rewritten at import time to the local files Osaurus bundled.
 
 ## Importing a plugin
 
-1. Open Management (`⌘ ⇧ M`) → **Plugins**.
-2. Click **Import** in the header.
+1. Open Management (`⌘ ⇧ M`) → **Skills → Claude Plugins**.
+2. Click **Import**.
 3. Enter the repository (`owner/repo` or a full URL).
 4. Choose which plugins — and which artifacts within each — to install.
 5. Click **Install Selected**.
@@ -52,7 +52,7 @@ Orchestrator-style plugins that delegate to sibling skills ("invoke the `comps-a
 
 ## Managing installed plugins
 
-Each imported plugin is a card in **Plugins → Installed** with live per-artifact counts (skills, schedules, commands, MCP servers). From the card or its detail view you can:
+Each imported plugin is a card in **Skills → Claude Plugins** with live per-artifact counts (skills, schedules, commands, MCP servers). From the card or its detail view you can:
 
 - **Update** — appears when the source's version (or commit) is newer than what's installed; re-fetches and replaces the artifact set in place. Re-importing is idempotent, so you won't pile up duplicates.
 - **Configure Settings** — re-open the `userConfig` sheet.

@@ -1,12 +1,12 @@
 ---
 title: Storage & Encryption
 sidebar_label: Storage & Encryption
-description: How Osaurus stores data on disk — plaintext by default with FileVault protection, opt-in SQLCipher encryption, migration, recovery, and Settings → Storage.
+description: How Osaurus stores data on disk — plaintext by default with FileVault protection, opt-in SQLCipher encryption, migration, recovery, and Privacy → Storage.
 ---
 
 # Storage & Encryption
 
-Osaurus stores your local data — chats, memory, methods, tool indexes, plugin databases, and large attachments — under `~/.osaurus/`. Since 0.21.0, data is stored as **plaintext SQLite by default**, protected at rest by macOS **FileVault**. Whole-database **SQLCipher encryption is an explicit opt-in** in **Settings → Storage**.
+Osaurus stores your local data — chats, memory, methods, tool indexes, plugin databases, and large attachments — under `~/.osaurus/`. Since 0.21.0, data is stored as **plaintext SQLite by default**, protected at rest by macOS **FileVault**. Whole-database **SQLCipher encryption is an explicit opt-in** in **Management → Privacy → Storage**.
 
 :::tip[Looking for the user-friendly version?]
 This page is the technical reference. For a plain-language overview of how Osaurus protects your data, start at [Security & Privacy](/security).
@@ -15,9 +15,9 @@ This page is the technical reference. For a plain-language overview of how Osaur
 ## TL;DR
 
 - **Plaintext by default.** FileVault already encrypts the whole disk at rest, so your data is protected when the Mac is off or logged out — without an app-managed key that can go missing.
-- **Encryption is opt-in.** Turn on **Settings → Storage → Encrypt local data at rest (SQLCipher)** to encrypt every database with a 32-byte key in your macOS Keychain.
+- **Encryption is opt-in.** Turn on **Management → Privacy → Storage → Encrypt local data at rest (SQLCipher)** to encrypt every database with a 32-byte key in your macOS Keychain.
 - **Upgrades migrate automatically.** If you're coming from a version with always-on encryption, first launch decrypts to plaintext when FileVault is on, or keeps your data encrypted when FileVault is off. No prompt; you can flip the choice later in Settings.
-- **Back up before risky operations.** Use **Settings → Storage → Export plaintext backup** before reinstalling macOS, migrating Macs, or rotating the key.
+- **Back up before risky operations.** Use **Management → Privacy → Storage → Export plaintext backup** before reinstalling macOS, migrating Macs, or rotating the key.
 
 ## Why encryption is opt-in
 
@@ -89,7 +89,7 @@ If you upgraded from a version with always-on encryption, Osaurus resolves the t
 - Encrypted install + FileVault **off** → **keep encrypted.** Decrypting would strip the data's only at-rest protection.
 - Fresh or already-plaintext install → **plaintext.**
 
-The choice is persisted in the posture marker and honored on every later launch. There's no prompt — the migration is invisible, and you can change the posture anytime in **Settings → Storage**.
+The choice is persisted in the posture marker and honored on every later launch. There's no prompt — the migration is invisible, and you can change the posture anytime in **Management → Privacy → Storage**.
 
 ### How conversion works
 
@@ -102,7 +102,7 @@ The process is **idempotent and crash-safe**: because opening is detection-first
 Convergence **never auto-deletes data**. If a store can't be opened — almost always an encrypted store whose Keychain key is gone — Osaurus keeps running on whatever opens and surfaces the failure:
 
 - **Memory → Diagnostics** shows the real cause for the memory database, with inline **Retry** and **Reset**
-- **Settings → Storage** shows a "Stores needing attention" panel listing every degraded store with its cause and the same actions
+- **Privacy → Storage** shows a "Stores needing attention" panel listing every degraded store with its cause and the same actions
 
 **Retry** re-attempts the open (for example, after you restore the Keychain key). **Reset** moves the unreadable file to `~/.osaurus/quarantine/` — **moved, never deleted** — and recreates an empty store so the feature works again. If you later recover the key, you can still export the old data from the quarantined copy.
 
@@ -136,7 +136,7 @@ If you want the DEK reproducible across devices via the iCloud-synced [Identity 
 | Wipe cache | Clear the in-process key cache; the Keychain entry remains |
 | Reset for wipe | Delete the Keychain key, salt, and sidecar. **Irreversible without the original key or a plaintext backup.** |
 
-## Settings → Storage
+## Privacy → Storage
 
 Open the Management window (`⌘ ⇧ M`) → **Storage**. The panel reflects the **detected on-disk reality** (plaintext, encrypted, or mixed), not a flag guess.
 
@@ -195,4 +195,4 @@ Each database is SQLite by default, or SQLCipher when encryption is on. When enc
 - [Security & Privacy](/security) — the plain-language overview
 - [Identity Cryptography](/identity-internals) — master key, agent key derivation
 - [Memory](/memory) — what lives in `memory.sqlite`
-- [Server Settings](/configuration) — plaintext config files
+- [Configuration](/configuration) — declarative state and plaintext runtime config files

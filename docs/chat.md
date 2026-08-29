@@ -27,7 +27,6 @@ The hotkey is configurable: Settings → General → Global Hotkey if `⌘;` col
 |---|---|
 | **Input bar** | Type or paste your message. `Enter` to send, `Shift + Enter` for a new line. |
 | **Folder picker** | Choose a trusted folder for scoped file, search, and git tools. Selecting one disables Sandbox for the agent. See [Tasks](/agent-loop). |
-| **Sandbox toggle** | Gives the agent shell access in an isolated environment — a Linux VM on macOS 26+, a Seatbelt-confined runner on earlier macOS. Enabling it clears trusted-folder selections from visible chats using that agent. See [Sandbox Internals](/sandbox). |
 | **Microphone** | Click for voice input. [Transcription Mode](/voice#transcription-mode) has its own configurable hotkey for typing into any app. |
 | **Model selector** | Switch between local models, Apple Foundation, and any cloud providers you've connected. Reasoning-capable models get a **Thinking** control here — your choice sticks for the whole task, including tool-calling turns. |
 | **Agent selector** | Switch the active agent. Theme, prompt, and memory swap with it. |
@@ -38,12 +37,7 @@ When you ask the AI to *do* something — not just explain something — it writ
 
 While it works, consecutive thinking and tool activity is grouped into a single expandable row — you see one compact "what it's doing" line, and can expand it for the step-by-step detail.
 
-Two power-ups on the input bar give the agent more capability per chat:
-
-- **Trusted folder** — point at a folder to get scoped file, search, and git tools
-- **Sandbox** — toggle on for shell access in an isolated environment
-
-These modes are mutually exclusive and Sandbox is agent-scoped. Selecting a trusted folder disables Sandbox for that agent; enabling Sandbox clears folder selections from visible chats using it. Turn Sandbox off and reselect a folder when the agent should work directly with a project again.
+New custom agents have Sandbox execution enabled where supported. Use the input bar's **trusted folder** picker when the agent should work directly in a Mac folder; Osaurus disables that agent's Sandbox before granting scoped file, search, git, and shell tools. Re-enable Sandbox later from the agent's **Abilities** settings.
 
 [Tasks →](/agent-loop)
 
@@ -77,10 +71,12 @@ History floats active conversations to the top. A row shows **Running…** while
 | Search | Type in the search field at the top of the sidebar |
 | Select several chats | `⌘`-click to multi-select, then archive or delete them in one action |
 | Delete a session | Right-click → **Delete** |
+| Delete one assistant reply | Use the reply's action menu; optionally delete its paired user prompt too |
 | Clear current chat | Type `/clear` in the input bar |
+| Delete one agent's data | Open that agent's management page and choose **Delete All Data** |
 | Wipe everything | Delete sessions from the sidebar, or Settings → General → **Factory Reset** (removes all app data) |
 
-Wiping is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep them. [Storage details →](/storage)
+Wiping is irreversible. Use **Management → Privacy → Storage → Export plaintext backup** first if you want to keep them. [Storage details →](/storage)
 
 ### Importing conversations
 
@@ -93,11 +89,11 @@ Use the History import action to bring existing conversations into Osaurus. Supp
 - Open WebUI chat exports
 - Generic JSON containing `conversations[].messages[]` (or one top-level `messages` array)
 
-Stable 0.22.15 accepts one or more `.json` or `.zip` files and scans recognizable JSON files inside each archive.
+Select one or more `.json` or `.zip` files. Osaurus scans recognizable JSON files inside each archive, including large ZIP64 exports.
 
 Imported rows keep their original dates, receive an **Imported** badge, and briefly highlight so you can find them. Re-imports with the same stable conversation ID are skipped.
 
-Current main, after 0.22.15, adds large ZIP64 support, live parsing progress, independent processing when several files are selected, and warning summaries for unreadable conversations or failed files. Usable conversations still import when another selected file fails.
+Parsing progress updates live. Multiple selections are processed independently, so usable conversations still import when another file is unreadable; a final warning summarizes anything skipped.
 
 ### Resuming a session
 
@@ -121,7 +117,7 @@ Useful patterns:
 | Window 1 | Window 2 | Window 3 |
 |---|---|---|
 | Code Assistant on `~/projects/api` | Research Helper | Creative Writer |
-| Sandbox toggle on for build/test | Browsing the web | Drafting a post |
+| Sandboxed agent running build/test | Browsing the web | Drafting a post |
 
 ### Pin to top
 
@@ -161,6 +157,10 @@ Responses are rendered with full Markdown:
 Hover over any message to reveal a copy button.
 
 If a response is heading the wrong direction, click **Stop** to interrupt streaming, edit your prompt, and try again.
+
+Generated images open in a full-screen preview when clicked.
+
+AI-generated follow-up suggestions are on by default and appear beneath the latest completed assistant response. Select one to send it as the next user message. You can turn suggestions off in Chat settings and optionally choose a different suggestion model per agent.
 
 ## Context compaction
 
@@ -215,7 +215,7 @@ A small dot on the icon means VAD is on:
 | `Shift + Enter` | New line |
 | `Esc` | Dismiss the overlay |
 | `/clear` | Clear current conversation (slash command) |
-| `/title` | Generate a title for the current chat (current main; added after stable 0.22.15) |
+| `/title` | Generate a title for the current chat |
 
 ### Management window
 

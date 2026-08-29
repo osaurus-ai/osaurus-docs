@@ -33,7 +33,7 @@ Collections crawl the folder recursively, including subfolders. Supported format
 | Documents | PDF, Word (`.docx`), PowerPoint (`.pptx`) |
 | Data | Excel (`.xlsx`), CSV/TSV |
 
-Binary documents are indexed by their extracted text, and `read_knowledge` returns that extracted text to the agent — so a PDF or spreadsheet is as searchable as a markdown file.
+Binary documents are indexed by their extracted text, and `read_knowledge` returns that extracted text to the agent — so a PDF or spreadsheet is as searchable as a markdown file. For Markdown, non-reserved frontmatter is returned with the document so agents can use your own metadata rather than losing it during retrieval.
 
 Deliberately **excluded**:
 
@@ -68,7 +68,7 @@ A **folder watcher** keeps the index live: edit, add, or delete a file in the fo
 Grants are per-agent and explicit, and there are two places to manage them:
 
 - **From the Knowledge tab** — a grant-to-agents dialog appears right after you create a collection, and each collection card shows the agents with access as **stacked avatars**. Click a card to open its detail sheet, which also carries the collection's folder path, categories, and a **Delete** action.
-- **From the agent** — in the agent's **Abilities → Overview**: **Knowledge** turns on the retrieval tools and lists your collections as a checklist right under the toggle; **Curator** appears once Knowledge is on and lets the agent file staleness tickets and propose document updates (see below).
+- **From the agent** — in the agent's **Abilities → Overview**: **Knowledge** turns on the knowledge tools and lists your collections as a checklist right under the toggle. Write access follows the collection grant; there is no separate curator role.
 
 An agent can only ever search and read collections it's been granted — the grant is enforced when tools execute, not just hidden from the schema. Deleting a collection removes its index and grants; the source folder on disk is never touched.
 
@@ -85,29 +85,35 @@ With Knowledge on, the agent gets:
 | `list_knowledge` | List granted collections and their documents |
 | `search_knowledge` | Hybrid search across granted collections |
 | `read_knowledge` | Read a document in full (extracted text for binary formats) |
-
-With **Curator** also on:
-
-| Tool | What it does |
-|---|---|
 | `flag_knowledge_stale` | File a ticket that a document looks outdated |
-| `propose_knowledge_update` | Draft a revised version of a markdown document |
+| `write_knowledge` | Create a document or replace one in full |
+| `edit_knowledge` | Apply a targeted, unambiguous find-and-replace edit |
+| `delete_knowledge` | Delete a document |
 | `list_knowledge_tickets` / `update_knowledge_ticket` | Track and resolve open tickets |
 
-## Curation: agents propose, you approve
+## Curation: approve each change
 
-Agents never edit your documents directly. Curation is a review loop:
+Knowledge writes use the same consent model as other consequential tools:
 
-1. The agent notices something outdated and files a **ticket**, or drafts a **proposal** with the revised content and a rationale
-2. Pending proposals and open tickets appear at the top of the **Knowledge** tab
-3. You review the diff, optionally edit it, then **Approve** (writes the file) or **Dismiss**
+1. The agent calls `write_knowledge`, `edit_knowledge`, or `delete_knowledge`.
+2. Osaurus validates the operation before asking. Paths must stay inside the granted collection; ambiguous targeted edits are refused.
+3. An approval sheet shows create, replace, edit, or delete badges and a concrete diff or occurrence count.
+4. Approving applies the change immediately. Denying leaves the source folder untouched.
 
-Proposals can only target markdown files (`.md`, `.markdown`, `.mdx`) — the app refuses to write text over a PDF or spreadsheet. A stale-flag on a binary document resolves to a ticket for a human to update the source file.
+The write tools are unavailable to external HTTP agent runs and MCP callers because their security boundary is the interactive in-app approval sheet. Existing pending proposals from older releases remain visible temporarily so they are not stranded, but agents no longer create new proposals.
+
+Mutations target Markdown documents only. `write_knowledge` and `delete_knowledge` accept batches of up to 200 unique paths; a write batch is best-effort per document rather than atomic across the collection. `edit_knowledge` applies up to 50 ordered substitutions to one document after validating every match.
+
+### History and safe revert
+
+Every approved write is recorded separately from the rebuildable search index in `write_log.sqlite`. Open **Knowledge → History** to filter writes by collection and revert a whole run or one document.
+
+Revert is conflict-safe: if a document changed after the agent wrote it, Osaurus refuses to overwrite the newer manual edit. Targeted edits also preserve frontmatter that the model did not need to round-trip.
 
 ## Knowledge vs. Memory vs. Skills
 
 | | What it is | Who writes it |
 |---|---|---|
 | [Memory](/memory) | What the AI learned from your conversations | The AI, automatically |
-| **Knowledge** | Reference documents you curate in folders | You (agents can propose edits) |
+| **Knowledge** | Reference documents you curate in folders | You, or an agent after per-call approval |
 | [Skills](/skills) | Reusable methodology and expertise packages | You or the community |

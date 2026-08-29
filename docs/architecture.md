@@ -13,10 +13,10 @@ If you're building on top of Osaurus — writing plugins, scripts, or integratio
 Osaurus presents three entry points:
 
 - **The chat overlay** (`⌘;`) — the daily driver
-- **The Management window** (`⌘ ⇧ M`) — settings, agents, models, plugins, tools, memory, themes, automation
-- **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP
+- **The Management window** (`⌘ ⇧ M`) — settings, Orchestrator, agents, models, media, tools, memory, themes, automation
+- **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP, media, and loopback configuration
 
-All three funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
+The built-in **Orchestrator** can configure these surfaces and delegate to custom agents; agent runs funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
 
 ## How the pieces fit together
 
@@ -81,7 +81,7 @@ flowchart TB
 | Layer | What it does | Reference |
 |---|---|---|
 | **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
-| **Harness** | Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
+| **Harness** | Orchestrator, delegated agents, Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Orchestrator](/orchestrator), [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
 | **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use)), registry plugins, remote MCP aggregation, and the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
 | **Foundations** | Identity (signed requests, `osk-v1` keys), local storage (opt-in SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
@@ -96,11 +96,11 @@ The overlay is also where voice input lives: the microphone in the input bar, pl
 
 ### Management window
 
-`⌘ ⇧ M`. Tabs for everything that isn't a single chat: Models, Providers, Agents, Plugins, Sandbox, Tools, Skills, Commands, Memory, Schedules, Watchers, Voice, Themes, Insights, Server, Permissions, Identity, Storage, Settings.
+`⌘ ⇧ M`. The sidebar groups **General** (General, Chat, Voice, Themes, Credits, Identity, Permissions, Privacy), **Models** (Local Models, Cloud Models, Media), **Agents** (Orchestrator, Agents, Channels), **Capabilities** (Web Search, Knowledge, Memory, Tools, Skills, Commands), **Automation**, and an optional **Developer Tools** section. Native plugins and MCP connections now live inside Tools; Claude plugin bundles live inside Skills.
 
 ### HTTP API
 
-A local server on port 1337 (configurable). Speaks OpenAI Chat Completions, Anthropic Messages, Open Responses, and Ollama Chat APIs side by side, plus MCP server endpoints (`/mcp/health`, `/mcp/tools`, `/mcp/call`) and Osaurus-specific routes (`/agents/{id}/run`, `/memory/ingest`, `/agents`, `/pair`).
+A local server on port 1337 (configurable). Speaks OpenAI Chat Completions, Anthropic Messages, Open Responses, and Ollama Chat APIs side by side, plus MCP endpoints, media generation, agent runs, Memory, pairing, and loopback-only declarative configuration under `/admin/config/*`.
 
 ## Harness
 

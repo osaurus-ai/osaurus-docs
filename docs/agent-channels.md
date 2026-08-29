@@ -1,12 +1,12 @@
 ---
 title: Agent Channels
 sidebar_label: Agent Channels
-description: Let agents reply and start messages in Slack, Telegram, Discord, iMessage, or your own JSON API — with explicit routing, allowlists, and review controls.
+description: Let agents reply and start messages in WhatsApp, Slack, Telegram, Discord, iMessage, or your own JSON API — with explicit routing, allowlists, and review controls.
 ---
 
 # Agent Channels
 
-Agent Channels connect Osaurus to **Slack**, **Telegram**, **Discord**, **iMessage**, and services with a simple JSON API. Channel messaging has two separate paths:
+Agent Channels connect Osaurus to **WhatsApp**, **Slack**, **Telegram**, **Discord**, **iMessage**, and services with a simple JSON API. Channel messaging has two separate paths:
 
 - **Replies** answer incoming messages. You choose which conversations and senders may reach an agent, which agent answers, and whether its response is posted automatically.
 - **New Messages** let an agent bring something up without an incoming trigger. The Channels page calls these **Messages Agents Can Start**; each agent's Channels tab calls them **Messages It Can Start**.
@@ -106,7 +106,7 @@ Telegram receives through **Bot API long polling**. The Bot API does not expose 
 
 When an incoming channel message dispatches an agent, the agent's response is delivered back to the channel by the app itself — and only when the connection's **Reply Automatically** toggle is on. With it off, incoming messages still run the agent, but the reply stays local in Osaurus; the connection's activity list records the turn as "Agent replied (auto-reply off)" and the settings pane shows a warning under the toggle.
 
-Runs triggered by an inbound channel message deliberately cannot post through the `agent_channel_*` write tools or proactive destination bindings: an outside sender must never be able to steer your agent into publishing somewhere else. (This gate is enforced from 0.22.17 on — earlier versions let channel-triggered runs reply through the channel tools, so setups that relied on that need Reply Automatically enabled after upgrading.)
+Runs triggered by an inbound channel message deliberately cannot post through the `agent_channel_*` write tools or proactive destination bindings: an outside sender must never be able to steer your agent into publishing somewhere else. Set up inbound delivery through **Reply Automatically** instead.
 
 Auto-replies are sanitized before posting and still respect the platform's write gates and allowlists.
 
@@ -134,6 +134,21 @@ Editing, unsending, tapbacks, typing indicators, attachments, effects, polls, an
 :::
 
 Basic send and receive continue to work with SIP and Library Validation enabled. Advanced actions have a separate master switch and per-action switches, and every mutation still passes the normal confirmation and write gates.
+
+## WhatsApp
+
+WhatsApp is a native, local channel backed by the unofficial WhatsApp Web protocol. It does not use the Meta Cloud API, require a developer account, or expose a public webhook. WhatsApp can log linked clients out, so use a dedicated number for important automation.
+
+From **Connect**, download the verified `osaurus-wa` helper, display the pairing QR, and scan it from **WhatsApp → Settings → Linked Devices** on your phone. The linked session persists locally under `~/.osaurus/whatsapp/session/`; unlinking it from either device revokes the session.
+
+After pairing:
+
+- choose readable and writable chats and allowlisted senders;
+- enable receiving, optional read receipts, and Reply Automatically as needed;
+- use send, read, search, quoted reply, edit, delete, reaction, typing, and attachment actions where WhatsApp supports them;
+- run the Test flow to verify the helper, linked-device state, watch stream, and a real inbound event.
+
+The helper is downloaded from a pinned release and its archive and executable digests are verified before every launch. Inbound media is size-capped and path-fenced; outbound attachments, mutations, and replies still pass the same confirmation, destination, global sending, and allowlist gates as every other channel.
 
 ## Custom JSON channels
 

@@ -18,8 +18,8 @@ An agent is a saved configuration with its own:
 - **Tools** — its own enabled set of tools, plus an *Auto vs Manual* toggle (more below). Skills aren't scoped per agent — they come from the universal [Skills library](/skills).
 - **Memory** — pinned facts, episode digests, and identity overrides are stored per-agent
 - **Database** — an optional private, encrypted SQLite database for structured data across runs (see [Agent DB](/agent-db))
-- **Sandbox permissions** — an `autonomous_exec` config that controls exactly what the agent may do in the [Sandbox](/agent-loop#toggle-the-sandbox), down to per-domain network allowlists
-- **Subagents** — per-agent delegation settings: spawnable agents/models, the `image` tool, Computer Use, Browser Use, and AppleScript, all off by default (see [Subagents](/subagents))
+- **Sandbox permissions** — an `autonomous_exec` config that controls exactly what the agent may do in the [Sandbox](/agent-loop#configure-the-sandbox), down to per-domain network allowlists
+- **Subagents** — per-agent delegation settings: spawnable agents/models, the `image` and `video` tools, Computer Use, Browser Use, and AppleScript. New custom agents are added to the built-in Orchestrator's spawn pool automatically (see [Subagents](/subagents))
 - **Automation** — per-agent [schedules](/schedules) and [file watchers](/watchers), plus opt-in self-scheduling
 - **Quick actions** — per-agent prompt templates shown in the chat empty state, separate lists for Chat and Work modes
 - **Plugin instructions** — optional per-plugin instruction overrides
@@ -96,7 +96,6 @@ The switches, grouped the way the UI groups them:
 | | **Speak Tool** | A tool the agent can call to read a reply aloud on request |
 | Memory & Recall | **Memory Recall** | Let the agent search its own memory mid-conversation — separate from Memory, which only auto-injects |
 | Knowledge | **Knowledge** | Search and read the [knowledge collections](/knowledge) granted inline below the toggle |
-| | **Curator** | Draft document updates as pending proposals you approve |
 | Web | **Web Search** | [Native web search](/web-search) through your configured providers |
 | Autonomy | **Self-scheduling** | Let the agent schedule its own follow-up runs and send notifications; frequency limits live in General → Configure → Scheduling |
 | Data | **Database** | A private encrypted database for structured data (see [Agent DB](/agent-db)). With a cloud model, the schema — table names and column types — is sent with requests; row data is not. |
@@ -107,7 +106,7 @@ Most ability toggles are backed by tools, so they pause (with a note) if the mas
 
 ## Sandbox permissions
 
-**Abilities → Sandbox → Execution** holds the full `autonomous_exec` permission set for when the [Sandbox](/agent-loop#toggle-the-sandbox) is on:
+**Abilities → Sandbox → Execution** holds the full `autonomous_exec` permission set for when the [Sandbox](/agent-loop#configure-the-sandbox) is on:
 
 | Setting | What it does | Default |
 |---|---|---|
@@ -174,9 +173,9 @@ Useful for therapy-style assistants, coaching agents, or anything where you want
 These are separate execution modes:
 
 - **Pick a trusted folder** in the chat input bar to give the current chat file/search/git tools scoped to that folder. Selecting it disables Sandbox for the agent.
-- **Enable Sandbox** to give the agent shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15). This agent-scoped switch clears folder selections from visible chats using that agent; turn it off and reselect a folder when you want trusted-folder mode again.
+- **Sandbox execution** is enabled by default for custom agents where supported and gives shell access in an isolated environment (a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15). Configure it under **Abilities → Overview** and **Abilities → Sandbox**.
 
-Trusted-folder and Sandbox tools never appear together. The agent's [sandbox permissions](#sandbox-permissions) control how much capability it has *if Sandbox is on*. Read-only sandbox tools are available in that mode; write, exec, install, and secret tools require **Autonomous Execution**.
+Trusted-folder and Sandbox tools never appear together. Selecting a folder from chat disables Sandbox for that agent before granting the host path. The agent's [sandbox permissions](#sandbox-permissions) control how much capability it has when Sandbox is enabled; write, exec, install, and secret tools require **Autonomous Execution**.
 
 Separate from the current chat's trusted-folder picker, the per-agent **Host Files** ability grants one standing macOS folder for authenticated remote agent runs. It permits folder-confined file access but never enables host shell, git, or undo tools.
 
@@ -184,7 +183,7 @@ Separate from the current chat's trusted-folder picker, the per-agent **Host Fil
 
 ## Subagents per agent
 
-Each agent's **Abilities → Subagents** tab controls what it can delegate: spawning other agents and models, generating images inline, driving macOS apps with Computer Use, driving a persistent browser with Browser Use, and running AppleScript. Everything ships disabled — an agent can't delegate until you grant it. [Subagents →](/subagents) · [Computer Use →](/computer-use) · [Browser Use →](/browser-use) · [Image Generation →](/image-generation)
+Each agent's **Abilities → Subagents** tab controls what it can delegate: spawning other agents and models, generating images or video, driving macOS apps with Computer Use, driving a persistent browser with Browser Use, and running AppleScript. A newly created custom agent is automatically available to the built-in Orchestrator; delegation from other custom agents remains governed by that parent's spawn pool and permission settings. [Subagents →](/subagents) · [Computer Use →](/computer-use) · [Browser Use →](/browser-use) · [Image & Video Generation →](/image-generation)
 
 ## Memory per agent
 
@@ -194,7 +193,7 @@ Identity overrides ("I prefer tabs over spaces", "Reply in English") are also pe
 
 ## Knowledge per agent
 
-Beyond what an agent learns from you, you can hand it curated reference material: knowledge collections are folders of documents (markdown, plain text, code, PDF, Word, Excel, PowerPoint, CSV) the agent can search and read on demand. Grants are per-agent and explicit — in **Abilities → Overview**, turn on **Knowledge** and check the collections this agent may see right under the toggle; it can never touch the others. Enable **Curator** as well to let the agent flag stale documents and propose updates you approve. [Knowledge →](/knowledge)
+Beyond what an agent learns from you, you can hand it curated reference material: knowledge collections are folders of documents (markdown, plain text, code, PDF, Word, Excel, PowerPoint, CSV) the agent can search and read on demand. Grants are per-agent and explicit — in **Abilities → Overview**, turn on **Knowledge** and check the collections this agent may see right under the toggle; it can never touch the others. Any agent with a grant can flag stale documents and make call-time approval-gated writes with safe history and revert. [Knowledge →](/knowledge)
 
 ## Switching, duplicating, and managing agents
 
@@ -210,13 +209,15 @@ Switching changes the system prompt, default model (if set), theme (if set), and
 
 Agents you've been invited to (via [Share Agent](#share-an-agent)) appear in the same grid with a **Remote** badge. They show up in the agent selector too, so you can switch to them mid-chat the same way.
 
-## Built-in agents
+## The built-in Orchestrator
 
-Osaurus ships with a built-in **Osaurus** assistant whose agent definition is read-only. It is dedicated to configuring and explaining the app: it inspects current state with `osaurus_status`, `osaurus_list`, and `osaurus_describe`, and answers product questions from the bundled guide through `osaurus_help`.
+Osaurus ships with a built-in **Osaurus Orchestrator** whose agent definition remains protected, but whose identity, persona, and delegation instructions can be edited under **Settings → Orchestrator**.
 
-It can also make approval-gated changes: `osaurus_settings` covers common app, server, chat, memory, voice, and default-agent settings; `osaurus_watcher` manages folder watchers; the other configuration tools manage agents, models, providers, MCP, plugins, search, and schedules. Agent updates can change supported capability toggles, and schedule updates can reassign a schedule to another custom agent.
+The Orchestrator is the primary agent you talk to. It can inspect the app with `osaurus_inspect`, answer product questions from the bundled guide through `osaurus_help`, and apply reviewed desired-state changes with `osaurus_config`. For work that needs a specialist, it can create a custom agent, add it to the spawn pool, and delegate to it in the same turn. Child artifacts are adopted into the parent conversation and render there normally.
 
-The built-in assistant does not use the Skills library or trusted folders, and it is not a general work agent. For coding, research, files, images, or other work, create or switch to a custom agent.
+Every custom-agent creation path — the editor, declarative config, duplicate, bundle import, or backup restore — registers the new agent in the Orchestrator's spawn pool. Existing installs are seeded once; later removals are respected and an intentionally empty pool is not repopulated.
+
+The built-in Orchestrator itself never receives Sandbox access. It delegates file, code, image, video, research, and other specialist work to custom agents, whose own tools and safety settings remain in force. See [Orchestrator](/orchestrator).
 
 ## Share an agent
 

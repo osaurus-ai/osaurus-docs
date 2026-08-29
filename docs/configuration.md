@@ -1,12 +1,91 @@
 ---
-title: Server Settings
-sidebar_label: Server Settings
-description: Environment variables, server flags, defaults knobs, and where everything lives on disk.
+title: Configuration & Server Settings
+sidebar_label: Configuration
+description: Declarative YAML/JSON desired state, environment variables, server flags, runtime defaults, and storage paths.
 ---
 
-# Server Settings
+# Configuration & Server Settings
 
 Osaurus works out of the box with sensible defaults. This page covers the knobs you can turn.
+
+## Declarative configuration
+
+Describe the parts of Osaurus you want to manage in one versioned YAML or JSON document. The planner compares that desired state with the running app, validates the whole document, and shows the exact changes and risks before the applier writes anything.
+
+The same engine powers:
+
+- the Orchestrator's `osaurus_config` tool and `osaurus_inspect` read surface;
+- `osaurus config export|schema|plan|apply`; and
+- loopback-only `/admin/config/*` HTTP endpoints.
+
+### Example
+
+```yaml
+version: 1
+
+memory:
+  enabled: true
+  budget_tokens: 1200
+
+default_agent:
+  name: Osaurus
+  model: foundation
+  system_prompt: "Be concise and delegate specialist work."
+
+agents:
+  - name: Research Agent
+    system_prompt: "Research thoroughly and cite sources."
+    temperature: 0.4
+    capabilities:
+      tools_enabled: true
+      web_search_enabled: true
+
+delegation:
+  local_text_enabled: true
+  spawnable_agents: ["Research Agent"]
+  spawn_tool_access: read_only
+  permission_defaults:
+    spawn: ask
+```
+
+Documents can manage `memory`, `default_agent`, `active_agent`, custom `agents`, `tools`, `delegation`, slash `commands`, `knowledge_collections`, `channels`, `mcp_servers`, local `models`, native `plugins`, cloud `providers`, `search_providers`, `schedules`, and `watchers`.
+
+### Semantics and safety
+
+- **Merge by default.** Missing keys stay untouched; explicit `null` clears an optional override.
+- **Entities match by name**, case-insensitively. Listed agents, providers, MCP servers, schedules, and watchers are created or patched.
+- **Plan is read-only.** Only `apply` mutates state.
+- **Prune is an explicit argument**, not a document key. It deletes unlisted entries only in sections present in the document and refuses broken cross-references.
+- **Validation is all-or-nothing.** Unknown keys, bad values, and invalid references stop the whole document before changes begin.
+- **High-risk changes need an extra confirmation.** Examples include prune deletions, browser or Computer Use grants, relay exposure, channel writes, new or stdio MCP endpoints, automatic tool policies, and looser delegation permissions.
+- Documents are capped at 512 KiB.
+
+### Secrets
+
+Exports never include secrets or reveal whether a credential exists. Documents accept references, not raw keys:
+
+- `env:VARIABLE_NAME`
+- `keychain:SERVICE/ACCOUNT`
+- `set_api_key: true` to open the native credential sheet during apply
+
+Provider `api_key_ref`, MCP `token_ref`/`secret_env_refs`, and channel `bot_token_ref` resolve only at apply time. OAuth, device pairing, macOS permission grants, folder pickers, destructive resets, payment, server runtime, app appearance, voice, sandbox resources, privacy filtering, and image targets remain interactive Settings work by design.
+
+### CLI workflow
+
+```bash
+osaurus config export -o osaurus-config.yaml
+osaurus config schema
+osaurus config plan osaurus-config.yaml
+osaurus config apply osaurus-config.yaml
+
+# Destructive or otherwise high-risk changes
+osaurus config plan osaurus-config.yaml --prune
+osaurus config apply osaurus-config.yaml --prune --yes
+```
+
+`apply` exits `0` when fully converged, `1` when a change fails or is cancelled, and `3` when changes applied but an interactive step such as credential entry remains.
+
+[Orchestrator →](/orchestrator) · [CLI reference →](/cli#osaurus-config) · [HTTP endpoints →](/api#declarative-configuration)
 
 ## Environment variables
 
@@ -50,7 +129,7 @@ Each agent has a tool mode in its **Capabilities** settings. In **Auto** mode (t
 
 ## Chat
 
-**Management → Settings → Chat → Compaction Model** selects the model used to summarize older messages when a conversation approaches its context limit. Local, Foundation, and remote models are supported; remote compaction requests honor your [Privacy Filter](/privacy-filter) settings. If unset, Osaurus asks you to choose a model the first time compaction runs rather than silently using the active chat model. [Chat compaction →](/chat#context-compaction)
+**Management → Chat → Compaction Model** selects the model used to summarize older messages when a conversation approaches its context limit. Local, Foundation, and remote models are supported; remote compaction requests honor your [Privacy Filter](/privacy-filter) settings. If unset, Osaurus asks you to choose a model the first time compaction runs rather than silently using the active chat model. [Chat compaction →](/chat#context-compaction)
 
 ## Memory
 
@@ -79,8 +158,12 @@ Memory is on by default, with ten settings. Edit them in **Management → Memory
 |---|---|
 | **Eviction policy** | `Strict (One Model)` keeps one model loaded (default); `Flexible (Multi Model)` allows concurrent models for high-RAM systems |
 | **Keep model loaded after use** | Idle residency after the last request — 5/15/30/60 minutes (default 15), Immediately, or Never |
-| **Top P** | Default top-p for inference (per-request override available) |
+| **Sampling Defaults** | Optional temperature, top-p, top-k, min-p, repetition penalty, and max-token defaults. Blank fields defer to the model bundle. |
+| **Disk Cache Size (% of disk)** | Blank uses 10% of the cache volume; the shared cap is further limited at model load to 25% of currently free disk |
+| **Clear SSD Cache** | Safely remove reusable KV checkpoints and reclaim the cache volume |
 | **Allowed origins** | CORS origins (currently `*`) |
+
+Sampler precedence is request/agent → your Sampling Defaults → model bundle → engine. **Live Activity → Sampler last used** reports what actually ran. [Inference Runtime details →](/inference-runtime#sampling-and-speculative-decoding)
 
 ### Concurrency & Batching
 
@@ -122,7 +205,7 @@ The sandbox is configured in **Management → Sandbox → Container → Resource
 
 ## Storage encryption
 
-Local data is plaintext SQLite by default, protected at rest by FileVault. Turn on whole-database SQLCipher encryption in **Settings → Storage** if your threat model calls for it — the same panel handles backups, key rotation, and recovery. [Storage & Encryption →](/storage)
+Local data is plaintext SQLite by default, protected at rest by FileVault. Turn on whole-database SQLCipher encryption in **Management → Privacy → Storage** if your threat model calls for it — the same panel handles backups, key rotation, and recovery. [Storage & Encryption →](/storage)
 
 ## API path prefixes
 

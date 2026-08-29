@@ -1,7 +1,7 @@
 ---
 title: Themes
 sidebar_label: Themes
-description: Built-in light/dark themes plus a full custom-theme editor with import/export. Bind a theme to an agent so it activates automatically.
+description: A System theme that follows macOS, built-in light/dark themes, and a full custom-theme editor with import/export.
 ---
 
 # Themes
@@ -17,7 +17,9 @@ Make Osaurus look the way you want. Pick from the built-in light and dark themes
 
 ## Built-in themes
 
-Osaurus ships with a curated set of light and dark themes. They're read-only — duplicate one to customize it.
+**System** is the default. It follows the Mac's current light or dark appearance and updates when macOS changes automatically. It is synthetic rather than a stored theme, so it cannot be edited, exported, shared, or deleted.
+
+Osaurus also ships with a curated set of fixed light and dark themes. They're read-only — duplicate one to customize it.
 
 The default themes are built on **native macOS appearance**: they match the system light/dark look and **follow your macOS accent color**, so if your Mac is set to purple, Osaurus's highlights, focus rings, and selection colors are too. Custom themes can opt into the same behavior with the `followsSystemAccent` flag (see [File format](#file-format)).
 

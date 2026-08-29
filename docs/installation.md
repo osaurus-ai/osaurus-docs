@@ -21,7 +21,7 @@ Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is th
 - **2–20 GB** free space per local model
 
 :::info[macOS 26 features]
-[Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. The [Sandbox](/agent-loop#toggle-the-sandbox) uses an isolated Linux VM on macOS 26+ and automatically falls back to a Seatbelt-confined backend on macOS 15 — sandboxed execution works either way.
+[Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. The [Sandbox](/agent-loop#configure-the-sandbox) uses an isolated Linux VM on macOS 26+ and automatically falls back to a Seatbelt-confined backend on macOS 15 — sandboxed execution works either way.
 :::
 
 ## Install in 3 steps
@@ -126,7 +126,7 @@ See the link/PATH steps in [Verify the CLI](#verify-the-cli).
 
 ### A store won't open after upgrading or migrating Macs
 
-Osaurus never deletes data on a failed open — the affected store is listed under **Settings → Storage → Stores needing attention** with Retry and Reset actions, and anything reset is quarantined (moved, not deleted) to `~/.osaurus/quarantine/`. [Full guide →](/storage)
+Osaurus never deletes data on a failed open — the affected store is listed under **Management → Privacy → Storage → Stores needing attention** with Retry and Reset actions, and anything reset is quarantined (moved, not deleted) to `~/.osaurus/quarantine/`. [Full guide →](/storage)
 
 ## Uninstall
 
@@ -149,7 +149,7 @@ security delete-generic-password -s com.osaurus.storage -a data-encryption-key
 ```
 
 :::warning
-Removing `~/.osaurus` is irreversible. Use **Settings → Storage → Export plaintext backup** first if you want to keep your chats and memory.
+Removing `~/.osaurus` is irreversible. Use **Management → Privacy → Storage → Export plaintext backup** first if you want to keep your chats and memory.
 :::
 
 ---

@@ -127,6 +127,17 @@ The post-scrub re-scan only checks the categories whose built-in pattern is enab
 
 The **Providers** tab lets you disable the filter for a specific cloud provider — handy for a self-hosted endpoint you already trust, or while debugging a model's behavior. Overrides are keyed to the provider's stable id, so renaming a provider won't silently drop your preference. Providers with no explicit override default to **enabled**.
 
+## Redacting files in a trusted folder
+
+The Privacy Filter protects cloud-bound prompts. Trusted-folder chats can also use the same local detectors to process files directly:
+
+- `detect_pii` scans a text file and reports spans by category and line number without writing.
+- `redact_file` replaces detected values with placeholders in one deterministic, undoable operation.
+
+These tools can use ephemeral `custom_rules` for domain-specific identifiers without changing the persisted rules on this page. If Rampart is not installed, an attended chat can offer the approximately 37 MB download; declining or running headlessly continues with regex-only detection and an explicit warning.
+
+`redact_file` is limited to in-app trusted-folder chats and is denied to external HTTP and MCP callers. See [Tasks → Bulk edits and on-device redaction](/agent-loop#bulk-edits-and-on-device-redaction).
+
 ## Verify what actually left your Mac
 
 You don't have to take the filter's word for it. Open **Insights** (Management window → **Insights**), pick a request, and look at the **Request** and **Response** tabs. The **Server Request** / **Server Response** sub-sections show the exact bytes that went to the provider and came back — captured at the wire, *after* scrubbing and *before* unscrubbing.

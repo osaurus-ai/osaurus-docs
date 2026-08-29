@@ -121,7 +121,7 @@ Every authenticated API request to your Osaurus carries a cryptographic signatur
 
 ## Under the hood
 
-For the full secp256k1 / App Attest / `osk-v1` spec, request signing rules, and replay protection, see [Identity Cryptography](/identity-internals). Server-side body-size limits live in [Server Settings](/configuration#http-server-limits).
+For the full secp256k1 / App Attest / `osk-v1` spec, request signing rules, and replay protection, see [Identity Cryptography](/identity-internals). Server-side body-size limits live in [Configuration](/configuration#http-server-limits).
 
 ---
 
