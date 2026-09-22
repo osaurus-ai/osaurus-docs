@@ -34,6 +34,19 @@ The catalog is **dynamic**: a curated set of OsaurusAI models is merged with a l
 
 For a private Hugging Face repository, configure your Hugging Face token first. Catalog lookup, metadata validation, and download requests then authenticate with that token; the public OsaurusAI registry remains curated separately. A private repo still needs the normal MLX model files to be importable.
 
+### Open a model from Hugging Face
+
+Any MLX-tagged repository on [huggingface.co](https://huggingface.co) can be opened straight into Osaurus from the model page's **Use this model** menu:
+
+1. On huggingface.co, enable **Osaurus** once under [Settings → Local Apps](https://huggingface.co/settings/local-apps). The entry is macOS-only.
+2. On an MLX model page, open **Use this model** and choose **Osaurus**.
+3. Osaurus opens the Model Manager with that repository selected. It checks MLX compatibility first; if the repo cannot run in Osaurus you get an "Unsupported model" notice instead of a download button.
+4. Click **Download**. The model lands in your models directory like any other catalog entry.
+
+The button opens a link of the form `osaurus://open_from_hf?model=<org>/<repo>` (with an optional `&file=<path>` when the Hub points at one file). The older `huggingface://?model=<org>/<repo>` form keeps working. You can paste either link into a browser address bar, a Terminal `open` command, or a Shortcut to jump to a model without visiting the Hub first.
+
+Osaurus appears for repositories tagged `mlx`; GGUF-only repositories do not show it because Osaurus runs MLX bundles.
+
 ### Where models live
 
 By default, models live at `~/MLXModels/`. To put them on an external drive (helpful for big models), set `OSU_MODELS_DIR`:
