@@ -38,6 +38,10 @@ For a private Hugging Face repository, configure your Hugging Face token first. 
 
 Any MLX-tagged repository on [huggingface.co](https://huggingface.co) can be opened straight into Osaurus from the model page's **Use this model** menu:
 
+:::note
+This needs an Osaurus release newer than 0.25.9, and the Osaurus entry appears in the Hub's **Use this model** menu once Hugging Face adds it to their local-apps list. Until then, the link forms below work on their own.
+:::
+
 1. On huggingface.co, enable **Osaurus** once under [Settings → Local Apps](https://huggingface.co/settings/local-apps). The entry is macOS-only.
 2. On an MLX model page, open **Use this model** and choose **Osaurus**.
 3. Osaurus opens the Model Manager on that repository with its detail sheet up. It checks MLX compatibility first; if the repo cannot run in Osaurus you get an "Unsupported model" notice instead of a download button.
