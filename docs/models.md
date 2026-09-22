@@ -40,7 +40,9 @@ Any MLX-tagged repository on [huggingface.co](https://huggingface.co) can be ope
 
 1. On huggingface.co, enable **Osaurus** once under [Settings → Local Apps](https://huggingface.co/settings/local-apps). The entry is macOS-only.
 2. On an MLX model page, open **Use this model** and choose **Osaurus**.
-3. Osaurus opens the Model Manager with that repository selected. It checks MLX compatibility first; if the repo cannot run in Osaurus you get an "Unsupported model" notice instead of a download button.
+3. Osaurus opens the Model Manager on that repository with its detail sheet up. It checks MLX compatibility first; if the repo cannot run in Osaurus you get an "Unsupported model" notice instead of a download button.
+   - A private or gated repository needs a Hugging Face token for an account that has access. Osaurus asks for one, then opens the model once the token is saved.
+   - A mistyped id, an anonymous rate limit, or no connection each get their own message instead of a generic failure.
 4. Click **Download**. The model lands in your models directory like any other catalog entry.
 
 The button opens a link of the form `osaurus://open_from_hf?model=<org>/<repo>` (with an optional `&file=<path>` when the Hub points at one file). The older `huggingface://?model=<org>/<repo>` form keeps working. You can paste either link into a browser address bar, a Terminal `open` command, or a Shortcut to jump to a model without visiting the Hub first.
