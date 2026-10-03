@@ -1,12 +1,12 @@
 ---
 title: Quick Start
 sidebar_label: Quick Start
-description: Five minutes from install to your first AI conversation. Here's what you'll do, in order.
+description: Go from installing Osaurus to your first AI chat in about five minutes, step by step.
 ---
 
 # Quick Start
 
-Five minutes from a fresh Mac to a working AI you own. Here's the whole flow.
+This page takes you from a fresh install to your first AI chat in about five minutes. You'll install the app, create your first assistant, choose the AI it runs on, and say hello. All you need is a Mac with an M-series chip and macOS 15.5 or later.
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
 <a href="https://osaurus.ai/" class="button button--primary button--lg">Download Osaurus</a>
@@ -14,99 +14,102 @@ Five minutes from a fresh Mac to a working AI you own. Here's the whole flow.
 <a href="/installation" class="button button--secondary button--lg">All install options</a>
 </div>
 
-## 1. Install
+## Get started
 
-Grab the DMG from [osaurus.ai](https://osaurus.ai/), drag it into your Applications folder, and launch it from Spotlight (`⌘ Space` → "Osaurus"). That's it.
+### 1. Install
 
-The app is signed and notarized, so it opens without security warnings. Full guide: [Installation](/installation).
+1. Download Osaurus from [osaurus.ai](https://osaurus.ai/).
+2. Open the download and drag **Osaurus** into your **Applications** folder.
+3. Open Osaurus. A quick way: press `⌘ Space`, type "Osaurus", and press Return.
 
-## 2. Walk through onboarding
+Want to chat offline the moment it opens? Each release also has a larger **full** download (~3.6 GB) that includes the Raptor 0.6 model, so you skip the model download. Full guide: [Installation](/installation#pick-a-build).
 
-A short, three-screen wizard greets you on first launch:
+### 2. Set up your first assistant
 
-1. **Welcome** — click **Get Started**.
-2. **Create Dino** — name your first agent. You can rename and customize it later, and create specialist agents whenever you need them. [Agents →](/agents)
-3. **Configure AI** — choose how the agent will run.
+The first time you open Osaurus, three short screens walk you through setup:
 
-### Give your dino a brain
+1. **Welcome.** Click **Get started**. The checkbox below it lets you choose whether to share anonymous usage data.
+2. **What should your first Dino be great at?** Your first [agent](/glossary#agent) (a saved AI assistant, nicknamed a "Dino") gets set up here. Pick a specialty — **Everyday helper**, **Research & writing**, or **Coding & development** — and give it a name and a picture. Then click **Create your Dino**. You can change all of this later, and make more agents anytime. [Agents →](/agents)
+3. **Choose its AI.** Pick the [model](/glossary#model) (the AI "brain") your agent runs on, then click **Continue to Osaurus**. Your options are below.
 
-Osaurus **recommends the best local model your Mac can run** — the pick is based on your machine's memory, so a mainstream Mac and a maxed-out one get different (equally sensible) defaults. A **Change** control lets you pick another local model if you'd rather.
+If you installed the full download, the button on screen 2 reads **Create your Dino and start chatting**, and you skip screen 3 — Raptor 0.6 is already set up.
 
-You don't have to wait for the download: **Osaurus Cloud is included with a free welcome credit**, so you can skip the download and start chatting on hosted models immediately — or use Cloud while the local model downloads in the background.
+#### Your choices for the AI
 
-Choosing **Set up later** also selects Osaurus Cloud rather than leaving the app without a working model. Apple Foundation Models remain available after onboarding, but are not offered in this first-run step because the onboarding path prioritizes models that support tools and agent work.
+- **A model that runs on your Mac (recommended).** Osaurus suggests one on a card marked **Picked for your Mac**. On most Macs that's **Raptor 0.6**. Macs with lots of memory get a bigger pick, and Macs with little memory get the lightest one that fits. Click **Download**, or **Change model** to choose another. You don't have to wait: you can continue while it downloads. A [local model](/glossary#local-model) like this works offline, and nothing you type leaves your Mac.
+- **Osaurus Cloud.** Hosted models paid for with [credits](/glossary#credits). You get a free welcome credit to start. Click **Set up later** to start on [Osaurus Cloud](/glossary#osaurus-cloud) now and decide about a local model later.
+- **An AI company account you already have.** Under **Prefer to connect your AI Provider?**, pick OpenAI, Anthropic, xAI, OpenRouter, or Gemini (**More** lists the rest). Paste your [API key](/glossary#api-key) (a password from that company), or sign in where offered.
+- **Claude Code.** Use your existing Claude Code sign-in.
+- **Custom.** Paste the web address of another compatible AI service, including one running on your own Mac.
 
-Prefer your own provider? **Use an API key** drills into OpenAI, Anthropic, and friends, plus a local Ollama server or any custom OpenAI-compatible endpoint. You can always add more later from **Management → Local Models** or **Management → Cloud Models**.
+You can add more models later in **Settings… → Local Models** or **Settings… → Providers**.
 
-The old plugin picker, walkthrough carousel, consent screen, and in-onboarding code redemption are no longer part of onboarding. After setup, manage native plugins in **Management → Tools → Native Plugins**, privacy choices in **Settings → Privacy**, and credits in **Management → Credits**.
-
-:::info[Identity and Sandbox are automatic]
-There's no identity or sandbox step anymore. Your **identity key** is created silently on completion — it lives in your iCloud Keychain, gated by Face ID / Touch ID. When you have a minute, save your **24-word recovery phrase** from **Management → Identity → View recovery phrase**; it's what restores your identity on a new Mac. The **Sandbox** is configured with defaults and provisions itself lazily the first time an agent actually needs it — no surprise multi-GB download. [Identity →](/identity) · [Sandbox →](/sandbox)
+:::info[Identity and Sandbox are set up for you]
+There's nothing else to set up. Osaurus quietly creates your [identity](/glossary#identity) (how it proves requests come from you) when you finish. When you have a minute, save your 24-word [recovery phrase](/glossary#recovery-phrase) from **Settings… → Identity → View recovery phrase**. It's what restores your identity on a new Mac. The [Sandbox](/glossary#sandbox), where agents can safely run code, sets itself up the first time an agent needs it. [Identity →](/identity) · [Sandbox →](/sandbox)
 :::
 
-## 3. Pick your Core Model
+### 3. Pick your Core Model
 
-This is the one knob most people miss on day one. Open **Settings (`⌘ ,`) → General → Core Model** and pick a model.
+This is the one setting most people miss on day one. Open **Settings… (`⌘ ,`) → General → Core Model** and pick a model.
 
-### Why it matters
+The [Core Model](/glossary#core-model) is a small model Osaurus uses behind the scenes:
 
-The Core Model is a small, lightweight model Osaurus uses for **background work**:
+- **Remembering things.** It turns your chats into short facts your AI can recall later. **If no Core Model is set, this doesn't happen and [memory](/glossary#memory) pauses.**
+- **Picking the right tools.** It helps find the [tools](/glossary#tool) and [skills](/glossary#skill) that fit each message. Without a Core Model, your chat model does this instead.
 
-- **Remembering things** — distills your conversations into compact facts the AI can recall later. **Without a Core Model set, this never runs and memory pauses.**
-- **Picking the right tools** — surfaces the relevant tools and skills for each message. Falls back to your chat model when Core Model is unset.
-
-### What to pick
-
-If `foundation` is available, that's the right answer 99% of the time — it's free, fast, and never leaves your Mac. Otherwise:
+Which one to pick:
 
 | You have | Pick |
 |---|---|
-| macOS 26+ | `foundation` (Apple's on-device model) |
-| macOS 15.5+ with a local model | The smallest fast model you've downloaded (e.g. `gemma-4-e2b-it-4bit`) |
-| Cloud-only setup | Any cheap, fast remote model (e.g. `anthropic/claude-haiku-4-5`) |
+| macOS 26 or later | **foundation** ([Apple Intelligence](/glossary#apple-intelligence), free and on your Mac) |
+| macOS 15.5 or later with a local model | The smallest, fastest model you've downloaded |
+| Only cloud models | Any cheap, fast cloud model |
+
+If **foundation** is available, it's almost always the right answer: it's free, fast, and never leaves your Mac.
 
 :::tip
-Choosing **Use chat model (default)** in this picker leaves Core Model unset. That's fine for ad-hoc usage, but **memory won't update**. Pick an explicit model if you want memory and auto-selected tools working in the background.
+Choosing **Use chat model (default)** in this picker leaves the Core Model unset. That's fine for casual use, but **memory won't update**. Pick a specific model if you want memory and automatic tool picking to work in the background.
 :::
 
-## 4. Try your first chat
+### 4. Try your first chat
 
-Press **`⌘;`** from anywhere on your Mac. The chat overlay appears.
+1. Press **`⌘;`** from anywhere on your Mac. The chat window appears.
+2. Type something, like: *Hi! Tell me a fun fact about dinosaurs.*
+3. Press Return. The reply appears as it's written.
+4. Press `⌘;` again to hide the window.
 
-Type something:
+## Have it actually do something
 
-> *Hi! Tell me a fun fact about dinosaurs.*
+Agents can do real work, not just answer. Try this:
 
-Press Enter. You'll see the response stream in real-time. Press `⌘;` again to dismiss.
+1. Press `⌘;` to open chat.
+2. Click the **Folder** button on the message box and pick a folder you don't mind it changing. This becomes the chat's [Working Folder](/glossary#working-folder).
+3. Ask: *"Summarize what's in this folder and add a README.md describing it."*
 
-### Have it actually do something
+You'll see a to-do list tick off as the agent reads files and writes the new one. The new file shows up as a card in the chat. Every change is recorded, so you can review or undo it from the chat's **File Changes** panel.
 
-Try giving the agent a real task — it'll write a plan, use tools, and bring back the result:
+Who does the work depends on the agent:
 
-1. Press `⌘;` to open chat
-2. Click the folder icon next to the input bar and pick a folder you don't mind it touching
-3. Ask: *"Summarize what's in this folder and add a `README.md` describing it."*
+- **The [Orchestrator](/glossary#orchestrator)** (the agent every new chat starts with) can read the folder but doesn't write in it. It hands the writing to one of your own agents, which works in the same folder.
+- **An agent you created** does the work itself.
 
-You'll see a live to-do list appear and tick off as the agent reads files, drafts the README, and writes it. The new file shows up as an artifact card right in the chat.
+New agents you create start with the Sandbox turned on, so they can run code safely. Picking a Working Folder for one of them turns its Sandbox off so it can work right in the folder, and the agent remembers that folder for its next chats. You can turn the Sandbox back on later in the agent's **Abilities** settings. [Tasks →](/agent-loop) · [Orchestrator →](/orchestrator)
 
-New custom agents start with **Sandbox** execution enabled where supported — a Linux VM on macOS 26+, a Seatbelt-confined runner on macOS 15. Selecting a trusted folder disables Sandbox for that agent so it can work directly in the folder; re-enable it later from **Agents → Abilities** for isolated scripts, downloads, and builds. [Tasks →](/agent-loop)
+## Try voice
 
-### Try voice
-
-Click the microphone in the input bar and speak. Transcription happens entirely on-device via Apple's Neural Engine — your voice never leaves your Mac. Or set up the global Transcription Mode hotkey to dictate into any app on your Mac. [Voice →](/voice)
+Click the microphone in the message box and speak. Your voice is turned into text on your Mac and never leaves it. You can also set a shortcut key to dictate into any app on your Mac. [Voice →](/voice)
 
 ## What's next
 
-Now that you're set up:
-
 **For everyday use:**
 
-- [Chat](/chat) — overlay, multi-window, sessions, shortcuts
-- [Agents](/agents) — create specialized assistants for different tasks
+- [Chat](/chat) — the chat window, tabs, history, and shortcuts
+- [Agents](/agents) — create assistants for different jobs
+- [Mobile](/mobile) — pair the iPhone app and reach your agents from anywhere
 - [Memory](/memory) — what your AI remembers and how
-- [Skills](/skills) — reusable expertise, automatically loaded
-- [Voice](/voice) — dictate, wake-words, global transcription
-- [Themes](/themes) — make the chat overlay yours
+- [Skills](/skills) — ready-made know-how, loaded automatically
+- [Voice](/voice) — dictation, wake words, and typing into any app
+- [Themes](/themes) — change how the chat window looks
 
 **For developers:**
 
@@ -118,3 +121,17 @@ Now that you're set up:
 **Care about privacy?** The whole story is on the [Privacy & Trust](/security) page.
 
 **Need help?** Join the [Discord](https://discord.gg/osaurus) or open a [GitHub issue](https://github.com/osaurus-ai/osaurus/issues).
+
+---
+
+## Under the hood
+
+- **Signing:** the app is Developer ID signed and notarized, so it opens without Gatekeeper warnings.
+- **Onboarding steps:** Welcome → Create Agent → Configure AI. When a bundled model is ready (full build, and enough memory), the Configure AI step is skipped and the bundled model is set as the agent's brain. The first agent's specialty cards map onto the Assistant, Researcher, and Coder starter templates, which supply its system prompt.
+- **Custom endpoints:** **Custom** accepts any OpenAI-compatible server URL. Local endpoints don't need a key. API keys are stored in the macOS Keychain.
+- **Apple Foundation Models** stay available after onboarding but aren't offered in the first-run step, because onboarding prioritizes models that support tools and agent work.
+- **Removed from onboarding:** the old plugin picker, walkthrough carousel, consent screen, and in-onboarding code redemption. After setup, manage native plugins in **Settings… → Tools & MCP → Plugins**, privacy choices in **Settings… → Privacy**, and credits in **Settings… → Credits**.
+- **Identity key:** created on completion; it lives in your iCloud Keychain, gated by Face ID / Touch ID.
+- **Sandbox:** configured with defaults and provisioned lazily the first time an agent needs it, so there's no surprise multi-GB download. It's a Linux VM on macOS 26+ and a Seatbelt-confined runner on macOS 15.
+- **Core Model examples:** `foundation` on macOS 26+; a small local model such as `gemma-4-e2b-it-4bit`; or a cheap remote model such as `anthropic/claude-haiku-4-5`.
+- **Voice:** transcription runs on-device on Apple's Neural Engine.

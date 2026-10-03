@@ -1,39 +1,96 @@
 ---
 title: Apple Intelligence
 sidebar_label: Apple Intelligence
-description: Deep dive into Apple Foundation Models support in Osaurus
+description: Use Apple's built-in AI model in Osaurus — nothing to download, nothing to set up, and everything stays on your Mac.
 slug: /models/apple-intelligence
 ---
 
-# Apple Intelligence Integration
+# Apple Intelligence
 
-On macOS 26+, Osaurus exposes Apple's on-device Foundation model as `foundation` — no downloads, no configuration. Send a request with `model: "foundation"` and it works.
+[Apple Intelligence](/glossary#apple-intelligence) includes a small AI [model](/glossary#model) built into macOS. Osaurus can use it with nothing to download or set up. It shows up as **Foundation** in the model picker. It's private (everything stays on your Mac) and always ready, which makes it great for quick questions and for Osaurus's own background housekeeping.
 
-## Overview
+You need macOS 26 (Tahoe) or later, a Mac that supports Apple Intelligence, and Apple Intelligence turned on.
 
-Apple Foundation Models give you:
+## Get started
 
-- **System-integrated AI** — the same model that powers system features
-- **Hardware acceleration** — optimized for the Apple Neural Engine (ANE)
-- **Zero setup** — no downloads or configuration
-- **Privacy** — all processing happens on-device
+1. **Update macOS** to version 26 (Tahoe) or later.
+2. **Turn on Apple Intelligence** in **System Settings → Apple Intelligence & Siri**. The first time, macOS downloads Apple's model in the background; this can take a few minutes.
+3. **Open Osaurus.** It finds Apple's model automatically.
+4. In a chat, click the model pill in the message box and choose **Foundation** ("Apple's built-in on-device model").
+
+That's it — start typing.
 
 ## Requirements
 
 - **macOS 26 (Tahoe)** or later
-- **Apple Silicon Mac** (M1, M2, M3, or newer)
-- **Apple Intelligence enabled** in System Settings
+- **A Mac that supports Apple Intelligence** — a Mac with [Apple Silicon](/glossary#apple-silicon) (M1 or newer)
+- **Apple Intelligence turned on** in System Settings
 
 :::info[Compatibility Note]
-While Osaurus itself runs on macOS 15.5+, Apple Foundation Models specifically require macOS 26 (Tahoe) or later.
+Osaurus itself runs on macOS 15.5 and later, but Apple's model needs macOS 26 (Tahoe) or later. On older macOS, use a [local model](/models#local-models-mlx) instead.
 :::
 
-## Setup
+## What it's good at
 
-1. **Update macOS** to version 26 (Tahoe) or later
-2. **Enable Apple Intelligence** in System Settings → Apple Intelligence & Siri
-3. **Start Osaurus** — It automatically detects Foundation Models
-4. **Verify availability**:
+- **Ready instantly** — there's nothing to load or download.
+- **Private** — it runs entirely on your Mac. Nothing goes to the internet, and there's no account or key.
+- **Light on your Mac** — it shares memory with macOS's own features instead of taking extra.
+- **Quick tasks** — short questions, rewording, summaries of short text, and simple tool use.
+- **Background jobs** — it's a good fit for Osaurus's [Core Model](/glossary#core-model) (see below).
+
+## What it's not as good at
+
+- **Long conversations and long documents.** It can only keep a short amount of text in mind at once (a small [context window](/glossary#context-window)). For long chats or big files, pick a larger local or [cloud model](/glossary#cloud-model).
+- **Hard problems.** It's a small model. For complex reasoning, coding, or research, a bigger model will do better.
+- **Choice.** There's one Apple model, with no sizes or versions to pick from, and fewer settings than other models.
+- **It depends on macOS.** It needs macOS 26, and it may be briefly unavailable while macOS updates or downloads the model.
+
+## Osaurus's background helper
+
+Osaurus uses a small Core Model behind the scenes for housekeeping, like saving [memories](/glossary#memory) and naming chats. On macOS 26 and later, **Foundation** is the default Core Model, so these jobs stay on your Mac without any setup. You can change it in **Settings… → General → Core Model**.
+
+If Apple Intelligence is turned off, its model is still downloading, or a request gets stuck, those background jobs automatically switch to the model you're chatting with. The Core Model picker and Memory's diagnostics show why.
+
+## Privacy
+
+- **Stays on your Mac** — Apple's model runs entirely on your Mac. Your messages never leave it.
+- **Protected by macOS** — it runs inside macOS's own security protections.
+- **No keys or accounts** — nothing to sign up for, and no tracking.
+
+## Troubleshooting
+
+### Foundation doesn't appear in the model picker
+
+1. **Check your macOS version.** Open the Apple menu → **About This Mac**. It should say macOS 26 or later.
+2. **Check Apple Intelligence is on.** Open **System Settings → Apple Intelligence & Siri** and turn on **Apple Intelligence**.
+3. **Wait for the download.** Right after you turn it on, macOS downloads the model in the background. Try again in a few minutes.
+4. **Restart Osaurus** after turning Apple Intelligence on.
+5. **Check your Mac.** **About This Mac** should list an Apple M-series chip (M1, M2, M3, or later).
+
+When Apple's model isn't available, Osaurus explains why — for example, "This Mac is not eligible for Apple Intelligence", "Apple Intelligence is turned off", or "The Apple Intelligence model is still downloading".
+
+### Slow or no answer
+
+- macOS may still be loading the model the first time.
+- Quit apps you're not using, and check Activity Monitor for memory pressure. 8 GB of memory or more is recommended.
+
+### Odd or off-topic answers
+
+- Apple's model behaves differently from other models. Try rewording your request or being more specific.
+- Give your agent clear standing instructions (a [system prompt](/glossary#system-prompt)) for more consistent results.
+- For harder tasks, switch to a bigger model.
+
+---
+
+## Under the hood
+
+Developer details for using Apple's model through Osaurus's [API](/glossary#api).
+
+### Model name and availability
+
+Osaurus exposes Apple's on-device Foundation model as `foundation`. Send a request with `model: "foundation"` and it works. It runs on Apple's on-device hardware, including the Apple Neural Engine (ANE), and is the same model that powers macOS system features.
+
+Check whether it's available:
 
 ```bash
 curl -s http://127.0.0.1:1337/v1/models | jq '.data[] | select(.id=="foundation")'
@@ -41,11 +98,17 @@ curl -s http://127.0.0.1:1337/v1/models | jq '.data[] | select(.id=="foundation"
 
 If you see a `foundation` entry, you're ready.
 
-## Using Foundation Models
+Check the macOS version and chip from Terminal:
 
-### Basic Chat
+```bash
+sw_vers -productVersion
+# Should be 26.0 or higher
 
-Use `model: "foundation"` in your requests:
+sysctl -n machdep.cpu.brand_string
+# Should show Apple M1, M2, M3, etc.
+```
+
+### Basic chat
 
 ```bash
 curl -s http://127.0.0.1:1337/v1/chat/completions \
@@ -57,9 +120,9 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
   }' | jq -r '.choices[0].message.content'
 ```
 
-### Using the Alias
+### The `default` alias
 
-`model: "default"` also maps to Foundation Models when available:
+`model: "default"` (or an empty model) also maps to Foundation when it's available:
 
 ```bash
 curl -s http://127.0.0.1:1337/v1/chat/completions \
@@ -70,9 +133,7 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
   }' | jq -r '.choices[0].message.content'
 ```
 
-### Streaming Responses
-
-Streaming works as usual:
+### Streaming
 
 ```bash
 curl -N http://127.0.0.1:1337/v1/chat/completions \
@@ -84,11 +145,9 @@ curl -N http://127.0.0.1:1337/v1/chat/completions \
   }'
 ```
 
-## Advanced Features
+### Function / tool calling
 
-### Function/Tool Calling
-
-Osaurus transparently maps OpenAI-style tools to Apple's tool interface:
+Osaurus maps OpenAI-style tools to Apple's tool interface automatically:
 
 ```bash
 curl -s http://127.0.0.1:1337/v1/chat/completions \
@@ -112,11 +171,11 @@ curl -s http://127.0.0.1:1337/v1/chat/completions \
   }'
 ```
 
-Tools work identically to MLX models: streaming emits OpenAI-style `tool_calls` deltas, and your existing tool-calling code works unchanged.
+Tools work the same as with MLX models: streaming emits OpenAI-style `tool_calls` deltas, and existing tool-calling code works unchanged.
 
-### System Prompts
+### System prompts
 
-Foundation Models respect system prompts:
+Foundation respects system prompts:
 
 ```python
 from openai import OpenAI
@@ -132,24 +191,13 @@ response = client.chat.completions.create(
 )
 ```
 
-## Performance Characteristics
+### Context size
 
-### Advantages
+Osaurus reads the model's context size from Apple's framework (`SystemLanguageModel.contextSize`). On macOS 26.x it's 4,096 [tokens](/glossary#token), which is why long chats and documents are a poor fit.
 
-- **Instant loading** — no model initialization
-- **ANE acceleration** — dedicated neural hardware
-- **Memory efficient** — shared with system services
-- **Consistent quality** — the same model as system features
+### Detection and fallback
 
-### Considerations
-
-- **Fixed model** — no choice of size or version
-- **System dependent** — requires macOS 26+
-- **Limited configuration** — less control than MLX models
-
-## Detection and Fallback
-
-### Programmatic Detection
+Detect Foundation and fall back to an MLX model:
 
 ```python
 import requests
@@ -168,8 +216,6 @@ if has_foundation_models():
 else:
     model = "gemma-4-e2b-it-4bit"
 ```
-
-### Graceful Fallback
 
 ```javascript
 async function getBestModel() {
@@ -193,92 +239,43 @@ async function getBestModel() {
 }
 ```
 
-## Privacy and Security
+If you get **"Model not found"**, Foundation isn't available on this system: fall back to an MLX model and check `/v1/models` for what's available.
 
-- **100% on-device** — Apple Foundation Models run entirely locally; inference never leaves your Mac
-- **Sandboxed** — runs within macOS security boundaries
-- **No API keys** — no authentication or tracking
+### Performance tips
 
-## Troubleshooting
+Keep requests small and stream for better perceived speed:
 
-### Foundation model not appearing
+```json
+{
+  "max_tokens": 200, // Limit output length
+  "temperature": 0.7, // Balance creativity/consistency
+  "stream": true // Better perceived performance
+}
+```
 
-1. **Check macOS version**:
+Monitor health:
 
-   ```bash
-   sw_vers -productVersion
-   # Should be 26.0 or higher
-   ```
+```bash
+# Check Osaurus health
+curl -s http://127.0.0.1:1337/health | jq
 
-2. **Verify Apple Intelligence is enabled**:
+# Check system memory pressure
+vm_stat | grep "Pages free"
+```
 
-   - System Settings → Apple Intelligence & Siri
-   - Toggle "Apple Intelligence" ON
+### Best practices for apps
 
-3. **Restart Osaurus** after enabling Apple Intelligence
+1. **Prefer Foundation when available** — it's integrated with the system and loads instantly.
+2. **Build in fallback logic** — handle Macs without Apple Intelligence.
+3. **Use streaming** — Foundation does well with streamed responses.
+4. **Test both paths** — make sure your app works with and without Foundation.
+5. **Watch availability** — the model can be temporarily unavailable during system updates.
 
-4. **Check system requirements**:
-   ```bash
-   sysctl -n machdep.cpu.brand_string
-   # Should show Apple M1, M2, M3, etc.
-   ```
+---
 
-### Errors using foundation model
+**Related:**
 
-**"Model not found" error:**
-
-- Foundation Models not available on your system
-- Fall back to an MLX model
-- Check `/v1/models` endpoint for available models
-
-**Slow or no response:**
-
-- System may be loading the model initially
-- Check Activity Monitor for high system usage
-- Ensure adequate free memory (8GB+ recommended)
-
-**Unexpected output:**
-
-- Foundation Models may behave differently than MLX models
-- Adjust prompts and parameters as needed
-- Use system prompts for consistent behavior
-
-### Performance issues
-
-1. **Free up resources**:
-   - Quit unnecessary apps
-   - Check Activity Monitor for memory pressure
-2. **Optimize requests**:
-
-   ```json
-   {
-     "max_tokens": 200, // Limit output length
-     "temperature": 0.7, // Balance creativity/consistency
-     "stream": true // Better perceived performance
-   }
-   ```
-
-3. **Monitor system health**:
-
-   ```bash
-   # Check Osaurus health
-   curl -s http://127.0.0.1:1337/health | jq
-
-   # Check system memory pressure
-   vm_stat | grep "Pages free"
-   ```
-
-## Best Practices
-
-1. **Prefer Foundation Models when available** — better integration and performance
-2. **Implement fallback logic** — handle systems without Apple Intelligence
-3. **Use streaming** — Foundation Models excel at streaming responses
-4. **Test on both** — make sure your app works with and without Foundation Models
-5. **Monitor availability** — models may be temporarily unavailable during system updates
-
-## Related
-
-- [Models](/models) — all supported model types
-- [HTTP API](/api) — complete endpoint reference
-- [Inference Runtime](/inference-runtime) — how local + Foundation inference is wired
-- [Apple Intelligence Docs](https://developer.apple.com) — official Apple documentation
+- [Models](/models) — every kind of model Osaurus supports
+- [HTTP API](/api) — the complete endpoint reference
+- [Inference Runtime](/inference-runtime) — how local and Foundation inference fit together
+- [Apple Intelligence Docs](https://developer.apple.com) — Apple's official documentation

@@ -1,12 +1,12 @@
 ---
 title: Installation
 sidebar_label: Installation
-description: Download Osaurus for macOS in under a minute. Native Apple Silicon, signed and notarized, free.
+description: Download and install Osaurus on your Mac in about a minute. It's free, and Apple has checked it so it opens without warnings.
 ---
 
 # Installation
 
-Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is the download button on the home page — drag it to Applications and you're done.
+Osaurus is a free Mac app. To install it, download it, drag it into your Applications folder, and open it. You need a Mac with an M-series chip ([Apple Silicon](/glossary#apple-silicon)) running macOS 15.5 or later.
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
 <a href="https://osaurus.ai/" class="button button--primary button--lg">Download from osaurus.ai</a>
@@ -14,51 +14,97 @@ Osaurus is a native macOS app for Apple Silicon. The fastest way to get it is th
 <a href="https://github.com/osaurus-ai/osaurus/releases/latest" class="button button--secondary button--lg">Latest release on GitHub</a>
 </div>
 
+## Get started
+
+1. **Download** Osaurus from [osaurus.ai](https://osaurus.ai/) (or from [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest)). The file ends in `.dmg`.
+2. **Open** the downloaded file and drag **Osaurus** into your **Applications** folder.
+3. **Eject** the downloaded disk (click the eject icon next to it in Finder), then open Osaurus. A quick way: press `⌘ Space`, type "Osaurus", and press Return.
+
+Apple has checked and approved Osaurus (it's signed and "notarized"), so it opens without security warnings. The app updates itself when you open it, so you don't need to come back here for new versions.
+
+**Next:** [Quick Start →](/quickstart) walks you through first launch.
+
 ## System requirements
 
 - **macOS 15.5** or later
 - **Apple Silicon** (M1, M2, M3, or newer)
-- **2–20 GB** free space per local model
+- **2–20 GB** of free space for each [local model](/glossary#local-model) you download
 
 :::info[macOS 26 features]
-[Apple Foundation Models](/models/apple-intelligence) require macOS 26 (Tahoe) or later. The [Sandbox](/agent-loop#configure-the-sandbox) uses an isolated Linux VM on macOS 26+ and automatically falls back to a Seatbelt-confined backend on macOS 15 — sandboxed execution works either way.
+[Apple Intelligence](/models/apple-intelligence) models need macOS 26 (Tahoe) or later. The [Sandbox](/glossary#sandbox) (a sealed-off area where agents can run code) works on both macOS 15 and 26, with a fuller setup on macOS 26.
 :::
 
-## Install in 3 steps
+## Pick a build
 
-1. **Download** the `.dmg` from [osaurus.ai](https://osaurus.ai/) (or [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest))
-2. **Open** the DMG and drag Osaurus into your **Applications** folder
-3. **Eject** the DMG and launch Osaurus from Spotlight (`⌘ Space` → "Osaurus")
+Each release comes in two downloads. They're the same app; the difference is whether an AI model comes included.
 
-Osaurus is Developer ID signed and notarized by Apple, so it opens without any security warnings.
+| Download | Size | Who it's for |
+|---|---|---|
+| **Standard** | ~80 MB | Most people. During setup you download a model or start on [Osaurus Cloud](/glossary#osaurus-cloud). |
+| **Full** | ~3.6 GB | People who want to chat offline right away. It includes the **Raptor 0.6** model, so setup skips the download. |
 
-That's it. Updates auto-install via Sparkle when you launch the app — no need to come back here.
+The full download is linked from each [release's notes](https://github.com/osaurus-ai/osaurus/releases/latest) and is also hosted on [Hugging Face](https://huggingface.co/datasets/OsaurusAI/osaurus-releases). After a full install, future updates are the small standard download.
 
-## Prefer the terminal?
+## Permissions
 
-If you'd rather install via Homebrew:
+Osaurus only asks for a permission when you first use a feature that needs it. macOS shows the request, and you can change your answer later in **System Settings → Privacy & Security**.
+
+| Permission | What it's for |
+|---|---|
+| Microphone | Talking to Osaurus, starting a chat with a [wake word](/glossary#wake-word), and Transcription Mode |
+| Screen Recording | Capturing your Mac's sound for [transcription](/glossary#transcription) |
+| Accessibility | Transcription Mode (typing into other apps for you) |
+| Network | Cloud models, online tools, and [Public Links](/glossary#public-link) |
+| Files | [Working Folders](/glossary#working-folder) (one folder at a time, and only the ones you pick) |
+
+## Troubleshooting
+
+### "Cannot be opened" error
+
+This shouldn't normally happen, because releases are checked by Apple. If you see it, the download was probably damaged or came from an unofficial site. Delete the app, download it again from [osaurus.ai](https://osaurus.ai/) or [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest), and reinstall. As a last resort, open **System Settings → Privacy & Security**, scroll to the message about Osaurus, and click **Open Anyway**.
+
+### `osaurus` command not found
+
+This only matters if you use the Terminal. See [Install the command-line tool](#verify-the-cli) below.
+
+### Some data won't open after upgrading or moving to a new Mac
+
+Osaurus never deletes your data when it can't open it. Go to **Settings… → General → Advanced → Data & Storage → Stores Needing Attention**, where each affected item has **Retry** and **Reset** buttons. Anything you reset is moved aside, not deleted. [Full guide →](/storage)
+
+## Uninstall
+
+1. Quit Osaurus.
+2. Drag **Osaurus** from your **Applications** folder to the Trash.
+3. *(Optional)* To remove your chats, memory, and downloaded models too, see [Remove everything](#remove-everything) below.
+
+:::warning
+Removing your data can't be undone. To keep a copy of your chats and memory first, use **Settings… → General → Advanced → Data & Storage → Export plaintext backup…**.
+:::
+
+---
+
+## Under the hood
+
+### Build files
+
+| Build | File name | Notes |
+|---|---|---|
+| Standard | `Osaurus-<version>.dmg` | Homebrew and in-app updates use this build. |
+| Full | `Osaurus-<version>-full.dmg` | First launch installs the bundled Raptor 0.6 into `~/MLXModels`, and onboarding skips the AI setup step. |
+
+Osaurus is Developer ID signed and notarized by Apple. Updates install automatically through Sparkle when you launch the app. File access for Working Folders uses macOS security-scoped bookmarks.
+
+### Install with Homebrew
+
+If you'd rather use Homebrew:
 
 ```bash
 brew install --cask osaurus
 ```
 
-This puts **Osaurus.app** in your Applications folder and lets Homebrew manage the **`osaurus` CLI** link in its own prefix. Update with `brew upgrade --cask osaurus`; don't replace that managed link manually.
+This installs the standard build, puts **Osaurus.app** in your Applications folder, and lets Homebrew manage the **`osaurus` CLI** link in its own prefix. Update with `brew upgrade --cask osaurus`; don't replace that managed link manually.
 
-## Permissions
-
-Osaurus only asks for permissions when you actually use the feature that needs them:
-
-| Permission | Needed for |
-|---|---|
-| Microphone | Voice input, wake-word activation, Transcription Mode |
-| Screen Recording | Capturing system audio for transcription |
-| Accessibility | Transcription Mode (typing into other apps) |
-| Network | Cloud providers, MCP, public agent links |
-| Files | Trusted folders (one folder at a time, via macOS security-scoped bookmarks) |
-
-You'll be prompted in System Settings → Privacy & Security as you use each feature.
-
-## Where Osaurus puts things
+### Where Osaurus puts things
 
 | What | Path |
 |---|---|
@@ -67,6 +113,7 @@ You'll be prompted in System Settings → Privacy & Security as you use each fea
 | Voice models | `~/Library/Application Support/FluidAudio/Models/` |
 | Encrypted databases | `~/.osaurus/{chat-history,memory,methods,tool-index}/*.sqlite` |
 | Encryption key | macOS Keychain (`com.osaurus.storage`) |
+| Quarantined (reset) stores | `~/.osaurus/quarantine/` |
 
 To put models on an external drive:
 
@@ -74,9 +121,9 @@ To put models on an external drive:
 export OSU_MODELS_DIR=/Volumes/External/MLXModels
 ```
 
-## Verify the CLI
+### Verify the CLI
 
-If you installed via DMG and want to use the `osaurus` CLI from the terminal:
+If you installed from the DMG, the easiest way to get the `osaurus` command-line tool on your PATH is **Settings… (`⌘ ,`) → Server → Overview → Command Line Tool → Install CLI**. Then check it from the terminal:
 
 ```bash
 osaurus --version
@@ -85,7 +132,7 @@ osaurus status        # confirms it's up
 osaurus stop          # stops it
 ```
 
-If `osaurus` isn't on your PATH after a DMG install, link it without writing into Homebrew's managed prefix:
+If `osaurus` still isn't on your PATH, link it manually without writing into Homebrew's managed prefix:
 
 ```bash
 cli="/Applications/Osaurus.app/Contents/Helpers/osaurus"
@@ -108,27 +155,13 @@ source ~/.zshrc
 
 From a source checkout, `scripts/release/install_cli_symlink.sh` follows the same `/usr/local/bin` then `~/.local/bin` order. Pass `--prefix <directory>` only when you explicitly want `<directory>/bin`.
 
-Test the local server is up:
+Test that the local server is up:
 
 ```bash
 curl http://127.0.0.1:1337/health
 ```
 
-## Troubleshooting
-
-### "Cannot be opened" error
-
-This shouldn't normally happen — releases are signed and notarized. If you see it, the download was likely corrupted or came from an unofficial mirror: delete the app, re-download the DMG from [osaurus.ai](https://osaurus.ai/) or [GitHub Releases](https://github.com/osaurus-ai/osaurus/releases/latest), and reinstall. As a last resort, System Settings → Privacy & Security → scroll to the security message → **Open Anyway**.
-
-### `osaurus` command not found
-
-See the link/PATH steps in [Verify the CLI](#verify-the-cli).
-
-### A store won't open after upgrading or migrating Macs
-
-Osaurus never deletes data on a failed open — the affected store is listed under **Management → Privacy → Storage → Stores needing attention** with Retry and Reset actions, and anything reset is quarantined (moved, not deleted) to `~/.osaurus/quarantine/`. [Full guide →](/storage)
-
-## Uninstall
+### Remove everything
 
 ```bash
 # If you installed via Homebrew
@@ -148,10 +181,4 @@ rm -rf ~/.osaurus
 security delete-generic-password -s com.osaurus.storage -a data-encryption-key
 ```
 
-:::warning
-Removing `~/.osaurus` is irreversible. Use **Management → Privacy → Storage → Export plaintext backup** first if you want to keep your chats and memory.
-:::
-
----
-
-**Next:** [Quick Start →](/quickstart) — your first conversation in 5 minutes.
+Removing `~/.osaurus` is irreversible. Export a plaintext backup first if you want to keep your chats and memory.

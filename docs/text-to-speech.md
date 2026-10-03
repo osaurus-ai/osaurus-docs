@@ -1,40 +1,68 @@
 ---
 title: Text-to-Speech
 sidebar_label: Text-to-Speech
-description: Have Osaurus read replies aloud — fully on-device with PocketTTS, or through any OpenAI-compatible TTS server on your network.
+description: Have Osaurus read replies out loud — privately on your Mac, or through a speech server you run yourself for more voices and languages.
 ---
 
 # Text-to-Speech
 
-Reading is not always convenient either. Osaurus can speak assistant replies aloud — tap the speaker button on any assistant message, or let an agent speak for itself with the `speak` tool. Audio streams as it's synthesized, so speech starts before the whole reply is ready.
+Osaurus can read replies out loud, so you can listen instead of reading. Click the speaker button on any reply, or let an agent speak on its own. Speech starts right away, before the whole reply is ready. By default it runs privately on your Mac after a one-time download of about 700 MB.
 
-Two engines, pick one in settings:
+## Get started
 
-| Engine | Best for | Needs |
+1. Open **Settings…** (`⌘ ,`) → **Voice** → **Text To Speech**.
+2. Turn on **Enable Text-to-Speech**.
+3. On the **PocketTTS Model** card, click **Download** (about 700 MB, once).
+4. In the **Voice** section, pick a voice and adjust **Temperature** (how varied the delivery sounds). The default voice is **alba**.
+5. Type some text under **Preview** and play it to hear how it sounds.
+
+Now click the speaker button on any reply to hear it.
+
+## Choosing where the voice comes from
+
+Osaurus has two speech engines. Switch between them under **Advanced → Engine** on the Text To Speech tab.
+
+| Engine | Best for | What you need |
 |---|---|---|
-| **On-Device (PocketTTS)** | Privacy, zero setup beyond a download | ~700 MB one-time model download; English only |
-| **OpenAI-Compatible Server** | More voices, other languages, shared TTS on your network | Any server speaking the OpenAI `/v1/audio/speech` API |
+| **On-Device (PocketTTS)** | Privacy and simplicity | A one-time ~700 MB download. English only. |
+| **OpenAI-Compatible Server** | More voices and other languages, or sharing one speech service on your network | A speech server you run yourself, or an online service |
 
-## On-Device (PocketTTS)
+**On-Device (PocketTTS)** is the default. Everything happens on your Mac, and nothing you hear is sent anywhere.
 
-Fully local synthesis via [FluidAudio PocketTTS](https://github.com/FluidInference/FluidAudio). Nothing leaves your Mac.
+## Using a speech server
 
-1. Open the Management window (`⌘ Shift M`) → **Voice** → **Text-to-Speech**
-2. Enable **Text-to-Speech** and leave **Engine** on *On-Device (PocketTTS)*
-3. Click **Download** on the model card (~700 MB, once)
-4. Pick a voice and temperature, then test with **Preview**
+If you want more voices or other languages, you can connect Osaurus to a separate speech program. Popular free ones include [openai-edge-tts](https://github.com/travisvn/openai-edge-tts), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), and LocalAI. OpenAI's own speech service works too, but then the text being read leaves your Mac.
 
-## OpenAI-Compatible Server
+1. On the Text To Speech tab, open **Advanced** and set **Engine** to **OpenAI-Compatible Server**.
+2. Fill in the **Server** card:
+   - **Endpoint:** the server's address, such as `http://localhost:5050`.
+   - **Model** and **Voice:** names your server understands. Its documentation lists them.
+   - **API Key:** only if your server needs one. It's stored in your [Keychain](/glossary#keychain).
+   - **Speed:** from 0.25× to 4×.
+3. Click **Test Connection**. Osaurus reads a short sample through the server. A green **Connected** means playback will work. If something's wrong, the exact error appears right there.
 
-Point Osaurus at any server implementing the OpenAI speech API — [openai-edge-tts](https://github.com/travisvn/openai-edge-tts), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), LocalAI, or OpenAI itself.
+## Troubleshooting
 
-1. Switch **Engine** to *OpenAI-Compatible Server*
-2. Fill in the Server card:
-   - **Endpoint** — base URL, e.g. `http://localhost:5050` (the API path is appended automatically)
-   - **Model** and **Voice** — whatever your server understands (`tts-1` / `alloy`, `en-GB-SoniaNeural`, `af_sky`, …)
-   - **API Key** — optional; stored in the macOS Keychain, never in config files
-   - **Speed** — 0.25×–4×
-3. Click **Test Connection**. It runs a real synthesis request through the full path, so a green *Connected* means playback will work. Any failure — wrong URL, server down, bad key, undecodable audio — shows the exact error inline.
+- **The speaker button opens settings instead of speaking.** The on-device voice model isn't downloaded yet. Download it on the **PocketTTS Model** card.
+- **The speaker icon flips back with no sound.** Playback failed. The error appears in **Settings… → Voice → Text To Speech**.
+- **"Server sent WAV audio in an unsupported format".** Your speech server is sending audio Osaurus can't play. See Under the hood.
+- **Voices sound too fast, too slow, or robotic.** Check the **Speed** slider first, then click **Test Connection**.
+
+---
+
+## Under the hood
+
+### The `speak` tool
+
+Agents can read text aloud with the `speak` tool. Audio streams as it's synthesized.
+
+### PocketTTS
+
+On-device synthesis uses [FluidAudio PocketTTS](https://github.com/FluidInference/FluidAudio). The default voice is `alba`.
+
+### OpenAI-compatible servers
+
+Any server implementing the OpenAI `/v1/audio/speech` API works. For **Endpoint**, enter the base URL; the API path is appended automatically. Example model/voice values: `tts-1` / `alloy`, `en-GB-SoniaNeural`, `af_sky`. The API key is kept only in the Keychain, never in config files. **Test Connection** runs a real synthesis request through the full playback path, and reports failures (wrong URL, server down, bad key, undecodable audio) inline.
 
 ### Quick start with openai-edge-tts
 
@@ -42,24 +70,27 @@ Point Osaurus at any server implementing the OpenAI speech API — [openai-edge-
 docker run -d -p 5050:5050 -e REQUIRE_API_KEY=False travisvn/openai-edge-tts:latest
 ```
 
-That's it — free Microsoft Edge voices on localhost, and Osaurus plays them out of the box. Two tips:
+This gives you free Microsoft Edge voices on localhost, and Osaurus plays them out of the box. Two tips:
 
-- The image's auth is on by default (key `your_api_key_here`); the command above disables it, or enter that key in the API Key field.
-- The stock image returns MP3, which Osaurus decodes automatically after each reply downloads. For lower-latency streaming, build the image with ffmpeg so it can serve WAV: `docker build --build-arg INSTALL_FFMPEG=true -t openai-edge-tts:ffmpeg https://github.com/travisvn/openai-edge-tts.git`
+- The image's auth is on by default (key `your_api_key_here`). The command above disables it, or you can enter that key in the API Key field.
+- The stock image returns MP3, which Osaurus decodes after each reply downloads. For lower-latency streaming, build the image with ffmpeg so it can serve WAV: `docker build --build-arg INSTALL_FFMPEG=true -t openai-edge-tts:ffmpeg https://github.com/travisvn/openai-edge-tts.git`
 
-## How audio is handled
+### How audio is handled
 
 Osaurus asks servers for WAV (24 kHz mono) and checks what actually comes back:
 
-- **WAV or raw PCM** — streamed frame-by-frame as it arrives
-- **MP3 / FLAC** — buffered and decoded via CoreAudio after download, then played (slightly higher latency, but it works with servers that can't convert)
-- **Anything unplayable** — rejected with a clear error naming the format, never noise or silence
+- **WAV or raw PCM:** streamed frame by frame as it arrives.
+- **MP3 / FLAC:** buffered and decoded via CoreAudio after download, then played (slightly higher latency, but it works with servers that can't convert).
+- **Anything unplayable:** rejected with a clear error naming the format, never noise or silence.
 
-## Troubleshooting
+"Server sent WAV audio in an unsupported format" means the server is converting to a non-24 kHz or stereo WAV; fix its converter settings.
 
-- **Speaker button opens settings instead of speaking** — the PocketTTS model isn't downloaded yet (on-device engine only).
-- **Speaker icon flips back with no sound** — playback failed; the error appears in Settings → Voice → Text-to-Speech and in Console.app under subsystem `ai.osaurus`.
-- **"Server sent WAV audio in an unsupported format"** — your server is converting to a non-24 kHz or stereo WAV; fix its converter settings.
-- **Voices sound wrong-speed or robotic** — check the Speed slider first; then verify the server with Test Connection.
+### Logs and settings
 
-Settings live in `~/.osaurus/voice/tts.json`. The API key is kept only in the Keychain.
+Playback errors also appear in Console.app under subsystem `ai.osaurus`. Settings live in `~/.osaurus/voice/tts.json`.
+
+---
+
+**Related:**
+
+- [Voice](/voice): talking to Osaurus and dictation

@@ -41,16 +41,18 @@ Two Seatbelt behavioral notes: denied file lookups surface as "No such file or d
 
 ## Provisioning
 
-1. **Management → Sandbox → Container** → **Provision**
+1. **Settings… → Sandbox → Container** → **Provision**
 2. Osaurus downloads the Linux kernel + initial filesystem and boots the VM
 3. The first run takes about a minute; subsequent boots are seconds
 4. Sandbox tools become available to the active agent automatically
 
 Sandbox execution defaults **on for every new custom agent** while preserving explicit opt-outs through duplicate, export, and relaunch. The built-in Orchestrator is hard-off and delegates code execution to custom agents instead.
 
+Workspace tools like `shell_run` and `file_*` keep the same name in every execution mode, so tool approval cards show a **Runs in** notice resolved per call: inside the isolated Linux sandbox, directly on this Mac (when the agent works in a host [Working Folder](/agent-loop) with the sandbox off), or on a remote MCP server. A chat uses either a folder or the sandbox, never both: while an agent's sandbox is on, its chats ignore their working folder, and picking a folder in a chat or project turns that agent's sandbox off.
+
 The container is not booted eagerly — a never-set-up sandbox stays un-provisioned until the first time a custom agent reaches for a sandbox tool, at which point it boots and provisions on demand. Once setup completes, later launches auto-start as normal.
 
-A **Provisioning Preflight** report (Management → Sandbox) inspects the resolved paths, config, cached assets, and bridge socket before provisioning, with typed readiness states (`ready` / `needs_setup` / `blocked` / `unproven`) and a concrete repair suggestion per finding. **Copy JSON** produces a support artifact.
+A **Provisioning Preflight** report (Settings… → Sandbox) inspects the resolved paths, config, cached assets, and bridge socket before provisioning, with typed readiness states (`ready` / `needs_setup` / `blocked` / `unproven`) and a concrete repair suggestion per finding. **Copy JSON** produces a support artifact.
 
 ## Architecture
 
@@ -83,7 +85,7 @@ A **Provisioning Preflight** report (Management → Sandbox) inspects the resolv
 
 ## VM configuration
 
-**Management → Sandbox → Container → Resources:**
+**Settings… → Sandbox → Container → Resources:**
 
 | Setting | Range | Default | Notes |
 |---|---|---|---|
@@ -243,7 +245,7 @@ Plugins install per agent. Each agent has its own plugin set, isolated under the
 7. Run the setup command
 8. Register plugin tools
 
-**Manage from Management → Sandbox → Plugins:**
+**Manage from Settings… → Sandbox → Plugins:**
 
 - **Import** from JSON files, URLs, or GitHub repos
 - **Create** with the built-in editor
@@ -324,7 +326,7 @@ Every request authenticates with a per-agent bearer token:
 
 - The host mints a 256-bit token per agent and writes it to `/run/osaurus/.token` inside the guest, mode `0600`, owned by that agent's Linux user. The directory is mode `0711` so users open their own file by name without enumerating siblings.
 - The `osaurus-host` shim reads the token (allowed by uid) and sends it as `Authorization: Bearer <token>`. Refuses to run if the token file is missing or unreadable.
-- The bridge resolves the token to an `(agentId, linuxName)` pair via `SandboxBridgeTokenStore`. Unknown or missing tokens get `401` — no fallback to a default agent.
+- The bridge resolves the token to an `(agentId, linuxName)` pair via `SandboxBridgeTokenStore`. Unknown or missing tokens get `401` — no fallback to the Orchestrator.
 - `X-Osaurus-User` is no longer trusted. Identity is bound to the token, which is bound to a Linux uid by file permissions inside the guest.
 - `X-Osaurus-Plugin` is still self-reported by the shim. It namespaces config and secrets within an agent but is not a security boundary between plugins of the same agent.
 
@@ -410,7 +412,7 @@ A digest mismatch is **fail-closed**: temp file deleted, no silent fallback to a
 
 ## Diagnostics
 
-**Management → Sandbox → Container → Run Diagnostics:**
+**Settings… → Sandbox → Container → Run Diagnostics:**
 
 | Check | Verifies |
 |---|---|
@@ -420,12 +422,20 @@ A digest mismatch is **fail-closed**: temp file deleted, no silent fallback to a
 | APK | Package manager is functional |
 | Vsock Bridge | Host API bridge is reachable from the container |
 
+The Diagnostics card also shows the most recent startup or provisioning failure as one line, for example:
+
+```
+Last failure: agent_provision_failed · agent_provision.bootstrap_exec · sandbox_timeout · on_demand · warm · vm · 2 hr. ago
+```
+
+It reads from the local ring buffer `~/.osaurus/container/startup-failures.json` and uses the same closed tokens (category, phase, error class, trigger, cold/warm, backend) as the anonymous `sandbox_provision_failure` [telemetry](/telemetry) event — paste it into a bug report to give maintainers the exact classification. No error message, path, or agent identity is stored in that file.
+
 ## Container management
 
 | Action | Description |
 |---|---|
 | **Start** | Boot the container (provisions first if needed) |
-| **Stop** | Gracefully shut down |
+| **Stop** | Gracefully shut down. A deliberate stop is **not** auto-restarted: the sandbox stays down until you press **Start** or a sandbox-enabled agent's first tool use boots it. Only a container that went away on its own (for example, VM death after sleep/wake) is warm-restarted automatically. The same rule keeps quitting Osaurus from re-booting the VM on the way out, which a relaunched app used to collide with as `vmnet_in_use`. |
 | **Reset** | Remove and re-provision. Agent workspaces preserved (they live in VirtioFS-mounted `/workspace`). |
 | **Remove** | Delete container + kernel + initfs. Workspaces preserved. |
 
@@ -441,6 +451,8 @@ Find these under **Container → Danger Zone**.
 | `~/.osaurus/container/workspace/` | Mounted as `/workspace` in the VM |
 | `~/.osaurus/container/workspace/agents/{name}/` | Per-agent home |
 | `~/.osaurus/container/output/` | Mounted as `/output` |
+| `~/.osaurus/container/startup-metrics.json` | Local boot phase timings |
+| `~/.osaurus/container/startup-failures.json` | Recent startup / provisioning failure tokens shown in Diagnostics |
 | `~/.osaurus/sandbox-plugins/` | Plugin library (JSON recipes) |
 | `~/.osaurus/agents/{agentId}/sandbox-plugins/installed.json` | Per-agent installed plugin records |
 | `~/.osaurus/config/sandbox.json` | Sandbox configuration |

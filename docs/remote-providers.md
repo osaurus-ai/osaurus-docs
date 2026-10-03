@@ -1,7 +1,7 @@
 ---
 title: Remote Providers
 sidebar_label: Remote Providers
-description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, and any OpenAI-compatible endpoint — by API key or browser sign-in.
+description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, Claude Code, and any OpenAI-compatible endpoint — by API key, browser sign-in, or a signed-in CLI.
 ---
 
 # Remote Providers
@@ -18,10 +18,10 @@ Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, 
 
 ### Via the UI
 
-1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Cloud Models** in the sidebar
+1. Open **Settings…** (`⌘ ,`)
+2. Click **Providers** in the sidebar (under **Models**)
 3. Click **Add Provider**
-4. Select a preset or **Custom**
+4. Pick a sign-in provider, **Claude Code**, or **Use an API key** (Anthropic, Google, Ollama, custom, and more)
 5. Configure connection settings
 6. Click **Save**
 
@@ -46,7 +46,7 @@ Osaurus ships first-class presets for the providers below — pick one and you o
 | **Ollama** | `localhost` | 11434 | `/v1` | OpenAI-compatible | None (local) |
 | **Custom** | (you specify) | — | `/v1` | OpenAI-compatible | Optional |
 
-Need something else? Use **Custom** for LM Studio or any other OpenAI-compatible endpoint. For a hosted, zero-setup option tied to your Osaurus account (no key to paste), see [Osaurus Router](/osaurus-router).
+Need something else? Use **Custom** for LM Studio, [OpenCode Zen / Go](#opencode-zen--go), or any other OpenAI-compatible endpoint. To use a Claude Pro/Max subscription through your own Claude Code install, see [Claude Code](#claude-code). For a hosted, zero-setup option tied to your Osaurus account (no key to paste), see [Osaurus Router](/osaurus-router).
 
 ### Signing in with OAuth
 
@@ -141,6 +141,21 @@ The model name should match what the remote provider expects.
 During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), or `context_window`. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
 
 For vision-capable providers, image attachments are resized to provider-safe wire dimensions and sent with the corrected MIME type. Osaurus reports unsupported input instead of silently dropping an attachment.
+
+Osaurus also carries per-model profiles for well-known remote models (context window, reasoning controls, which sampler knobs to omit), so newer releases such as OpenAI's GPT-6 Astra are recognized with the right context window and reasoning contract, including when discovered through a ChatGPT / Codex sign-in.
+
+### Prompt caching
+
+Multi-turn chats and agent loops re-send the same system prompt, tool schemas, and history every turn. Osaurus keeps that prefix byte-stable and then enables each provider's own prompt cache, so repeated input bills at the provider's cached rate:
+
+| Provider | What Osaurus sends |
+|---|---|
+| **OpenAI**, **Azure OpenAI Foundry**, **OpenRouter**, **Osaurus Router** | A session-scoped `prompt_cache_key` (`osaurus-session-{id}`) on every turn, so one conversation stays on one cache shard. OpenRouter also receives `session_id` for sticky upstream routing. |
+| **Anthropic** | A top-level `cache_control` marker: a 1-hour TTL when the last message is a user turn, the default 5 minutes when it's a tool result (a tight agent loop). |
+| **Gemini** | Nothing — implicit context caching applies automatically. |
+| Other OpenAI-compatible hosts (xAI, DeepSeek, Fireworks, Mistral, custom) | Neither field — strict schemas can reject unknown keys, and their caches are automatic where they exist. |
+
+Cached-token counts the provider reports back appear as an **"N cached"** chip in the assistant message footer. No chip means the provider didn't report a cached count, not that nothing was cached.
 
 ## Connection states
 
@@ -300,6 +315,44 @@ Run models locally via Ollama. To expose Ollama on the network:
 ```bash
 OLLAMA_HOST=0.0.0.0:11434 ollama serve
 ```
+
+### OpenCode (Zen / Go)
+
+Use the **Custom** preset:
+
+```
+Host:     opencode.ai
+Protocol: HTTPS
+Base:     /zen/go/v1   (OpenCode Go)
+          /zen/v1      (OpenCode Zen)
+Auth:     API key (opencode.ai)
+```
+
+Pick the API format by model family: OpenAI for most Go models, Open Responses for Grok and Muse, Anthropic for MiniMax and Qwen (see [OpenCode's docs](https://opencode.ai/docs/go/)).
+
+OpenCode Go rejects requests without an `x-opencode-session` header ("cannot be routed efficiently"). Osaurus adds it automatically for any provider whose host is `opencode.ai` or a subdomain, whatever the API format, with a stable per-conversation value so every turn lands on the same upstream shard. A custom header with the same name takes precedence.
+
+### Claude Code
+
+Drives your own signed-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI as a subprocess — the sanctioned way to reach a Claude Pro/Max subscription. Osaurus never mints or stores an Anthropic token; the CLI owns the session.
+
+1. Install Claude Code and run `claude` once in a terminal to sign in
+2. **Settings… → Providers → Add Provider → Claude Code**
+3. Osaurus finds the `claude` binary and shows its version, account, and plan when it's **Signed in and ready** (use **Re-check** after signing in)
+
+The models appear in the picker as **Claude Code (Sonnet)**, **Claude Code (Opus)**, and **Claude Code (Haiku)** (IDs `claude-code/sonnet`, `claude-code/opus`, `claude-code/haiku`). These are Claude Code's own aliases, so they follow whatever the CLI currently resolves them to.
+
+Once Claude Code is installed (or an agent already uses a Claude Code model), each agent's settings under **Settings… → Agents** get a **Claude Code** section:
+
+| Setting | What it does |
+|---|---|
+| **Execution mode** | **Agent** — Claude Code runs its own agent loop under your macOS account; Read, Grep, and Glob are allowed by default. **Text only** — every built-in and MCP tool is disabled and the CLI is a plain text generator. |
+| **Allow file changes** | Auto-approve Edit, Write, and NotebookEdit, with your macOS file access, starting in the chat folder |
+| **Allow shell commands** | Auto-approve Bash under your macOS account — this is **not** the Osaurus Sandbox |
+| **Allow Osaurus read tools** | Attach a scoped MCP bridge for Osaurus status, list, describe, and search |
+| **Allow Osaurus configuration changes** | Permit agent, provider, model, plugin, and MCP configuration writes (requires read tools) |
+
+The permission toggles apply only in **Agent** mode.
 
 ### LM Studio
 

@@ -37,17 +37,19 @@ Security-sensitive controls such as delegation budgets, autonomy ceilings, ident
 
 ## Native plugin catalog
 
-The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Management → Tools → Native Plugins**, or search it with `osaurus tools search`.
+The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Settings… (⌘,) → Tools & MCP → Plugins**, or search it with `osaurus tools search`.
 
-The Tools manager has three tabs:
+**Tools & MCP** has three tabs:
 
-- **All Tools** — a flattened inventory grouped by source, with per-agent permission controls.
-- **MCP** — connections to external MCP servers.
-- **Native Plugins** — installed and available compiled plugins.
+- **Services** — connected MCP services, **Add Service**, and a **Directory** of services you can add.
+- **All Tools** — every tool grouped by source, with its permission policy and **Auto-Allow All Tool Calls**.
+- **Plugins** — installed and available native plugins from the registry.
 
 There is no global **Disable Tools** switch. Tool availability is configured per agent under **Abilities → Overview** and **Abilities → Tools**.
 
-[Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), and [Computer Use](/computer-use) ship as built-in capabilities rather than registry plugins.
+[Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), [Computer Use](/computer-use), and the [Apple Apps](/apple-apps) tools (Calendar, Reminders, Contacts, Notes, Mail, Messages, Maps & Location, Music, Shortcuts) ship as built-in capabilities rather than registry plugins. Apple app tools are off by default and turned on per custom agent under **Agents → *agent* → Abilities → Tools**, one group per app.
+
+The former Apple app plugins (`osaurus.calendar`, `osaurus.reminders`, `osaurus.contacts`, `osaurus.notes`, `osaurus.mail`, `osaurus.messages`, `osaurus.maps`, `osaurus.music`) are superseded: their cards show a **Built into Osaurus** banner and installed copies are never loaded. Agents whose tool lists named the old plugin tools were migrated once to the built-in names with the matching app enabled.
 
 ## Installing Tools
 
@@ -64,7 +66,7 @@ osaurus tools install <plugin-id> <another-plugin-id>
 osaurus tools list
 
 # Search available tools
-osaurus tools search calendar
+osaurus tools search xlsx
 
 # Uninstall a tool
 osaurus tools uninstall <plugin-id>
@@ -85,7 +87,7 @@ Tools are installed to:
 Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus keeps the schema small and lets the agent expand it only when needed.
 :::
 
-Each agent has a tool mode, set in the agent's **Capabilities** settings:
+Each agent has a tool mode, set with the **Auto-discover relevant tools** switch in **Settings… → Agents →** the agent **→ Abilities → Tools**:
 
 | Mode | Behavior |
 |---|---|
@@ -181,6 +183,8 @@ Each tool can specify a permission policy:
 - **`auto`** — Executes automatically if requirements are met
 - **`deny`** — Blocks execution entirely
 
+Policies are set per tool under **Tools & MCP → All Tools**. A few built-in tools always ask regardless of policy — sending mail or messages and deleting calendar events or reminders show an approval card on every call.
+
 Some tools require macOS system permissions:
 
 | Permission        | How to Grant                                         | Use Case                            |
@@ -224,26 +228,31 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 
 ### Adding a Remote MCP Provider
 
-1. Open the Management window (`⌘ ⇧ M`)
-2. Navigate to **Tools → MCP**
-3. Click **Add Provider**
-4. Enter the provider details
+1. Open **Settings…** (`⌘ ,`)
+2. Navigate to **Tools & MCP → Services**
+3. Click **Add Service** and pick a service from the catalog (Linear, Notion, GitHub, and more) or **Custom Server** — or click **Add** on a row in the **Directory** below the list
+4. Sign in, enter an API key, or fill in the custom server details
 
-### Configuration Options
+### Custom Server Options
 
-| Field         | Description                                        |
-| ------------- | -------------------------------------------------- |
-| **Name**      | Display name for the provider                      |
-| **Endpoint**  | MCP server URL or command                          |
-| **Token**     | Authentication token (stored securely in Keychain) |
-| **Timeout**   | Request timeout in seconds                         |
-| **Streaming** | Enable/disable streaming responses                 |
+| Field | Description |
+| ----- | ----------- |
+| **Name** | Display name for the provider (also the tool-name prefix) |
+| **URL** / stdio command | MCP server URL, or a local command for stdio servers |
+| **Auth** | None, Bearer token, or OAuth — secrets are stored in the Keychain |
+| **Auto-connect** | Connect when Osaurus starts |
+| **Streaming** | Enable/disable streaming responses |
+| **Discovery Timeout** | How long tool discovery may take (default 20s) |
+| **Tool Call Timeout** | How long a single tool call may take (default 45s) |
+
+Use **Test** to check the connection before saving.
 
 ### How It Works
 
-- **Tool Discovery** — Osaurus queries the remote MCP server for available tools
-- **Namespacing** — Remote tools are prefixed with the provider name (e.g., `provider_toolname`) to avoid conflicts
-- **Unified Access** — All tools—local and remote—appear in the same tools list
+- **Tool Discovery** — Osaurus queries the remote MCP server for available tools. Object schemas a server publishes without `properties` are filled in so strict providers accept them.
+- **Namespacing** — Remote tools are prefixed with the provider name (e.g., `provider_toolname`) to avoid conflicts. Each description notes the server's own name for the tool, and a call to the bare server name resolves to the prefixed tool of the server that publishes it.
+- **Typed arguments** — Integer arguments are sent as integers (a `0` or `1` is never coerced into a boolean).
+- **Unified Access** — All tools—local and remote—appear in the same tools list (**Tools & MCP → All Tools**)
 - **Secure Storage** — Authentication tokens are stored in macOS Keychain
 
 ### Using Remote Tools
@@ -269,7 +278,7 @@ Remote tools are also available to MCP clients like Cursor and Claude Desktop th
 
 - **Use descriptive provider names** — Makes it easy to identify tool origins
 - **Set appropriate timeouts** — Remote tools may have higher latency than local ones
-- **Monitor connection health** — Check the Management window for provider status
+- **Monitor connection health** — The **Services** header summarizes connected services, ones that need attention, and tool counts; its ⋯ menu offers **Reconnect All**, **Test Connections**, and **Copy Diagnostics**
 
 ## Plugin ABIs
 
@@ -341,8 +350,8 @@ All official and community tools are indexed in the [osaurus-tools](https://gith
 ```
 osaurus-tools/
 ├── plugins/           # Plugin specifications
-│   ├── osaurus.files.json
-│   ├── osaurus.git.json
+│   ├── osaurus.xlsx.json
+│   ├── osaurus.pptx.json
 │   └── ...
 ├── tools/             # Source code for official tools
 └── scripts/           # Build and release automation

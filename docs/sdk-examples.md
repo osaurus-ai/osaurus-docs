@@ -15,7 +15,7 @@ For local clients, any value works as the API key. For LAN, Relay, or any non-lo
 Before running any examples:
 
 1. **Start Osaurus**: `osaurus serve` or use the UI
-2. **Download a model**: Use the Model Manager
+2. **Download a model**: **Settings…** (`⌘ ,`) → **Local Models**, or `osaurus pull <model>`
 3. **Note your URL**: Default is `http://127.0.0.1:1337`
 4. **Check liveness**: `curl http://127.0.0.1:1337/health`
 
@@ -410,7 +410,7 @@ Cancel with `DELETE /tasks/{id}`; if the task asks a clarifying question, answer
 
 ### Using an `osk-v1` access key (LAN / Relay)
 
-Mint a key from **Identity → Access Keys** and pass it as the API key string:
+Mint a key from **Settings… → Server → Overview → Access Keys** and pass it as the API key string:
 
 ```python
 client = OpenAI(

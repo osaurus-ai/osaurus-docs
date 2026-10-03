@@ -8,6 +8,11 @@ const sidebars: SidebarsConfig = {
       label: "Overview",
     },
     {
+      type: "doc",
+      id: "glossary",
+      label: "Glossary",
+    },
+    {
       type: "category",
       label: "Getting Started",
       collapsed: false,
@@ -29,6 +34,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "subagents", label: "Subagents" },
         { type: "doc", id: "image-generation", label: "Image & Video" },
         { type: "doc", id: "computer-use", label: "Computer Use" },
+        { type: "doc", id: "apple-apps", label: "Apple Apps" },
         { type: "doc", id: "browser-use", label: "Browser Use" },
         { type: "doc", id: "web-search", label: "Web Search" },
         { type: "doc", id: "voice", label: "Voice" },
@@ -66,6 +72,8 @@ const sidebars: SidebarsConfig = {
       label: "Sharing & Access",
       collapsed: true,
       items: [
+        { type: "doc", id: "workspaces", label: "Workspaces" },
+        { type: "doc", id: "mobile", label: "Mobile" },
         { type: "doc", id: "identity", label: "Identity" },
         { type: "doc", id: "relay", label: "Public Links" },
         { type: "doc", id: "secure-channel", label: "Secure Channel" },

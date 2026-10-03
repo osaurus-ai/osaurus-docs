@@ -1,44 +1,82 @@
 ---
 title: Secure Channel
 sidebar_label: Secure Channel
-description: True end-to-end encryption for agent-to-agent communication — forward-secret, mutually authenticated, replay-proof, with zero configuration.
+description: The private, encrypted connection Osaurus sets up on its own between your Mac and your iPhone, a teammate's Mac, or another Osaurus. There's nothing to turn on.
 ---
 
 # Secure Channel
 
-When two Osaurus agents talk to each other — across your home network or across the world through the [relay](/relay) — nobody in between can read, modify, replay, or truncate the conversation. Not your router, not the coffee-shop Wi-Fi, not even the relay infrastructure itself.
+When your iPhone, a teammate, or another copy of Osaurus talks to an agent on your Mac, the conversation travels over the **Secure Channel**: a private, scrambled connection that only the two ends can read. Nobody in between can read it or change it. That includes your Wi-Fi, your internet provider, and even Osaurus's own [relay](/glossary#relay) servers.
 
-This is not "we use HTTPS." It's a dedicated cryptographic channel built on the same design patterns as TLS 1.3 and Signal, where the **only** parties holding the keys are the two agents at each end.
+**There's nothing to set up.** Osaurus uses the Secure Channel on its own whenever it's needed.
 
-**There is nothing to configure.** Pairing two agents — over Bonjour on the LAN or via a relay invite — is all it takes. Sessions are established and refreshed transparently.
+## When it's used
 
-## Why it matters
+You don't turn the Secure Channel on. It just covers these connections:
 
-Most connected-agent products route your prompts, responses, and credentials through infrastructure that can see everything. Even self-hosted setups using an ngrok-style tunnel hand the relay operator a TLS-terminating man-in-the-middle position by construction.
+- **Your iPhone.** Every message from the Osaurus iPhone app is scrambled on the phone and unscrambled only on your Mac. That's true at home and when you're away. See [Mobile](./mobile.md).
+- **A teammate's Mac, or your other Mac.** When someone in a [workspace](/glossary#workspace) chats with one of your shared agents, or you use an agent on your other Mac, the conversation is protected the same way. See [Workspaces](/workspaces).
+- **n8n workflows.** When an [n8n](/agent-channels#n8n) workflow talks to one of your agents from another machine, the Osaurus n8n add-on uses the Secure Channel too.
 
-| | Typical cloud agents | Tunnel/relay setups | **Osaurus Secure Channel** |
+Apps on your own Mac, like the command line or Shortcuts, talk to Osaurus directly. Their messages never leave your computer, so they don't need it.
+
+## What it protects
+
+Think of it as a sealed envelope that only your Mac and the other device can open:
+
+- **Nobody in between can read it.** Your messages, the agent's replies, and the [access key](/glossary#access-key) that proves who's asking all travel scrambled. The relay passes the envelope along but can't open it.
+- **Old conversations stay safe.** Each session uses fresh, throwaway keys. Even if a device's keys were stolen later, someone who recorded earlier traffic still couldn't read it.
+- **Impostors can't pretend to be your Mac.** When you pair a device, it remembers your agent's unique address. From then on, it checks that it's really talking to that agent before sending anything.
+- **Messages can't be replayed or cut short.** Someone can't capture a request and send it again to run it twice. If a reply gets cut off partway, Osaurus notices instead of treating it as complete.
+- **No way to switch it off from outside.** If another computer tries to run one of your agents without the Secure Channel, Osaurus refuses. An attacker can't trick it into an unprotected mode.
+
+### What it doesn't hide
+
+Like any encrypted connection, it can't hide *when* messages are sent or roughly how big they are. The relay also needs to know which Mac a message is for, so it can deliver it.
+
+## How it compares
+
+| | Typical cloud AI apps | Typical tunnel services | **Osaurus Secure Channel** |
 |---|---|---|---|
-| Who can read your prompts in transit | The provider | The relay operator | **Only the two agents** |
-| Who can read your access credentials | The provider | The relay operator | **Only the two agents** |
-| Past traffic safe if keys leak later | Usually not | Usually not | **Yes — forward secrecy** |
-| Peer identity verified cryptographically | Account-based | Rarely | **Yes — pinned at pairing** |
-| Replayed requests re-execute | Often | Often | **Never** |
-| Silently truncated responses detected | No | No | **Yes** |
-| Downgrade to plaintext possible | — | Often silently | **No — hard-refused** |
+| Who can read your messages on the way | The company running it | The tunnel operator | **Only the two ends** |
+| Who can see your access key | The company running it | The tunnel operator | **Only the two ends** |
+| Past messages safe if keys leak later | Usually not | Usually not | **Yes** |
+| The other side's identity is checked | Through an account | Rarely | **Yes, from the moment you pair** |
+| A captured request can be re-run | Often | Often | **Never** |
+| A cut-off reply is noticed | No | No | **Yes** |
+| Can be forced into unprotected mode | — | Often, silently | **No** |
 
-The relay becomes a **blind pipe**: it forwards ciphertext it cannot open.
+## Compatibility
 
-## The guarantees
+- **Current versions of Osaurus** use it automatically with each other.
+- **The Osaurus iPhone app** always uses it to reach your Mac.
+- **Older versions of Osaurus** can't run agents on an updated Mac until they update too. This is on purpose, so there's no weaker fallback. Both sides show a clear message asking you to update.
+- **Other apps that use Osaurus like OpenAI's service** (through the [API](/glossary#api)) aren't affected. They can still list models and read basic information. The Secure Channel requirement only covers one Osaurus running another Osaurus's agents.
+- **Apps on your own Mac** aren't affected.
 
-1. **End-to-end encrypted.** Every request and response — including streamed tokens — is sealed with ChaCha20-Poly1305 using keys that exist only on the two endpoints.
-2. **Forward secrecy.** Session keys come from a fresh ephemeral X25519 exchange every session. Even if a device's long-term identity key is compromised later, recorded past traffic can never be decrypted.
-3. **Mutual authentication.** The server signs the handshake with its secp256k1 agent key, and the client verifies it against the address pinned when you paired — an impostor or man-in-the-middle cannot complete a handshake. Your `osk-v1` access key travels *inside* the ciphertext, so after pairing, credentials never cross the network in plaintext again.
-4. **Tamper, replay, and truncation proof.** A captured request can never re-execute. Response streams end with an authenticated finish frame, so a connection cut mid-stream is detected instead of silently passing as a complete answer.
-5. **No downgrade, ever.** Remote plaintext requests to agent-execution routes are refused with `426 Upgrade Required`. There is no fallback mode an attacker can force. Local callers (CLI, App Intents, same-machine scripts) keep working unchanged.
+## Troubleshooting
 
-## How it works
+**"Upgrade Osaurus" message when reaching another Mac.** One side is running an older version. Update Osaurus on both Macs.
 
-The channel is a SIGMA-style authenticated key exchange — the pattern underlying TLS 1.3 and the Noise framework — built from primitives Osaurus already trusts elsewhere: secp256k1 identity signatures, X25519, HKDF-SHA256, and ChaCha20-Poly1305.
+**A request failed after the Mac restarted.** The old session ended. Osaurus starts a new one on its own; just try again.
+
+---
+
+## Under the hood
+
+The Secure Channel is a dedicated cryptographic channel, not just HTTPS. It follows the same design patterns as TLS 1.3 and Signal, and the only parties holding the keys are the two endpoints.
+
+### The guarantees, technically
+
+1. **End-to-end encrypted.** Every request and response, including streamed tokens, is sealed with ChaCha20-Poly1305 using keys that exist only on the two endpoints.
+2. **Forward secrecy.** Session keys come from a fresh ephemeral X25519 exchange every session. Even if a device's long-term identity key is compromised later, recorded past traffic can't be decrypted.
+3. **Mutual authentication.** The server signs the handshake with its secp256k1 agent key, and the client verifies it against the address pinned when you paired, so an impostor or man-in-the-middle can't complete a handshake. Your `osk-v1` access key travels *inside* the ciphertext, so after pairing, credentials never cross the network in plaintext again.
+4. **Tamper, replay, and truncation proof.** Requests are sequence-numbered, so a captured request can never re-execute. Response streams end with an authenticated finish frame, so a connection cut mid-stream is detected.
+5. **No downgrade.** Remote plaintext requests to agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) are refused with `426 Upgrade Required`. Relay traffic counts as remote even though it reaches the server over [loopback](/glossary#loopback). Local callers (CLI, App Intents, same-machine scripts) stay plaintext.
+
+### Handshake and calls
+
+The channel is a SIGMA-style authenticated key exchange (the pattern underlying TLS 1.3 and the Noise framework), built from primitives Osaurus already uses elsewhere: secp256k1 identity signatures, X25519, HKDF-SHA256, and ChaCha20-Poly1305.
 
 ```mermaid
 sequenceDiagram
@@ -54,13 +92,11 @@ sequenceDiagram
     S->>C: encrypted response frame(s) + authenticated finish
 ```
 
-Every encrypted call is a `POST /secure/call` whose ciphertext decrypts to the complete inner HTTP request — method, path, authorization, body. Server-side, the inner request flows through the existing auth gate, agent-scope check, and routing unchanged. Because the channel sits above HTTP, the relay carries opaque frames it cannot read.
+Every encrypted call is a `POST /secure/call` whose ciphertext decrypts to the complete inner HTTP request: method, path, authorization, and body. On the server, the inner request goes through the normal auth gate, agent-scope check, and routing unchanged. Because the channel sits above HTTP, the relay carries opaque frames it can't read.
 
-### What it doesn't hide
+For n8n, when the [n8n channel](/agent-channels#n8n) is bound to a local agent, the Osaurus n8n community node pins that agent's address in the handshake and wraps every channel request in `/secure/call`. That lets a remote n8n work through the relay without enabling plaintext HTTP.
 
-Traffic timing and approximate sizes (true of any encrypted transport), and the routing metadata the relay needs (which tunnel a frame belongs to).
-
-## Error reference
+### Error reference
 
 | Status | Code | Meaning | What to do |
 |---|---|---|---|
@@ -69,19 +105,19 @@ Traffic timing and approximate sizes (true of any encrypted transport), and the 
 | `409` | `secure_replay` | Sequence number already consumed | Never retry the same envelope |
 | `400` | `secure_malformed` | Bad envelope | Fix the request |
 
-## Compatibility
+### Compatibility details
 
 - **Osaurus ↔ Osaurus (current versions):** fully encrypted, automatic.
-- **Osaurus ↔ older Osaurus:** older peers can't execute agents on upgraded peers until they upgrade — deliberately, so there's no downgrade path. A clear upgrade message appears on both sides.
+- **Osaurus ↔ older Osaurus:** older peers can't execute agents on upgraded peers until they upgrade.
 - **Third-party OpenAI SDK clients:** unaffected. `/models` and metadata routes still accept plaintext; the requirement applies only to Osaurus peer agent-execution routes.
 - **Local callers:** unaffected; loopback stays plaintext.
 
-## How it fits the security stack
+### How it fits the security stack
 
-The Secure Channel composes with — it doesn't replace — the other layers:
+The Secure Channel works alongside the other layers; it doesn't replace them:
 
 - **Pairing** establishes *who* a peer is and pins the agent address the channel verifies on every handshake. See [Identity](/identity).
-- **`osk-v1` access keys** still authenticate every call — now inside the ciphertext — with unchanged scoping and instant revocation.
+- **`osk-v1` access keys** still authenticate every call, now inside the ciphertext, with the same scoping and instant revocation.
 - **Storage** protects data at rest; the Secure Channel protects it in motion between agents. See [Storage & Encryption](/storage).
 
 ---

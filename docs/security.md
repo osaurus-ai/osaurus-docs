@@ -1,67 +1,69 @@
 ---
 title: Security & Privacy
 sidebar_label: Security & Privacy
-description: What we do to keep your data yours — local-first storage, opt-in encryption, signed identity, sandboxed execution, on-device PII redaction, no backdoors.
+description: How Osaurus keeps your data on your Mac, what can leave it and when, how to lock things down further, and what the Osaurus team can't see.
 ---
 
 # Security & Privacy
 
-> **What is yours is yours.** Not "by default". Not "we don't sell it". Physically, on your Mac.
+> **What is yours is yours.** Not "by default." Not "we don't sell it." Physically, on your Mac.
 
-This page is the front door to the security and privacy story. The deep technical references live at [Storage & Encryption](/storage), [Identity Cryptography](/identity-internals), and [Sandbox Internals](/sandbox) — but you don't need to read them to trust Osaurus. Read this page first.
+Osaurus keeps your chats, [memory](/glossary#memory), and settings on your Mac. Some things leave it only when you choose features that need the internet, like [cloud models](/glossary#cloud-model) or [Public Links](/glossary#public-link). This page explains what stays, what can leave, and how to control it. You don't need to read the technical pages to trust Osaurus; start here.
 
----
+## Get started: lock things down
+
+A few settings make the biggest difference:
+
+1. **Turn on FileVault** in macOS **System Settings → Privacy & Security → FileVault**. [FileVault](/glossary#filevault) encrypts your whole disk, including everything Osaurus stores.
+2. **Optionally encrypt Osaurus's data too.** If you share your Mac account or don't use FileVault, open **Settings…** (`⌘ ,`) → **General → Advanced → Data & Storage** and turn on database encryption. [Storage details →](/storage)
+3. **Use local models for private work.** A [local model](/glossary#local-model) runs on your Mac, so what you type doesn't leave it.
+4. **Hide personal details from cloud models.** Turn on the [Privacy Filter](/privacy-filter) in **Settings… → Privacy → Filter**.
+5. **Choose what you share with us.** In the **Data Collection** section of **Settings… → Privacy → Filter**, decide whether to send anonymous usage data and crash reports. [Details →](/telemetry)
+6. **Back up your recovery phrase** from **Settings… → Identity**. See [Identity](/identity).
 
 ## The promise
 
-Osaurus is **local-first** — and that's not a marketing line. The chat overlay, your memory, your installed plugins, your identity — all of it runs on your Mac. The default experience never sends your conversations anywhere.
+Osaurus is **local-first**, and that's not a marketing line. The chat window, your memory, your installed [plugins](/glossary#plugin), and your [identity](/glossary#identity) all run on your Mac. If you only use local models, your conversations never leave your computer.
 
-When you opt in to a cloud provider (OpenAI, Anthropic, etc.), only the prompts you send to *that turn* leave. Your memory, your stored chats, your identity, your voice — those stay on your device, encrypted, regardless of which model you're talking to.
+When you use a cloud model or [provider](/glossary#provider) (like OpenAI or Anthropic), the messages and conversation you send in that chat go to that company. Your stored chat history, memory, identity, and voice audio stay on your Mac, whichever model you use.
 
-We've designed Osaurus so that even **we** — the maintainers — couldn't read your data if we wanted to. Your data lives only on your Mac. The master identity key is in *your* iCloud Keychain, gated by *your* biometrics. The codebase is fully open and auditable. There are no backdoors, and we have no way to add one without you noticing in the next git pull.
-
----
+We built Osaurus so that even **we**, the people who make it, can't read your data. It lives on your Mac, not on our servers. Your identity's secret key is in *your* iCloud [Keychain](/glossary#keychain). The code is fully open for anyone to check. There are no backdoors, and we couldn't add one without people noticing.
 
 ## What stays on your Mac
 
-| Your data | Where it lives | How it's protected |
-|---|---|---|
-| Chat history | `~/.osaurus/chat-history/` | FileVault at rest; **opt-in SQLCipher encryption** |
-| Memory (your facts and history) | `~/.osaurus/memory/` | FileVault at rest; **opt-in SQLCipher encryption** |
-| Methods, tool index, plugin databases | `~/.osaurus/` | FileVault at rest; **opt-in SQLCipher encryption** |
-| Storage encryption key (when opted in) | macOS Keychain | Device-bound, never copied off |
-| Master identity key | iCloud Keychain | Biometric-gated, syncs only across your Apple devices |
-| Cloud provider API keys | macOS Keychain | Never in plain-text config files |
-| Voice transcription | On-device (FluidAudio) | Interim audio buffers are memory-only; text you send is stored in chat history like any other message |
-| Models you've downloaded | `~/MLXModels/` | Local files (model weights aren't sensitive on their own) |
+| Your data | How it's protected |
+|---|---|
+| Chat history | Stored on your Mac. Encrypted at rest only if FileVault is on or you turn on database encryption |
+| Memory (facts Osaurus learned about you) | Same as chat history |
+| Other app data (saved methods, tool lists, plugin data) | Same as chat history |
+| Your identity's secret key | iCloud Keychain, protected by Face ID or Touch ID; syncs only across your Apple devices |
+| Cloud provider [API keys](/glossary#api-key) | macOS Keychain, never in plain-text files |
+| Voice | Audio is [transcribed](/glossary#transcription) on your Mac and never saved. The text you send becomes a chat message and is stored like any other |
+| Downloaded models | Ordinary files on your Mac |
+| [Activity log](/glossary#activity-log) | Stored on your Mac, built so any edit or deletion is detectable |
 
-Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest by macOS FileVault — the most reliable setup, with no app-managed key that can go missing. If you share the Mac account or don't run FileVault, turn on whole-database encryption in **Management → Privacy → Storage**. [Storage details →](/storage)
+**About encryption at rest:** Osaurus stores its data as ordinary database files. They're encrypted on disk only when **macOS FileVault** is on, or when you turn on Osaurus's optional database encryption. Without either, someone with access to your Mac account or your disk could read them.
 
----
+## Identity that's signed and checkable
 
-## Identity that's signed and verifiable
+Every request to your Osaurus from another app or device carries a digital signature from a key only you control. There's no central server handing out access, and checking a signature doesn't need the internet.
 
-Every API call to your Osaurus carries a **cryptographic signature** from a key only you control.
+- **You** have a master identity, created on your first Mac and backed up by your 24-word [recovery phrase](/glossary#recovery-phrase).
+- **Each agent** has its own identity that traces back to yours.
+- **Each Mac** has its own hardware-tied ID, so a stolen signature alone can't impersonate it.
+- **Other apps** connect with [access keys](/glossary#access-key) you create, limit to one agent or all, set to expire, and revoke anytime.
 
-- Your **master identity** is a secp256k1 keypair generated on first launch, stored in your iCloud Keychain, and gated by Face ID / Touch ID
-- Each **agent** gets its own deterministic child key derived from your master — agents can sign on their own behalf, but their authority always traces back to you
-- External tools, MCP clients, and remote agents authenticate with **`osk-v1` access keys** — portable tokens you mint, scope (master-wide or single-agent), expire (30/90/365 days or never), and revoke at any time
+[Identity →](/identity)
 
-There's no central server handing out access. Verification is local and offline-capable. If something signs a request as you, it's you. [Identity →](/identity) · [Identity Cryptography →](/identity-internals)
+## When agents run code, they stay contained
 
----
+When an agent runs code or installs software, it does so in the [Sandbox](/glossary#sandbox), a sealed-off space separate from the rest of your Mac. On macOS 26 and later, that's a small, separate Linux computer running inside your Mac. Each agent gets its own space and can't read the others' files. You can cut off its internet access completely, or allow only specific websites.
 
-## When agents run code, they can't break out
+On macOS 15, the Sandbox uses a lighter form of protection. It can only write inside its own space, but it isn't as fully separated. [Sandbox Internals](/sandbox#seatbelt-fallback-macos-15) explains the difference.
 
-On macOS 26+, the Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization framework, Alpine Linux). Each agent gets its own Linux user with its own home directory — they can't read each other's files. The VM connects back to Osaurus via a **vsock bridge** with **per-agent bearer tokens** written into the guest as `0600` files; unknown tokens get `401`, no fallback. Outbound network can be set to `none` to fully air-gap, or to a per-agent **domain allowlist** enforced by a filtering proxy on a host-only network.
-
-On macOS 15, the Sandbox falls back to a **Seatbelt-confined backend**: commands run as host processes under a deny-by-default profile that can only write inside the sandbox workspace. The isolation boundary is weaker than the VM (host reads aren't blocked), which is why the [Sandbox Internals](/sandbox#seatbelt-fallback-macos-15) page spells out the exact differences.
-
-Sandbox runtime artifacts (the GHCR image, the production Kata kernel, vminit, and the initial filesystem) are pinned to **immutable digests** and verified after download — a registry compromise can't silently swap binaries. The guest also runs with restricted OCI capabilities and `noNewPrivileges`; the built-in Orchestrator remains hard-off while new custom agents start sandbox-enabled unless you opt out.
+New custom agents start with the Sandbox on unless you turn it off. The [Orchestrator](/glossary#orchestrator) never uses it.
 
 [Tasks →](/agent-loop) · [Sandbox Internals →](/sandbox)
-
----
 
 ## What can leave your Mac (and how to control it)
 
@@ -69,84 +71,142 @@ We owe you an honest list:
 
 | Feature | What can leave | How to control it |
 |---|---|---|
-| **Cloud provider model** | The prompts and conversation context you send to that provider | Stick with local models or `foundation`; or turn on the [Privacy Filter](/privacy-filter) to redact sensitive content before it's sent |
-| **Cloud image/video generation** | Your media prompt and, for image-to-video, the source image; generated output is transient upstream | Use a local image model for offline work. Hosted media is an explicit target with a quote/spend approval and no silent fallback. |
-| **Relay** | Inbound HTTPS for one specific agent via `agent.osaurus.ai` | Per-agent toggle under **Agents → Connections → Network**; off by default; revoke any time |
-| **Sandbox network** | Outbound HTTP from the Linux VM | Set `network: "none"` in `~/.osaurus/config/sandbox.json` |
-| **Voice** | **Nothing** — fully on-device via FluidAudio | Always local |
-| **Memory distillation** | **Nothing** — runs through your Core Model on your Mac | Always local |
-| **Usage analytics** | Anonymous, aggregated product metrics — **never** your chats, prompts, keys, or file contents | Opt-out in **Settings → Privacy → Share Anonymous Usage Data**; off entirely in source builds. [Details →](/telemetry) |
-| **Crash reports** | Crash and hang diagnostics with no personal information | Opt-out in **Settings → Privacy → Send Crash Reports**; off entirely in source builds. [Details →](/telemetry) |
+| **Cloud models and providers** | The messages and conversation you send to that company | Use local models or Apple's on-device **foundation** model, or turn on the [Privacy Filter](/privacy-filter) to hide personal details first |
+| **Cloud image and video generation** | Your description and, for image-to-video, the source image | Use a local image model for offline work. Osaurus always shows the cost and asks first; it never silently switches to a cloud service |
+| **Public Links** | Messages to and from one agent, through Osaurus's relay | Off by default, per agent. Osaurus-to-Osaurus traffic (your iPhone, teammates) is [end-to-end encrypted](/glossary#end-to-end-encryption), so the relay can't read it. Other apps use regular HTTPS to the relay, so the relay can see that traffic. While an iPhone is paired, **Settings… → Mobile → Reach From Anywhere** (on by default) turns links on for every agent. [Public Links →](/relay) · [Mobile →](./mobile.md) |
+| **Sandbox internet access** | Web requests from code an agent runs | Turn the Sandbox's network off or limit it to specific websites. [Sandbox →](/sandbox) |
+| **Voice** | **No audio.** Speech is turned into text on your Mac. The text is then sent like any typed message, so it goes to a cloud model only if you're chatting with one | Always local |
+| **Memory** | **Nothing**, when your [Core Model](/glossary#core-model) is local (the default on macOS 26 and later). If you pick a cloud model as your Core Model, the chats it learns from go to that company | Keep a local model in **Settings… → General → Core Model** |
+| **Usage analytics** | Anonymous, combined usage numbers. **Never** your chats, prompts, keys, or files | Nothing is sent until you agree (a pre-checked box on the first setup screen). Turn it off in **Settings… → Privacy → Filter → Data Collection → Share Anonymous Usage Data**. [Details →](/telemetry) |
+| **Crash reports** | Crash and freeze details with no personal information | **On from the first launch.** Turn it off in **Settings… → Privacy → Filter → Data Collection → Send Crash Reports**. [Details →](/telemetry) |
 
-When you connect a remote provider, the **Insights** tab shows you exactly what was sent and received for every request — there's no hidden traffic. If you enable the [Privacy Filter](/privacy-filter), Insights also captures the exact post-redaction bytes that left your Mac, so you can confirm sensitive values were actually scrubbed.
+Both analytics and crash reports are completely off if you build Osaurus yourself.
+
+### See for yourself in Insights
+
+**Settings… → Insights** shows the [activity log](/glossary#activity-log): a record of everything Osaurus did, including local model requests, cloud model calls, web searches, and messages sent to chat apps. Each entry is marked **Local** or **Cloud**, with where it went and how much was sent.
+
+- The **Left this Mac** tile shows at a glance what went out.
+- **Verify Integrity** checks that the log hasn't been edited.
+- **Export** saves a copy someone else can check without Osaurus.
+- With the Privacy Filter on, you can see exactly what was sent after personal details were hidden.
+
+Choose how long the log is kept (**Keep Activity History**, 30 days by default) and whether it saves message text (**Store Prompts and Responses**) in the **Activity Log** section of **Settings… → Privacy → Filter**. [Details →](/developer-tools#insights)
+
+## Built-in protections
+
+A short tour of the safeguards built in:
+
+- **Personal details hidden on the way out.** The optional [Privacy Filter](/privacy-filter) finds names, emails, secrets, and more in messages going to cloud models and hides them before they leave. If it detects a leak, it stops the message instead of sending it.
+- **File clean-up on your Mac.** Agents working in a [Working Folder](/glossary#working-folder) can find or hide personal details in files without sending them anywhere. Changes need your approval, stay inside that folder, and can be undone. [Tasks →](/agent-loop#bulk-edits-and-on-device-redaction)
+- **Your Working Folder stays private.** It's a setting on this Mac only and is never sent to anyone. When a remote app runs one of your agents, the agent can only read and edit files inside it, and can't run commands.
+- **Signed requests.** Every request from another app or device is checked against keys you control.
+- **One Mac per agent link.** If a copied agent comes online on another Mac, the older Mac steps aside instead of fighting over it. **Serve From This Mac** takes it back.
+- **Pairings expire.** Devices you pair get a key for one agent that lasts 90 days, unless you choose to keep it permanently.
+- **Passwords stay out of logs.** Access keys, API keys, and similar secrets are hidden before anything is written to the activity log.
+- **Agent secrets stay out of records.** When an agent saves a password for later, the real value is used only when needed, and every log, history, and screen shows a hidden copy instead. [Details →](/sandbox#secret-containment)
+- **No silent fallbacks.** If a download for the Sandbox fails its safety check, Osaurus stops instead of trying somewhere else.
+
+## Open source: trust through transparency
+
+A security claim is only as good as your ability to check it. Osaurus is **open source** (MIT license), and that gives you real powers:
+
+- **You can read the code.** Every line is on [GitHub](https://github.com/osaurus-ai/osaurus).
+- **You can build it yourself.** [Building from Source](/developer) takes about 10 minutes, and the build is set up so the app you run can match the app you compile.
+- **You can fork it.** If we ever did something you disagreed with, you could keep your own copy. We couldn't stop you.
+- **Analytics and crash reports are anonymous and documented.** They **never** include your chats, prompts, keys, files, or agent names. Every analytics event is listed in the [Telemetry](/telemetry) reference.
+- **Public security policy.** Report problems through [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories). We reply within 72 hours.
+- **No backdoors, no spare keys.** We don't hold a master key. If you turn on database encryption and lose the key without a backup, even *we* can't recover your data. That's on purpose. [More on key recovery →](/storage#limitations)
+
+This is what "your AI" really means. Not just "private": **checkable**.
+
+## What we (the maintainers) can't see
+
+To be very clear:
+
+- Your **identity's secret key.** It's in *your* iCloud Keychain.
+- Your **database encryption key** (if you turned it on). It's in *your* macOS Keychain and never leaves this Mac.
+- **Your conversations.** They're stored only on your Mac. When you use a cloud model, they go to that model's company, not to us. When you use Osaurus's hosted [Osaurus Cloud](/glossary#osaurus-cloud) models, our [Osaurus Router](/glossary#osaurus-router) passes them to the model; its billing records keep only details like cost and timing, never your messages. When other apps use a Public Link, our relay passes those messages along (Osaurus-to-Osaurus traffic stays encrypted).
+- **Your voice recordings.** Audio is turned into text on your Mac and never saved. The text becomes an ordinary chat message on your Mac.
+- The **names of your agents**, the **skills** you've imported, or the **plugins** you've installed.
+- **Anything that identifies you.** The only data sent automatically is anonymous analytics (after you agree) and crash reports, and you can turn both off. See [Telemetry](/telemetry).
+
+Beyond that, the only data we see is what *you choose* to post in a public GitHub issue, Discord message, or email.
+
+## Reporting a security issue
+
+If you find a security problem, please don't share it publicly. Instead:
+
+1. Open a private report via [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories).
+2. Or email the maintainers privately.
+
+We reply within 72 hours and work on a fix. If you'd like, we'll credit you in the release notes. See the upstream [SECURITY.md](https://github.com/osaurus-ai/osaurus/blob/main/docs/SECURITY.md) for the full policy.
 
 ---
 
-## Hardening at every boundary
+## Under the hood
 
-A short, plain-language tour of the things we've built in:
+### Storage locations and encryption
 
-- **At-rest protection** — FileVault covers everything by default. Opt in to SQLCipher and every database is encrypted with a 32-byte key in your Keychain, with large attachments AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
-- **On-device PII redaction** — The optional [Privacy Filter](/privacy-filter) scrubs names, emails, secrets, and more from cloud-bound prompts before they leave, using an on-device classifier. It's fail-closed (a detected leak blocks the send) and verifiable in Insights.
-- **Deterministic file redaction** — Trusted-folder tools can detect or redact PII locally in one pass. Writes are approval-gated, confined to the chosen folder, and undoable. [Tasks →](/agent-loop#bulk-edits-and-on-device-redaction)
-- **Signed requests** — Authenticated calls carry an `osk-v1` key signed by an address you control; revocation is checked on every request. Agent-to-agent traffic over the [Secure Channel](/secure-channel) is additionally sequence-numbered against replays.
-- **Pre-auth body limits** — `/pair` capped at 64 KiB, other public routes at 32 MiB, sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate so an unauthenticated client can't exhaust host memory.
-- **Pairings expire** — Bonjour-paired devices get **agent-scoped, 90-day** access keys by default. Permanent keys are explicit opt-in.
-- **Credentials never logged** — Issued `osk-v1` keys and `Bearer` headers are redacted from request logs as defense-in-depth.
-- **Agent secrets stay out of the record** — When an agent stores a credential with `sandbox_secret_set`, execution gets the real value but every recorded surface gets a redacted copy: chat and HTTP run history, plugin events, approval prompts, debug logs, Insights, and provider wire snapshots. Malformed secret payloads fail closed to a redacted stub, and known secret values are scrubbed from command output too. [Details →](/sandbox#secret-containment)
-- **No silent fallbacks** — If a sandbox artifact fails its digest check, provisioning fails closed. No fallback to alternate mirrors.
-- **Reproducible builds** — SPM dependencies are pinned to commits; CI is pinned to a specific Xcode version.
+| Your data | Where it lives | How it's protected |
+|---|---|---|
+| Chat history | `~/.osaurus/chat-history/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Memory | `~/.osaurus/memory/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Methods, tool index, plugin databases | `~/.osaurus/` | FileVault at rest; **opt-in SQLCipher encryption** |
+| Storage encryption key (when opted in) | macOS Keychain | Device-bound, never copied off |
+| Master identity key | iCloud Keychain | Biometric-gated, syncs only across your Apple devices |
+| Cloud provider API keys | macOS Keychain | Never in plain-text config files |
+| Voice transcription | On-device (FluidAudio) | Interim audio buffers are memory-only; text you send is stored in chat history like any other message |
+| Downloaded models | `~/MLXModels/` | Local files (model weights aren't sensitive on their own) |
+| Activity log (Insights) | `~/.osaurus/activity/` | SHA-256 hash chain makes edits and deletions detectable; same at-rest controls as other stores |
+
+Since 0.21.0, local data is stored as plaintext SQLite by default and protected at rest only by macOS FileVault. That's the most reliable setup, with no app-managed key that can go missing. Opting in to SQLCipher encrypts every database with a 32-byte key in your Keychain, and large attachments are AES-GCM-encrypted into content-addressed `.osec` files. [Storage →](/storage)
+
+### Identity cryptography
+
+- The **master identity** is a secp256k1 keypair generated on your first device, stored in iCloud Keychain, and gated by Face ID / Touch ID. Other devices pick it up through iCloud Keychain sync or the 24-word (BIP39) recovery phrase.
+- Each **agent** gets a deterministic child key derived from the master key and the device it was created on, so agents minted on two devices never collide.
+- Each **device** has a hardware-bound ID (Secure Enclave / App Attest attestation).
+- External tools, MCP clients, and remote agents authenticate with **`osk-v1` access keys**: master-wide or single-agent scope, 30/90/365-day or no expiry, revocation checked on every request.
+- Agent-to-agent traffic over the [Secure Channel](/secure-channel) is end-to-end encrypted and sequence-numbered against replays.
+
+[Identity Cryptography →](/identity-internals)
+
+### Sandbox isolation
+
+On macOS 26+, the Sandbox runs agent code in an **isolated Linux VM** (Apple Containerization framework, Alpine Linux). Each agent gets its own Linux user and home directory. The VM connects back to Osaurus via a **vsock bridge** with **per-agent bearer tokens** written into the guest as `0600` files; unknown tokens get `401`, with no fallback. Outbound network can be `none` (fully air-gapped, set `network: "none"` in `~/.osaurus/config/sandbox.json`) or a per-agent **domain allowlist** enforced by a filtering proxy on a host-only network.
+
+On macOS 15, the Sandbox falls back to a **Seatbelt-confined backend**: commands run as host processes under a deny-by-default profile that can only write inside the sandbox workspace. Host reads aren't blocked.
+
+Sandbox runtime artifacts (the GHCR image, the production Kata kernel, vminit, and the initial filesystem) are pinned to **immutable digests** and verified after download, so a registry compromise can't silently swap binaries. If a digest check fails, provisioning fails closed with no fallback mirror. The guest runs with restricted OCI capabilities and `noNewPrivileges`. The built-in Orchestrator is hard-off for the sandbox.
+
+### Hardening details
+
+- **Pre-auth body limits:** `/pair` is capped at 64 KiB, other public routes at 32 MiB, the sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate, so an unauthenticated client can't exhaust host memory.
+- **Credential redaction:** issued `osk-v1` keys, `Bearer` headers, `sk-…` keys, JWTs, and API-key headers are redacted before anything is written to the activity log.
+- **Secret containment:** when an agent stores a credential with `sandbox_secret_set`, execution gets the real value but every recorded surface gets a redacted copy: chat and HTTP run history, plugin events, approval prompts, debug logs, Insights, and provider wire snapshots. Malformed secret payloads fail closed to a redacted stub, and known secret values are scrubbed from command output.
+- **Working Folder:** a machine-local security-scoped bookmark that never crosses the wire. Authenticated remote agent runs can only read and edit files inside it; shell, git commit, and undo stay denied, and a stale bookmark fails closed.
+- **Pairing keys:** Bonjour-paired devices get agent-scoped, 90-day `osk-v1` keys by default; permanent keys are an explicit opt-in.
+- **Privacy Filter:** fail-closed; the exact post-redaction bytes are captured in Insights.
+- **Reproducible builds:** SPM dependencies are pinned to commits; CI is pinned to a specific Xcode version.
+
+### Activity log
+
+Insights covers local model requests, cloud provider calls, web searches, URL fetches, MCP calls, channel deliveries, and Router calls. The log is a SHA-256 hash chain, which is what **Verify Integrity** checks, and an **Export** can be re-verified without Osaurus.
+
+### Telemetry
+
+Usage analytics (Aptabase) wait for your consent: events from launch until you decide are held in memory only and sent only if you agree. Crash and hang reporting (Sentry) is opt-out and starts at launch so even first-run crashes are captured. Both need build-time keys, so source builds never send anything. Full details: [Telemetry](/telemetry).
 
 For the full technical posture, see the upstream [SECURITY.md](https://github.com/osaurus-ai/osaurus/blob/main/docs/SECURITY.md).
 
 ---
 
-## Open source: trust through transparency
-
-A security claim is only as good as your ability to verify it. Osaurus is **MIT-licensed open source**, and that gives you concrete, real powers:
-
-- **You can read the code.** Every line of Osaurus is on [GitHub](https://github.com/osaurus-ai/osaurus). The handler that processes your prompt, the function that writes a memory entry, the routine that signs every request — all auditable.
-- **You can build it yourself.** [Building from Source](/developer) takes about 10 minutes. Reproducible builds: SPM dependencies are pinned to commits; CI is pinned to a specific Xcode version. The binary you run can match the binary you compile.
-- **You can fork it.** If we ever did something you disagreed with, you could fork it and keep the version you trust. We can't.
-- **Telemetry is anonymous, optional, and fully documented.** Osaurus collects anonymous, aggregated usage analytics and crash reports — both opt-out, both off in source builds, and **never** including your chats, prompts, keys, file contents, agent names, or any per-user identifier. Every event we send is enumerated in the [Telemetry](/telemetry) reference, and because the code is open you can verify exactly what leaves.
-- **Public security policy.** Vulnerability reporting goes through [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories). Acknowledgement within 72 hours.
-- **No backdoors, no escrow keys.** There's no master key the maintainers hold. If you turn on storage encryption and lose the key without a backup, even *we* can't recover your data — that's the trade-off, and it's intentional. [More on key recovery →](/storage#limitations)
-
-This is what "your AI" actually means. Not just "private" — **verifiable**.
-
----
-
-## What we (the maintainers) don't have access to
-
-To be very explicit:
-
-- Your **master identity key** — it's in *your* iCloud Keychain, gated by *your* biometrics
-- Your **storage encryption key** (if you opted in) — it's in *your* macOS Keychain, device-bound, never synced off
-- The **contents of your conversations** — they live only on your Mac and never leave it
-- The **text of your voice input** — it's transcribed locally and never written
-- The **names of agents** you've created, the **skills** you've imported, or the **plugins** you've installed
-- **Anything that could identify you.** The only data that ever leaves automatically is anonymous, aggregated usage analytics and crash diagnostics — both opt-out, both off in source builds, and never tied to you. See [Telemetry](/telemetry).
-
-Beyond that anonymous telemetry, the only data we ever see is what *you choose* to put in a public GitHub issue, Discord message, or email.
-
----
-
-## Reporting a security issue
-
-If you find a vulnerability, please don't disclose it publicly. Instead:
-
-1. Open a private report via [GitHub Security Advisories](https://github.com/osaurus-ai/osaurus/security/advisories)
-2. Or email the maintainers privately
-
-We acknowledge within 72 hours and work on a fix. Reporters who wish to be acknowledged are credited in release notes. See the upstream [SECURITY.md](https://github.com/osaurus-ai/osaurus/blob/main/docs/SECURITY.md) for the full policy.
-
----
-
 ## Going deeper
-
-For the technical references behind this page:
 
 - [Storage & Encryption](/storage) — the plaintext default, opt-in SQLCipher, migration, recovery
 - [Identity Cryptography](/identity-internals) — secp256k1, App Attest, the `osk-v1` spec, request signing
 - [Sandbox Internals](/sandbox) — VM isolation, vsock bridge auth, artifact integrity pinning
 - [Identity](/identity) — managing your own access keys (everyday view)
+- [Public Links](/relay) — what the relay can and can't see
+- [Telemetry](/telemetry) — exactly what analytics and crash reports contain

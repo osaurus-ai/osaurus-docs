@@ -1,12 +1,12 @@
 ---
 title: Storage & Encryption
 sidebar_label: Storage & Encryption
-description: How Osaurus stores data on disk — plaintext by default with FileVault protection, opt-in SQLCipher encryption, migration, recovery, and Privacy → Storage.
+description: How Osaurus stores data on disk — plaintext by default with FileVault protection, opt-in SQLCipher encryption, migration, recovery, file history, and the Data & Storage settings.
 ---
 
 # Storage & Encryption
 
-Osaurus stores your local data — chats, memory, methods, tool indexes, plugin databases, and large attachments — under `~/.osaurus/`. Since 0.21.0, data is stored as **plaintext SQLite by default**, protected at rest by macOS **FileVault**. Whole-database **SQLCipher encryption is an explicit opt-in** in **Management → Privacy → Storage**.
+Osaurus stores your local data — chats, memory, methods, tool indexes, plugin databases, the activity log, file history, and large attachments — under `~/.osaurus/`. Since 0.21.0, data is stored as **plaintext SQLite by default**, protected at rest by macOS **FileVault**. Whole-database **SQLCipher encryption is an explicit opt-in** in **Settings… → General → Advanced → Data & Storage**.
 
 :::tip[Looking for the user-friendly version?]
 This page is the technical reference. For a plain-language overview of how Osaurus protects your data, start at [Security & Privacy](/security).
@@ -15,9 +15,9 @@ This page is the technical reference. For a plain-language overview of how Osaur
 ## TL;DR
 
 - **Plaintext by default.** FileVault already encrypts the whole disk at rest, so your data is protected when the Mac is off or logged out — without an app-managed key that can go missing.
-- **Encryption is opt-in.** Turn on **Management → Privacy → Storage → Encrypt local data at rest (SQLCipher)** to encrypt every database with a 32-byte key in your macOS Keychain.
+- **Encryption is opt-in.** Turn on **Settings… → General → Advanced → Data & Storage → Encrypt local data at rest (SQLCipher)** to encrypt every database with a 32-byte key in your macOS Keychain.
 - **Upgrades migrate automatically.** If you're coming from a version with always-on encryption, first launch decrypts to plaintext when FileVault is on, or keeps your data encrypted when FileVault is off. No prompt; you can flip the choice later in Settings.
-- **Back up before risky operations.** Use **Management → Privacy → Storage → Export plaintext backup** before reinstalling macOS, migrating Macs, or rotating the key.
+- **Back up before risky operations.** Use **Data & Storage → Export plaintext backup** before reinstalling macOS, migrating Macs, or rotating the key.
 
 ## Why encryption is opt-in
 
@@ -64,9 +64,13 @@ In the default plaintext mode the key is never read, so a stale or missing Keych
 | Per-plugin databases | SQLite | SQLCipher | `~/.osaurus/Tools/{plugin}/data/data.db` |
 | Per-agent database (opt-in feature) | SQLite | SQLCipher | `~/.osaurus/agents/{uuid}/db.sqlite` |
 | Self-scheduling slots | SQLite | SQLCipher | `~/.osaurus/scheduler.sqlite` |
+| Agent channel messages | SQLite | SQLCipher | `~/.osaurus/agent-channels/messages.sqlite` |
+| Activity log (Insights) | SQLite | SQLCipher | `~/.osaurus/activity/activity.sqlite` |
 | Large chat attachments | Plaintext blob | AES-GCM (`.osec`) | `~/.osaurus/chat-history/blobs/{sha256}` |
 
 **Attachment spillover.** Image and document payloads of 16 KB or more are hashed (SHA-256, so duplicates dedup) and written to their own file. The chat row stores only a reference. Reads are detection-first — a posture change never strands existing blobs. Smaller payloads stay inline in the row.
+
+**Activity log.** The tamper-evident log behind [Insights](/developer-tools#insights). Each record is chained to the previous one with SHA-256; an `activity.head` sidecar holds the chain head. It follows the storage key on rotation and is included in plaintext export like the other core stores. Retention (default 30 days) and whether prompt/response bodies are stored are set in the **Activity Log** section of **Settings… → Privacy → Filter** (`~/.osaurus/config/activity-log.json`).
 
 **Router billing ledger.** Charge diagnostics are metadata-only: request id, session id, model, token counts, cost, and status. The ledger never stores prompt text, response text, or tool arguments, in either mode. See [Osaurus Router](/osaurus-router).
 
@@ -89,7 +93,7 @@ If you upgraded from a version with always-on encryption, Osaurus resolves the t
 - Encrypted install + FileVault **off** → **keep encrypted.** Decrypting would strip the data's only at-rest protection.
 - Fresh or already-plaintext install → **plaintext.**
 
-The choice is persisted in the posture marker and honored on every later launch. There's no prompt — the migration is invisible, and you can change the posture anytime in **Management → Privacy → Storage**.
+The choice is persisted in the posture marker and honored on every later launch. There's no prompt — the migration is invisible, and you can change the posture anytime in **Settings… → General → Advanced → Data & Storage**.
 
 ### How conversion works
 
@@ -102,7 +106,7 @@ The process is **idempotent and crash-safe**: because opening is detection-first
 Convergence **never auto-deletes data**. If a store can't be opened — almost always an encrypted store whose Keychain key is gone — Osaurus keeps running on whatever opens and surfaces the failure:
 
 - **Memory → Diagnostics** shows the real cause for the memory database, with inline **Retry** and **Reset**
-- **Privacy → Storage** shows a "Stores needing attention" panel listing every degraded store with its cause and the same actions
+- **Data & Storage** shows a "Stores needing attention" panel listing every degraded store with its cause and the same actions
 
 **Retry** re-attempts the open (for example, after you restore the Keychain key). **Reset** moves the unreadable file to `~/.osaurus/quarantine/` — **moved, never deleted** — and recreates an empty store so the feature works again. If you later recover the key, you can still export the old data from the quarantined copy.
 
@@ -136,15 +140,27 @@ If you want the DEK reproducible across devices via the iCloud-synced [Identity 
 | Wipe cache | Clear the in-process key cache; the Keychain entry remains |
 | Reset for wipe | Delete the Keychain key, salt, and sidecar. **Irreversible without the original key or a plaintext backup.** |
 
-## Privacy → Storage
+## Data & Storage settings
 
-Open the Management window (`⌘ ⇧ M`) → **Storage**. The panel reflects the **detected on-disk reality** (plaintext, encrypted, or mixed), not a flag guess.
+Open **Settings…** (`⌘ ,`) → **General** → **Advanced** → **Data & Storage**. (This used to be a separate Storage tab; Privacy now has three tabs — **Filter**, **Rules**, and **Models** — with the Data Collection consent switches and the Activity Log settings on **Filter**.) The panel reflects the **detected on-disk reality** (plaintext, encrypted, or mixed), not a flag guess.
 
 - **Encrypt local data at rest** — the opt-in toggle, off by default. Turning it on shows a confirmation explaining the key-loss risk, then converts every database and attachment with progress. Turning it off runs the inverse.
 - **Trade-offs panel** — a plain-language summary of the FileVault reliance and key-loss risk, including your machine's **live FileVault status**, so the recommendation reflects whether your disk is actually encrypted at rest.
 - **Export plaintext backup** — writes a plaintext copy of every database, attachment, and config to a folder you pick. Decrypts on the way out in encrypted mode; copies as-is in plaintext mode. Never changes anything on disk. Use it **before** reinstalling macOS, migrating Macs, rotating the key, or wiping state.
 - **Rotate storage key** — shown only in encrypted mode. Generates a fresh key and re-keys every database in place.
 - **Stores needing attention** — appears only when a store failed to open this session. See [Recovery](#recovery).
+- **File History** — see below.
+
+### File History
+
+Every file an agent creates, edits, or deletes is snapshotted so it can be reverted from the chat's **File Changes** panel. Two settings control how much is kept:
+
+| Setting | Options | Default |
+|---|---|---|
+| **Keep File History** | Until the chat is deleted, For 90 days, For 30 days | Until the chat is deleted |
+| **File History Size Limit** | No limit, 20 GB, 5 GB, 1 GB | No limit |
+
+Past the size limit, the oldest changes are cleared first; the most recent change is always kept. The hint under the limit shows how much space file history currently uses. History that's cleared can no longer be reverted, and deleting a chat always deletes its file history. Changing either setting applies it immediately; background maintenance also re-applies it every 30 minutes.
 
 ## Background maintenance
 
@@ -152,6 +168,7 @@ A background actor runs SQLite housekeeping on every registered database, in eit
 
 | Operation | Cadence | Why |
 |---|---|---|
+| File history retention | Every 30 minutes (first pass ~30 s after launch) | Applies **Keep File History** / **File History Size Limit** |
 | `PRAGMA optimize` | Every 6 hours | Lets SQLite re-plan based on observed query patterns |
 | `PRAGMA wal_checkpoint(TRUNCATE)` | Every 7 days | Bounds the size of the `-wal` sidecar |
 | `VACUUM` | Every 30 days | Reclaims space after large deletes |
@@ -178,6 +195,9 @@ State persists in `~/.osaurus/.storage-maintenance.json` so the cadence survives
 | `~/.osaurus/Tools/{plugin}/data/data.db` | Per-plugin database |
 | `~/.osaurus/agents/{uuid}/db.sqlite` | Per-agent database — see [Agent DB](/agent-db) |
 | `~/.osaurus/scheduler.sqlite` | Cross-agent next-run and pause slots |
+| `~/.osaurus/agent-channels/messages.sqlite` | Agent channel message store |
+| `~/.osaurus/activity/activity.sqlite` | Insights activity log (plus `activity.head` chain-head sidecar) |
+| `~/.osaurus/file-history/` | Per-chat file change snapshots behind Revert / `file_undo` |
 
 Each database is SQLite by default, or SQLCipher when encryption is on. When encryption is on, the key lives in the macOS Keychain, **not** in `~/.osaurus/`.
 
@@ -195,4 +215,5 @@ Each database is SQLite by default, or SQLCipher when encryption is on. When enc
 - [Security & Privacy](/security) — the plain-language overview
 - [Identity Cryptography](/identity-internals) — master key, agent key derivation
 - [Memory](/memory) — what lives in `memory.sqlite`
+- [Developer Tools → Insights](/developer-tools#insights) — the activity log stored in `activity.sqlite`
 - [Configuration](/configuration) — declarative state and plaintext runtime config files

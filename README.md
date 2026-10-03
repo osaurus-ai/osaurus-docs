@@ -65,10 +65,55 @@ The first comparison finds drift since the last review. The second identifies be
 | `docs/` | All documentation pages (Markdown/MDX) |
 | `sidebars.ts` | Sidebar structure (manual, source of truth for ordering) |
 | `docusaurus.config.ts` | Site config: navbar, footer, SEO, plugins, redirects |
-| `src/css/custom.css` | Osaurus brand theme (light + dark palettes) |
+| `src/css/custom.css` | Osaurus brand theme, mirroring the osaurus.ai design system |
 | `src/components/` | Custom React components exposed to MDX |
 | `src/theme/MDXComponents.tsx` | Registers components for use in any doc without imports |
-| `static/img/` | Logos, social cards, and other static assets |
+| `static/img/` | Logos, favicons, social card, and other static assets |
+| `static/fonts/` | Self-hosted LINE Seed JP, Inter Tight, and IBM Plex Mono (OFL; licenses in `static/fonts/licenses/`) |
+| `og/` | Source for the social card (`og-card.html`) and its renderer (`render.mjs`) |
+
+## Theme
+
+The site follows the [osaurus.ai](https://osaurus.ai) design system (`src/app/tokens.css` in [osaurus-website](https://github.com/osaurus-ai/osaurus-website)): a cream canvas (`#F7F6F2`), near-black text (`#11100F`), teal primary (`#004243`), and lime highlight (`#C0EC51`). Headings use LINE Seed JP, body text Inter Tight, and code IBM Plex Mono. Like the website, the docs are light-only; the color mode switch is disabled.
+
+The font files are full Latin builds of the same families. The website ships subsets trimmed to its own copy, which lack characters docs need (`_`, `#`, `<`, digits), so don't copy those over.
+
+## Social card
+
+`static/img/og-image.png` (1200x630) is rendered from `og/og-card.html` with headless Chrome:
+
+```bash
+node og/render.mjs
+```
+
+Set `CHROME_PATH` if Chrome isn't in `/Applications`. Edit the HTML, re-render, and commit both.
+
+## Writing for everyone
+
+Most readers aren't developers. Write user-facing pages (Getting Started through Privacy & Trust) so a Mac user with no technical background can follow them.
+
+- **Open with the point.** The first two or three sentences say what the feature is, why you'd use it, and what you need.
+- **Steps happen in the app.** Number them, and use the exact labels the app shows (**Settings… → Agents**). Keep curl, YAML, JSON, tool names, and file paths out of the main flow.
+- **Explain jargon on first use.** Link the term to the [Glossary](docs/glossary.md), like `[Sandbox](/glossary#sandbox)`, or add a short phrase in parentheses. If a term isn't in the glossary yet, add it.
+- **Short sentences, written to "you".** Prefer "Osaurus asks before sending" to "outbound dispatch is gated on approval".
+- **Put technical detail last.** End the page with a horizontal rule and an `## Under the hood` section for API calls, configuration, tool names, storage paths, and internals.
+- **Use one name per thing:** Orchestrator (not "default agent"), Working Folder (not "trusted folder"; Schedules' **Working Directory** is the one exception), Insights for the screen and activity log for what it records, Osaurus Router for the service and Osaurus Cloud for the picker label, Public Links for the feature and relay for the mechanism.
+
+Page shape:
+
+```markdown
+# Title
+What it is, why you'd use it, what you need.
+
+## Get started
+## (everyday-use sections)
+## Troubleshooting
+
+---
+## Under the hood
+```
+
+Developer and internals pages can stay technical, but still follow the one-name-per-thing rule.
 
 ## Writing docs
 

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Osaurus Docs — social card</title>
+    <style>
+      @font-face {
+        font-family: "LINE Seed JP";
+        font-weight: 700;
+        src: url("../static/fonts/line-seed-jp-700-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inter Tight";
+        font-weight: 100 900;
+        src: url("../static/fonts/inter-tight-latin.woff2") format("woff2");
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #01292a url("assets/background.jpg") center / cover no-repeat;
+        color: #fdfcfa;
+        font-family: "Inter Tight", sans-serif;
+      }
+
+      /* Dot grid, as on the osaurus.ai feature scenes */
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, rgba(253, 252, 250, 0.07) 1px, transparent 1px);
+        background-size: 16px 16px;
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(1, 25, 26, 0.55) 0%, rgba(1, 25, 26, 0) 55%);
+      }
+
+      .copy {
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        bottom: 0;
+        left: 72px;
+        width: 560px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+        padding-bottom: 40px;
+      }
+
+      .pill {
+        align-self: flex-start;
+        padding: 8px 22px;
+        border-radius: 999px;
+        background: #c0ec51;
+        color: #11100f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+
+      h1 {
+        font-family: "LINE Seed JP", sans-serif;
+        font-weight: 700;
+        font-size: 68px;
+        line-height: 1.08;
+        white-space: nowrap;
+        letter-spacing: -0.04em;
+      }
+
+      h1 span {
+        display: block;
+        color: #c0ec51;
+      }
+
+      .sub {
+        max-width: 520px;
+        font-size: 26px;
+        line-height: 1.35;
+        color: #e0e0d6;
+      }
+
+      .wordmark {
+        position: absolute;
+        z-index: 2;
+        left: 72px;
+        bottom: 52px;
+        height: 36px;
+      }
+
+      .window {
+        position: absolute;
+        z-index: 1;
+        left: 700px;
+        top: 104px;
+        width: 760px;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow:
+          0 0 0 1px rgba(253, 252, 250, 0.14),
+          0 30px 60px rgba(0, 0, 0, 0.45),
+          0 8px 16px rgba(0, 0, 0, 0.25);
+      }
+
+      .window img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="copy">
+        <div class="pill">Documentation</div>
+        <h1>Osaurus Docs.<span>Own your AI.</span></h1>
+        <p class="sub">Guides and API reference for local AI agents on your Mac.</p>
+      </div>
+      <img class="wordmark" src="assets/wordmark-white.svg" alt="Osaurus" />
+      <div class="window">
+        <img src="assets/app-window.png" alt="" />
+      </div>
+    </div>
+  </body>
+</html>

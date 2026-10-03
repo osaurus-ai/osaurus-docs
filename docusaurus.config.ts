@@ -1,13 +1,30 @@
-import { themes as prismThemes } from "prism-react-renderer";
+import type { PrismTheme } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
+// Code highlighting tuned to the osaurus.ai cream/teal/lime palette.
+const osaurusPrismTheme: PrismTheme = {
+  plain: { color: "#11100F", backgroundColor: "#EEEEE7" },
+  styles: [
+    { types: ["comment", "prolog", "doctype", "cdata"], style: { color: "#66635F", fontStyle: "italic" } },
+    { types: ["punctuation", "operator"], style: { color: "#53504C" } },
+    { types: ["keyword", "atrule", "important", "selector"], style: { color: "#004243", fontWeight: "600" } },
+    { types: ["tag", "deleted"], style: { color: "#004243" } },
+    { types: ["string", "char", "attr-value", "inserted", "regex"], style: { color: "#4F7300" } },
+    { types: ["number", "boolean", "constant", "symbol", "unit"], style: { color: "#A3361A" } },
+    { types: ["function", "class-name", "maybe-class-name"], style: { color: "#016466" } },
+    { types: ["property", "attr-name", "key", "variable", "parameter"], style: { color: "#015052" } },
+    { types: ["builtin", "namespace", "url"], style: { color: "#2A2724" } },
+    { types: ["entity"], style: { color: "#A3361A", cursor: "help" } },
+  ],
+};
+
 const config: Config = {
   title: "Osaurus Docs",
   tagline: "Own your AI — a local-first agent harness for Apple Silicon",
-  favicon: "img/osaurus-squirqle.svg",
+  favicon: "img/favicon-64.png",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -103,17 +120,31 @@ const config: Config = {
     ],
   ],
 
-  stylesheets: [
-    {
-      href: "https://use.typekit.net/ijx2vmq.css",
-      type: "text/css",
-    },
-  ],
-
   headTags: [
+    ...[
+      "/fonts/inter-tight-latin.woff2",
+      "/fonts/line-seed-jp-700-latin.woff2",
+    ].map((href) => ({
+      tagName: "link",
+      attributes: {
+        rel: "preload",
+        href,
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      },
+    })),
+    {
+      tagName: "link",
+      attributes: { rel: "apple-touch-icon", href: "/img/apple-touch-icon.png" },
+    },
     {
       tagName: "meta",
-      attributes: { name: "theme-color", content: "#ffffea" },
+      attributes: { name: "theme-color", content: "#F7F6F2" },
+    },
+    {
+      tagName: "meta",
+      attributes: { name: "color-scheme", content: "light" },
     },
     {
       tagName: "meta",
@@ -121,6 +152,10 @@ const config: Config = {
         property: "og:type",
         content: "website",
       },
+    },
+    {
+      tagName: "meta",
+      attributes: { name: "twitter:site", content: "@OsaurusAI" },
     },
     {
       tagName: "meta",
@@ -163,8 +198,8 @@ const config: Config = {
   themeConfig: {
     colorMode: {
       defaultMode: "light",
-      respectPrefersColorScheme: true,
-      disableSwitch: false,
+      respectPrefersColorScheme: false,
+      disableSwitch: true,
     },
     // Replace with your project's social card
     image: "img/og-image.png",
@@ -186,7 +221,9 @@ const config: Config = {
       title: "",
       logo: {
         alt: "Osaurus",
-        src: "img/osaurus-wordmark-blue.svg",
+        src: "img/osaurus-wordmark.svg",
+        width: 115,
+        height: 32,
       },
       items: [
         {
@@ -211,6 +248,11 @@ const config: Config = {
           position: "right",
         },
         {
+          href: "https://community.osaurus.ai/",
+          label: "Community",
+          position: "right",
+        },
+        {
           href: "https://discord.gg/osaurus",
           label: "Discord",
           position: "right",
@@ -220,10 +262,27 @@ const config: Config = {
           label: "GitHub",
           position: "right",
         },
+        {
+          type: "search",
+          position: "right",
+        },
+        {
+          href: "https://github.com/osaurus-ai/osaurus/releases/latest/download/Osaurus.dmg",
+          label: "Download for Mac",
+          position: "right",
+          className: "navbar-cta",
+        },
       ],
     },
     footer: {
-      style: "light",
+      style: "dark",
+      logo: {
+        alt: "Osaurus",
+        src: "img/osaurus-wordmark-white.svg",
+        href: "https://osaurus.ai",
+        width: 101,
+        height: 28,
+      },
       links: [
         {
           title: "Get Started",
@@ -256,22 +315,59 @@ const config: Config = {
           title: "Community",
           items: [
             { label: "osaurus.ai", href: "https://osaurus.ai" },
-            { label: "GitHub", href: "https://github.com/osaurus-ai/osaurus" },
+            { label: "Community", href: "https://community.osaurus.ai/" },
             { label: "Discord", href: "https://discord.gg/osaurus" },
+            { label: "GitHub", href: "https://github.com/osaurus-ai/osaurus" },
             { label: "Hugging Face", href: "https://huggingface.co/OsaurusAI" },
+          ],
+        },
+        {
+          title: "Follow",
+          items: [
+            { label: "X", href: "https://x.com/OsaurusAI" },
+            { label: "YouTube", href: "https://www.youtube.com/@OsaurusAI" },
+            { label: "Reddit", href: "https://reddit.com/r/osaurus" },
+            { label: "Blog", href: "https://osaurus.ai/blog" },
+            { label: "Changelog", href: "https://osaurus.ai/changelog" },
           ],
         },
       ],
       copyright: `© ${new Date().getFullYear()} Osaurus`,
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      theme: osaurusPrismTheme,
+      additionalLanguages: ["bash", "json", "swift", "yaml"],
     },
     mermaid: {
-      theme: { light: "neutral", dark: "dark" },
+      theme: { light: "base", dark: "base" },
       options: {
-        fontFamily: "futura-pt, -apple-system, sans-serif",
+        fontFamily: '"Inter Tight", -apple-system, sans-serif',
+        themeVariables: {
+          fontFamily: '"Inter Tight", -apple-system, sans-serif',
+          fontSize: "14px",
+          background: "#FDFCFA",
+          primaryColor: "#DFECE8",
+          primaryBorderColor: "#004243",
+          primaryTextColor: "#11100F",
+          secondaryColor: "#F0F2CF",
+          secondaryBorderColor: "#8DC115",
+          secondaryTextColor: "#11100F",
+          tertiaryColor: "#EEEEE7",
+          tertiaryBorderColor: "#ADACA6",
+          tertiaryTextColor: "#11100F",
+          lineColor: "#53504C",
+          textColor: "#2A2724",
+          mainBkg: "#DFECE8",
+          nodeBorder: "#004243",
+          clusterBkg: "#F7F6F2",
+          clusterBorder: "#E0E0D6",
+          edgeLabelBackground: "#FDFCFA",
+          noteBkgColor: "#F0F2CF",
+          noteBorderColor: "#8DC115",
+          actorBkg: "#DFECE8",
+          actorBorder: "#004243",
+          signalColor: "#2A2724",
+        },
       },
     },
   } satisfies Preset.ThemeConfig,

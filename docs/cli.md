@@ -30,7 +30,7 @@ osaurus run gemma-4-e2b-it-4bit
 
 ## Installation
 
-The CLI ships inside the Osaurus application bundle. The Homebrew cask links it automatically and owns that link.
+The CLI ships inside the Osaurus application bundle. The Homebrew cask links it automatically and owns that link. For a DMG install, open **Settings… (⌘,) → Server → Overview → Command Line Tool** and click **Install CLI**.
 
 ### Manual Setup
 
@@ -220,7 +220,7 @@ osaurus pull <model_id>
 osaurus pull mlx-community/Llama-3.2-1B-4bit
 ```
 
-Downloads the same file set the in-app downloader uses (config, tokenizer, `*.safetensors`, …) into your configured models directory (falling back to `~/.osaurus/models/<org>/<name>`). Files that are already fully downloaded are skipped, so an interrupted pull resumes where it left off.
+Downloads the same file set the in-app downloader uses (config, tokenizer, `*.safetensors`, …) into the models directory saved in Osaurus's shared CLI setting (`modelsDirectoryPath`). When no directory is configured there, it falls back to `~/.osaurus/models/<org>/<name>` — not the app's default `~/MLXModels` — and it doesn't read `OSU_MODELS_DIR`. Files that are already fully downloaded are skipped, so an interrupted pull resumes where it left off.
 
 ### osaurus run
 
@@ -256,10 +256,17 @@ Requires a running server (`osaurus serve`). `--tune-prefill` measures TTFT at e
 Start MCP stdio transport for connecting MCP clients.
 
 ```bash
-osaurus mcp [--access-key KEY]
+osaurus mcp [--access-key KEY] [--tools PATTERNS]
 ```
 
-Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed. Local-only servers can rely on loopback trust; if **Server → Network exposure** is enabled, pass an [access key](/identity) with `--access-key` or the `OSAURUS_MCP_ACCESS_KEY` environment variable (also accepted: `OSAURUS_ACCESS_KEY`, `OSAURUS_API_KEY`, or a `Bearer …` value in `OSAURUS_MCP_AUTHORIZATION`).
+Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed (without popping the main window). Local-only servers can rely on loopback trust; if **Server → Network exposure** is enabled, pass an [access key](/identity) with `--access-key` or the `OSAURUS_MCP_ACCESS_KEY` environment variable (also accepted: `OSAURUS_ACCESS_KEY`, `OSAURUS_API_KEY`, or a `Bearer …` value in `OSAURUS_MCP_AUTHORIZATION`).
+
+`--tools` limits which tools are exposed: comma-separated names, each optionally ending in `*` to match by prefix. Without it, every tool is proxied — 170+ definitions once plugins are loaded — so clients with a narrow purpose should scope it down. Excluded tools are hidden from `tools/list` and refused on call. An explicitly empty value (`--tools ""`) admits nothing.
+
+```bash
+osaurus mcp --tools "osaurus_status,osaurus_list,osaurus_describe"
+osaurus mcp --tools "osaurus_*"
+```
 
 **Use with MCP clients:**
 
@@ -329,7 +336,7 @@ Install a plugin from the registry, a URL, or a local directory.
 
 ```bash
 # From registry
-osaurus tools install osaurus.files
+osaurus tools install osaurus.xlsx
 
 # From local directory (must contain osaurus-plugin.json,
 # manifest.json, or plugin.json)
@@ -342,7 +349,7 @@ osaurus tools install /path/to/plugin
 Remove an installed plugin.
 
 ```bash
-osaurus tools uninstall osaurus.files
+osaurus tools uninstall osaurus.xlsx
 ```
 
 #### tools list
@@ -358,8 +365,8 @@ osaurus tools list
 Search for plugins in the registry.
 
 ```bash
-osaurus tools search calendar
-osaurus tools search git
+osaurus tools search xlsx
+osaurus tools search emacs
 ```
 
 #### tools outdated / upgrade / rollback
@@ -374,7 +381,7 @@ osaurus tools outdated
 osaurus tools upgrade
 
 # Roll a tool back to its previous version
-osaurus tools rollback osaurus.git
+osaurus tools rollback osaurus.xlsx
 ```
 
 #### tools verify
@@ -512,6 +519,15 @@ osaurus serve
 # MCP client connects via:
 # osaurus mcp
 ```
+
+### Codex CLI
+
+```bash
+# After "Add to ~/.codex" in Settings… → Server → Overview → Use with Codex CLI
+codex --profile osaurus
+```
+
+See [Integrations → Codex CLI](/integrations#codex-cli).
 
 ### Plugin Development
 

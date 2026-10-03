@@ -1,9 +1,9 @@
 {
   "repo": "osaurus-ai/osaurus",
-  "documented_commit": "dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f",
-  "documented_release": "0.24.1",
-  "verified_date": "2026-08-28",
-  "reviewed_date": "2026-08-28",
+  "documented_commit": "3b0730d0dcb883cb9861a03a6e976c95e5bd4260",
+  "documented_release": "0.25.17",
+  "verified_date": "2026-10-02",
+  "reviewed_date": "2026-10-02",
   "scope": "All public documentation in this repository.",
-  "notes": "Reconciled through current upstream main, including unreleased commits after 0.24.1; advance only after a complete documentation review."
+  "notes": "Reconciled 0.24.1 -> 0.25.17 (main at the 0.25.17 release commit), including the Settings reorganization, Workspaces, Apple Apps, Mobile, and the Activity Log; advance only after a complete documentation review."
 }

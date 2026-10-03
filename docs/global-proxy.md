@@ -6,7 +6,7 @@ description: Route Osaurus's outbound network traffic through a single validated
 
 # Global Proxy
 
-Osaurus can route its app-managed outbound network traffic through one global proxy endpoint. Set a validated proxy URL in **Server settings** and it applies to new outbound sessions without weakening TLS or accepting credentials embedded in the URL.
+Osaurus can route its app-managed outbound network traffic through one global proxy endpoint. Set a validated **Proxy URL** in **Settings… → Server → Settings → Global Proxy** and it applies to new outbound sessions without weakening TLS or accepting credentials embedded in the URL.
 
 ## What the proxy covers
 
@@ -48,7 +48,7 @@ Credentials are deliberately out of scope for the URL format. Authenticated prox
 
 ## Status and diagnostics
 
-Server settings show a live proxy status line:
+The Global Proxy section shows a live proxy status line:
 
 | Status | Meaning |
 |---|---|

@@ -1,12 +1,12 @@
 ---
 title: HTTP API
 sidebar_label: HTTP API
-description: OpenAI, Anthropic, Open Responses, Ollama, MCP, Memory, media, and loopback configuration endpoints at the same port.
+description: OpenAI, Anthropic, Open Responses, Ollama, MCP, Memory, media, credits, and loopback configuration endpoints at the same port.
 ---
 
 # HTTP API
 
-Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP, Memory, media, agent-loop, and loopback configuration endpoints. Use whichever your SDK already speaks.
+Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP, Memory, media, agent-loop, credit-balance, and loopback configuration endpoints. Use whichever your SDK already speaks.
 
 ## Compatible APIs
 
@@ -109,6 +109,12 @@ These routes are intentionally loopback-only:
 | `/mcp/health` | GET | MCP HTTP transport liveness |
 | `/mcp/tools` | GET | List currently registered, enabled, externally exposed tools |
 | `/mcp/call` | POST | Execute a tool |
+
+### Credits
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/credits/balance` | GET | Read-only [Osaurus Router](/osaurus-router) credit balance (also at `/v1/credits/balance`) |
 
 ### Identity / pairing / secure channel
 
@@ -421,9 +427,18 @@ Return Ollama-compatible model metadata. The response includes a `capabilities` 
 }
 ```
 
-`completion` is reported for generative chat models. `vision` is included when the selected bundle accepts image input.
+Capability names follow Ollama's:
 
-`/api/show` reads installed local MLX metadata plus the special `foundation` alias. Remote-provider model IDs return `404`, and current capability strings do not report tools, audio, or video.
+| Capability | Reported when |
+| ---------- | ------------- |
+| `completion` | Always, for generative chat models |
+| `vision` | The bundle accepts image input |
+| `tools` | The bundle supports local tool calling |
+| `thinking` | The bundle's chat template or config declares a reasoning mode |
+
+These use the same detectors the runtime consults, so `/api/show` reports what a request against that bundle actually gets.
+
+`/api/show` reads installed local MLX metadata — including models found outside the models directory (Hugging Face cache, LM Studio, custom folders) that `/api/tags` lists — plus the special `foundation` alias. Remote-provider model IDs return `404`, and capability strings do not report audio or video.
 
 ### POST /api/chat
 
@@ -508,6 +523,9 @@ Create a response using the Open Responses format. The same request shape works 
 | `top_p` | float | No | Nucleus sampling threshold |
 | `stream` | boolean | No | Enable SSE streaming (default: false) |
 | `tools` | array | No | Tool definitions for function calling |
+| `prompt_cache_key` | string | No | Stable conversation key. Used as the request's `session_id`, so every turn of one thread shares a prompt-cache chain, memory prefix, and tool state |
+
+The decoder accepts the input shapes [Codex CLI](/integrations#codex-cli) sends: `reasoning.effort` and an input `function_call`'s `status` are optional, and replayed `output_text` content parts are accepted.
 
 **Response (Non-streaming):**
 
@@ -835,6 +853,64 @@ Errors use the same MCP content envelope with `isError` set — there is no sepa
 ```
 
 **Tool-level failures keep HTTP 200.** A tool that runs but fails — a structured failure envelope, or a tool body that throws — is still a successful *transport* exchange: the response stays HTTP 200 and the failure is reported through MCP `isError: true`, with the structured failure envelope in `content`. Separate transport success from tool success when integrating: check `isError`, not just the status code. (Routing, auth, and lookup failures still use regular HTTP error statuses.)
+
+### Tools denied to external callers
+
+Some tools only run inside the app, even when they're registered and a chat has them loaded. They're hidden from `GET /mcp/tools`, `POST /mcp/call` returns `403` with `{"error": "tool_not_exposable"}`, and the `/agents/{id}/run` loop hands the model a `rejected` envelope:
+
+- **Working-folder writes and shell** — `file_write`, `file_edit`, `file_copy`, `file_undo`, `shell_run`, `git_commit`, and `redact_file`. Loopback callers skip Bearer auth, so these would otherwise let any local process rewrite files or run commands through an open folder.
+- **Knowledge and skill mutation** — `write_knowledge`, `edit_knowledge`, `delete_knowledge`, `update_skill`.
+- **Channel tools** — every `agent_channel_*` tool.
+- **[Apple Apps](/apple-apps)** — every built-in `calendar_*`, `reminders_*`, `contacts_*`, `notes_*`, `mail_*`, `messages_*`, `location_*`, `maps_*`, `music_*`, and `shortcuts_*` tool. They're per-agent, approval-gated, and backed by your macOS privacy grants; drive them through an agent in the app instead.
+- **`prompt_working_folder`** — it opens a folder picker, so it needs someone at the Mac.
+
+One narrow exception: when an authenticated remote caller (a [Secure Channel](/secure-channel) session with an agent-scoped key — never loopback, plaintext, `/mcp/call`, or a cross-agent key) drives an agent that has a **Working Folder**, `/agents/{id}/run` may execute `file_write` and `file_edit` confined to that folder. `file_read` is always permitted; `shell_run`, `git_commit`, and `file_undo` stay denied.
+
+Write access from outside the app otherwise goes through the [Sandbox](/sandbox) (`sandbox_*` tools on sandboxed agents), which is isolated by construction.
+
+## Credits API
+
+### GET /credits/balance
+
+Read-only [Osaurus Router](/osaurus-router) credit balance for local tools such as status bars and scripts. Also available at `GET /v1/credits/balance`.
+
+Requires a **master** access key (`Authorization: Bearer <key>`), or **Allow local API access without a key** turned on under **Settings… → Credits** for a loopback request. Agent-scoped keys are refused, and requests with an `Origin` header (browsers) always need a key.
+
+```bash
+curl http://127.0.0.1:1337/v1/credits/balance -H "Authorization: Bearer $OSAURUS_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "balance_credits": "72500.00",
+  "balance_micro": "7250000",
+  "frozen": false,
+  "fetched_at": "2026-09-21T10:00:00Z",
+  "stale": false
+}
+```
+
+| Field | Description |
+| ----- | ----------- |
+| `balance_micro` | Raw balance from the Router, as a string |
+| `balance_credits` | The same balance as a decimal credits string |
+| `frozen` | Whether the account is frozen |
+| `fetched_at` | When the value was fetched from the Router (ISO 8601) |
+| `stale` | `true` when the latest refresh failed and the last known value was returned |
+
+The balance is cached for 30 seconds and always reflects a value fetched from the Router.
+
+**Errors:**
+
+| Status | `code` | Meaning |
+| ------ | ------ | ------- |
+| `403` | `credits_access_not_authorized` | No master key, and keyless local access is off (or the request came from a browser) |
+| `409` | `router_disabled` | The Osaurus Router is turned off |
+| `409` | `no_account` | No Osaurus account is set up on this Mac |
+| `503` | `router_unavailable` | The Router couldn't be reached |
+| `502` | `router_error` | The Router returned an error |
 
 ## Memory API
 

@@ -1,81 +1,131 @@
 ---
 title: Agent DB & Self-Scheduling
 sidebar_label: Agent DB & Self-Scheduling
-description: Give an agent its own private SQLite database and a single self-scheduled next run — structured memory plus the ability to wake itself up and act.
+description: Give an agent its own private notebook of tables, and let it set an alarm to wake itself up later — so it can keep track of things and follow up on its own.
 ---
 
 # Agent DB & Self-Scheduling
 
-Any Osaurus agent can opt into two capabilities that let it remember structured data across runs and wake itself up to act on it:
+You can give any [agent](/glossary#agent) two extra abilities:
 
-- **Agent DB** — a private SQLite database the agent designs and queries through dedicated tools.
-- **Self-scheduling** — a single "next run" slot the agent can set to wake itself at a chosen time.
+- **Database** — a private set of tables (like a small spreadsheet) where the agent keeps organized records between chats, such as a reading list, a habit log, or a list of open tasks.
+- **Self-scheduling** — an alarm the agent can set to wake itself up at a later time and do something, like check in tomorrow morning.
 
-Together they're a journal that can also set its own alarm.
+Together, they're a notebook that can also set its own alarm. Both are off until you turn them on, and they work on their own or together.
 
 :::info[This is not Memory]
-[Memory](/memory) is a global system that distills *conversational* context across all your chats automatically. Agent DB is **per-agent, structured storage** the agent explicitly schemas and queries. They're independent — an agent can use neither, either, or both.
+[Memory](/memory) is something Osaurus does automatically across all your chats, picking up facts from conversation. The agent database is **one agent's own organized records**, which the agent sets up and updates on purpose. They're separate — an agent can use neither, either, or both.
 :::
 
-## Enabling the database
+## Get started
 
-Turn on the **Database** ability in an agent's **Abilities → Overview** (or from the **Database** tab itself, which always shows — with an Enable action when it's off, so the feature stays discoverable). That does three things:
+### Turn on the database
 
-1. The **Database** tab (under the agent's **Memory** group) becomes a live workspace with four sections — **Overview**, **Tables**, **Saved Views**, and **History**.
-2. The agent gains the `db_*` tools (they're hidden from the model when the database is off).
-3. The agent gets a fresh, empty database on its first write — nothing is created on disk until it's actually used.
+1. Open **Settings…** (`⌘ ,`) → **Agents** and pick an agent.
+2. Go to **Abilities → Overview** and turn on **Database**. (You can also open the **Database** tab and click its **Enable** button.)
+3. Ask the agent to keep track of something, like "Keep a list of the books I mention and whether I've finished them."
 
-If the agent's effective model is a **cloud provider**, the schema — table names and column types — is sent with each request so the model can use the tools. Row data is not.
+The agent designs its own tables and fills them in. Nothing is saved until it first writes something.
 
-## How the agent uses it
+### Turn on self-scheduling
 
-The agent works the database entirely through typed `db_*` tools — it never writes raw, unconstrained SQL by default.
+1. In the same agent, go to **Abilities → Overview** and turn on **Self-scheduling**.
+2. Pick how often it's allowed to wake up in **General → Configure → Scheduling** (see [Schedule modes](#schedule-modes)).
+3. Ask the agent to follow up, like "Check my reading list every Sunday morning and remind me what's unfinished."
+
+When the time comes, the agent wakes up and works through the instructions it left for itself.
+
+## Looking at the agent's data
+
+Everything is in the agent's **Database** tab (in the agent's **Memory** group). It has four sections:
+
+| Section | What it shows |
+|---|---|
+| **Overview** | A dashboard of pinned views — the "what should I look at right now?" page |
+| **Tables** | Every table the agent made. Browse and edit rows, filter by **Active**, **Deleted**, or **All**, and export to CSV (a file you can open in Numbers or Excel) |
+| **Saved Views** | Saved searches the agent (or you) set up. Pin one to show it on the Overview |
+| **History** | A record of each run and exactly what changed during it |
+
+### Deleted rows can come back
+
+When the agent deletes a row, it's hidden, not erased. You can see deleted rows with the **Deleted** or **All** filter, and the agent can restore them. The agent can't permanently erase anything on its own.
+
+### Storage limit
+
+Each agent's database can grow to **100 MB** by default — plenty for normal use, but enough to stop a runaway agent from filling your disk. A banner warns you when it's about 80% full. Once it's full, the agent can't add more until it deletes or reorganizes older records (it's told this when a write is refused).
+
+### Privacy
+
+The database stays on your Mac with your other Osaurus data. If the agent uses a [cloud model](/glossary#cloud-model), the table layout — table names and column types — is sent with each request so the model knows how to use it. The rows themselves aren't sent unless the agent reads them during the chat.
+
+## Self-scheduling
+
+An agent has **one alarm slot**. It sets the alarm for a time, and leaves itself a note about what to do. When the alarm goes off, Osaurus clears the slot and runs the agent with that note.
+
+Each alarm fires **once**. If the agent wants to keep going — say, every morning — it sets the next alarm during the run. If it doesn't, it's done. The agent can also cancel its alarm, or send you a notification without scheduling anything.
+
+If you turn **Self-scheduling** off, any alarm that's waiting is cancelled, so the agent can't wake up after you've opted out. Self-scheduling doesn't need the database; any agent can use it.
+
+### Schedule modes
+
+The mode sets the limits on how often the agent can wake itself up. (Turning self-scheduling on or off is the separate switch above.)
+
+| Mode | How far ahead it can schedule | Shortest gap between runs | Runs per day | Quiet hours (no runs) |
+|---|---|---|---|---|
+| **Ambient** — background helper | 7 days | 1 hour | 6 | 10 pm–7 am |
+| **Reactive** — quick reflexes | 24 hours | 5 minutes | 48 | None |
+| **Project** — deep work | 30 days | 1 hour | 4 | 10 pm–7 am |
+
+Pick a mode in **General → Configure → Scheduling** (it only appears when self-scheduling is on). Choosing a mode sets all of these limits at once. If the agent asks for a time outside its limits, Osaurus moves it to the nearest allowed time and tells the agent why.
+
+There's also a **Manual** mode, which means self-scheduling is off: the agent can't set an alarm. You won't see it in the picker — it's what an agent has before you turn self-scheduling on. Turning self-scheduling on switches a Manual agent to **Ambient**.
+
+### Pausing
+
+The **Next Run** banner has a pause menu: 1 hour, 4 hours, until tomorrow, a custom date and time, or indefinitely. While paused, a waiting alarm doesn't go off. It stays put and fires once the pause ends (following its missed-run setting — see below).
+
+### If your Mac was asleep
+
+When the agent sets an alarm, it also picks what to do if the time passes while your Mac is asleep or Osaurus is closed: skip it, run once, or catch up.
+
+---
+
+## Under the hood
+
+### Database tools
+
+The agent works the database only through typed `db_*` [tools](/glossary#tool). It doesn't write raw, unconstrained SQL by default. The tools are hidden from the model when the database is off.
 
 **Schema:** `db_schema` (inspect), `db_create_table`, `db_alter_table`, `db_migrate`.
 
 **Writes:** `db_insert`, `db_upsert`, `db_update`, `db_delete`, `db_restore`.
 
-**Reads & saved views:** `db_query` (read-only SELECT, capped with a `truncated` flag), `db_define_view` / `db_run_view` / `db_list_views` / `db_drop_view`, and an `db_execute` escape hatch restricted by host policy.
+**Reads & saved views:** `db_query` (read-only SELECT, capped with a `truncated` flag), `db_define_view` / `db_run_view` / `db_list_views` / `db_drop_view`, and a `db_execute` escape hatch restricted by host policy.
 
 **Import & export:** `db_import` (bulk-load rows, e.g. from CSV/JSON) and `db_export` (dump table or view contents).
 
-### Soft deletes
+### Soft deletes and the changelog
 
-Every table the agent creates gets three reserved columns: `_created_at`, `_updated_at`, and `_deleted_at`. `db_delete` is a **soft delete** — it stamps `_deleted_at` rather than removing the row, and `db_restore` clears it. Reads hide soft-deleted rows by default. When browsing a table, the `Active` / `Deleted` / `All` filter maps directly to that flag. There's no hard-delete tool — purging a row is a host-side action the model can't take.
+Every table the agent creates gets three reserved columns: `_created_at`, `_updated_at`, and `_deleted_at`. `db_delete` is a soft delete — it stamps `_deleted_at` instead of removing the row, and `db_restore` clears it. Reads hide soft-deleted rows by default, and the **Active** / **Deleted** / **All** filter maps directly to that column. There's no hard-delete tool; purging a row is a host-side action the model can't take.
 
-Every mutation is also appended to a hidden changelog (who changed what, and during which run), surfaced in the **History** section.
+Every change is also appended to a hidden changelog (who changed what, during which run), shown in the **History** section.
 
-## Where it lives, and quotas
+### Files and encryption
 
 | Artifact | Path |
 |---|---|
 | Per-agent database | `~/.osaurus/agents/<uuid>/db.sqlite` |
 | Self-schedule slots (all agents) | `~/.osaurus/scheduler.sqlite` |
 
-Both files go through the same storage stack as chat history and memory — plaintext by default, SQLCipher-encrypted when you've opted in. See [Storage & Encryption](/storage).
+Both files use the same storage stack as chat history and memory: plaintext by default, SQLCipher-encrypted when you've opted in. See [Storage & Encryption](/storage). Turning the database off keeps `db.sqlite` on disk; deleting the agent's data is what removes it.
 
-Each agent has its own storage quota: writes are rejected once the file exceeds the limit (the error tells the model to delete or migrate older rows), and a banner warns you when usage crosses ~80%.
+### Quotas
 
-## The Database workspace
-
-Everything lives inside one **Database** tab, split into four sections:
-
-| Section | What it shows |
-|---|---|
-| **Overview** | A dashboard of pinned views — the agent's "what should I look at right now?" |
-| **Tables** | The schema catalogue plus row browsing and editing, with the Active/Deleted/All filter and CSV export |
-| **Saved Views** | Manage saved views; pin one to show on the Overview |
-| **History** | The audit log — run history paired with the changelog entries for each run |
-
-## Self-scheduling
-
-Self-scheduling is a **separate opt-in** — the **Self-scheduling** ability in **Abilities → Overview** (default off). When off, the scheduling tools are stripped from the model and any pending slot is cancelled, so an agent can't fire after you opt out. It's independent of the database: any agent can self-schedule whether or not it has a DB.
-
-The contract is deliberately minimal: **one next-run slot per agent**. The agent calls `schedule_next_run` to set it; when the time arrives, Osaurus clears the slot *before* dispatching (so a slow run can't double-fire) and runs the agent with the instructions it left itself. Because the slot is cleared on wake, **wake-ups are single-shot** — if the agent wants to run again, it must call `schedule_next_run` again from inside the run. That's how it expresses "keep me going" versus "I'm done."
+The storage quota is `storageBytesLimit` (default 100 MB; `0` disables the check) with a warning threshold of `storageWarnPercent` (default 80%). Writes are rejected once the file exceeds the limit, and the error tells the model to delete or migrate older rows.
 
 ### `schedule_next_run` fields
 
-Pass **either** `scheduled_at` or `in_seconds`, not both.
+The agent sets its alarm with `schedule_next_run`. Pass **either** `scheduled_at` or `in_seconds`, not both.
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -83,33 +133,23 @@ Pass **either** `scheduled_at` or `in_seconds`, not both.
 | `in_seconds` | integer | Relative offset from now |
 | `instructions` | string (required) | The "wake-up brief" the agent reads when it fires |
 | `context_views` | string[] | Saved-view names to prefetch into the prompt before the run |
-| `priority` | `normal` \| `low` | Stored intent hint (a mid-conversation skip for `low` is not currently enforced) |
+| `priority` | `normal` \| `low` | Stored intent hint (a mid-conversation skip for `low` isn't currently enforced) |
 | `on_miss` | `skip` \| `run_once` \| `run_catchup` | What to do if the wake-up time already passed (e.g. the Mac was asleep) |
 
-`cancel_next_run` clears the slot, and `notify` lets the agent post a user-facing notification without scheduling anything. A requested time is clamped to the agent's **schedule mode** bounds before it's saved; if it's clamped, the tool result says why.
+`cancel_next_run` clears the slot, and `notify` posts a user-facing notification without scheduling anything. These three tools are removed from the model when **Self-scheduling** is off.
 
-### Schedule modes
+When the slot fires, Osaurus clears it *before* dispatching, so a slow run can't fire twice. A requested time is clamped to the agent's schedule-mode bounds before it's saved; if it's clamped, the tool result says why.
 
-The mode sets the *bounds* for self-scheduling (the on/off switch is the separate toggle above):
+### Schedule mode presets
 
-| Mode | Max horizon | Min interval | Daily cap | Quiet hours |
-|---|---|---|---|---|
-| **Ambient** | 7 days | 1 hour | 6 | 22:00–07:00 |
-| **Reactive** | 24 hours | 5 minutes | 48 | None |
-| **Project** | 30 days | 1 hour | 4 | 22:00–07:00 |
-
-Pick a mode in **General → Configure → Scheduling** (only shown when self-scheduling is on). Selecting a mode rewrites the cap, horizon, and quiet hours — not just the label.
-
-### Pausing
-
-The **Next Run** banner has a pause menu — 1 hour, 4 hours, until tomorrow, a custom date/time, or indefinitely. While paused, a due slot won't dispatch; it stays put and fires once the pause expires (subject to its own `on_miss`).
+Picking a mode writes its preset values (horizon, minimum interval, daily cap, quiet hours) into the agent's settings, replacing the previous ones — not just the label. **Manual** is the stored "off" state: its preset is a 7-day horizon, 15-minute interval, and a daily cap of 0, and any agent-requested schedule is refused while it's set. The picker offers only Ambient, Reactive, and Project.
 
 ---
 
 **Related:**
 
-- [Memory](/memory) — global conversational memory (separate from Agent DB)
-- [Schedules](/schedules) — app-level recurring runs on a clock
-- [Agents](/agents) — per-agent features and configuration
+- [Memory](/memory) — automatic memory across chats (separate from the agent database)
+- [Schedules](/schedules) — recurring runs on a clock that you set up
+- [Agents](/agents) — per-agent features and settings
 - [Tasks](/agent-loop) — the agent loop the `db_*` and scheduling tools run inside
 - [Storage & Encryption](/storage) — how the databases are protected

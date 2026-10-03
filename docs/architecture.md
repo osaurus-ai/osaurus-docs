@@ -1,19 +1,19 @@
 ---
 title: Architecture
 sidebar_label: Architecture
-description: The system view — how the chat overlay, Management window, HTTP API, agent loop, inference backends, plugins, and foundations fit together.
+description: The system view — how the chat window, Settings, HTTP API, agent loop, inference backends, plugins, and foundations fit together.
 ---
 
 # Architecture
 
-If you're building on top of Osaurus — writing plugins, scripts, or integrations — this page is the orientation. It maps the user-facing surfaces (chat overlay, Management window, HTTP API) to the components underneath, and points to the deeper pages for each layer.
+If you're building on top of Osaurus — writing plugins, scripts, or integrations — this page is the orientation. It maps the user-facing surfaces (chat window, Settings, HTTP API) to the components underneath, and points to the deeper pages for each layer.
 
 ## The harness
 
 Osaurus presents three entry points:
 
-- **The chat overlay** (`⌘;`) — the daily driver
-- **The Management window** (`⌘ ⇧ M`) — settings, Orchestrator, agents, models, media, tools, memory, themes, automation
+- **The chat window** (`⌘;`) — the daily driver
+- **Settings…** (`⌘ ,`) — Orchestrator, agents, models, images, tools, memory, themes, workspaces, automation
 - **The HTTP API** (on `:1337`) — OpenAI / Anthropic / Open Responses / Ollama / MCP, media, and loopback configuration
 
 The built-in **Orchestrator** can configure these surfaces and delegate to custom agents; agent runs funnel into the same **agent loop**, which talks to your **memory**, **skills/methods**, and the **automation** surface (schedules, watchers). Inference goes out to local MLX, Apple Foundation, or any cloud provider you've connected. Tools span native plugins (v1–v6 ABI), remote MCP servers, and the Linux sandbox. Underneath everything: **identity** (signed requests, access keys), **local storage** (with opt-in SQLCipher encryption), and **relay** (public tunnels).
@@ -23,8 +23,8 @@ The built-in **Orchestrator** can configure these surfaces and delegate to custo
 ```mermaid
 flowchart TB
     User[You]
-    Chat[Chat Overlay - ⌘;]
-    Mgmt[Management Window - ⌘⇧M]
+    Chat[Chat Window - ⌘;]
+    Mgmt[Settings - ⌘,]
     HTTP[HTTP API on :1337]
 
     User --> Chat
@@ -80,23 +80,23 @@ flowchart TB
 
 | Layer | What it does | Reference |
 |---|---|---|
-| **Entry points** | Chat overlay (`⌘;`), Management window (`⌘ ⇧ M`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
+| **Entry points** | Chat window (`⌘;`), Settings (`⌘ ,`), HTTP API on `:1337` | [Chat](/chat), [HTTP API](/api), [CLI](/cli) |
 | **Harness** | Orchestrator, delegated agents, Tasks, Memory, Skills/Methods, Schedules/Watchers — the continuity layer | [Orchestrator](/orchestrator), [Tasks](/agent-loop), [Memory](/memory), [Skills](/skills), [Methods](/methods), [Schedules](/schedules), [Watchers](/watchers) |
 | **Inference** | MLX local models, Apple Foundation Models, cloud providers — all behind the same picker | [Models](/models), [Apple Intelligence](/models/apple-intelligence), [Inference Runtime](/inference-runtime) |
-| **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use)), registry plugins, remote MCP aggregation, and the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
+| **Tools** | Native built-ins ([web search](/web-search), [browser use](/browser-use), [Apple Apps](/apple-apps)), registry plugins, remote MCP aggregation, and the Sandbox | [Tools & Plugins](/tools), [Plugin Authoring](/plugin-authoring), [Sandbox Internals](/sandbox), [Remote MCP Providers](/remote-mcp-providers) |
 | **Foundations** | Identity (signed requests, `osk-v1` keys), local storage (opt-in SQLCipher), on-device Privacy Filter, Public Links (public tunnels) | [Identity Cryptography](/identity-internals), [Storage & Encryption](/storage), [Privacy Filter](/privacy-filter), [Public Links](/relay) |
 
 ## Entry points
 
-### Chat overlay
+### Chat window
 
-A glass-style overlay summoned with `⌘;` from anywhere on macOS. Holds zero, one, or many chat windows. Each window has its own active agent, trusted-folder / Sandbox mode, model selection, and conversation history. Multi-window mode lets you run several agents side by side.
+A chat window summoned with `⌘;` from anywhere on macOS. Each window holds tabs, a sidebar of agents and projects, and an inspector for history and file changes; you can open as many windows as you like. Each tab has its own agent, working-folder / Sandbox mode, model selection, and conversation history, so you can run several agents side by side. [Chat →](/chat)
 
-The overlay is also where voice input lives: the microphone in the input bar, plus VAD wake-word activation and global Transcription Mode.
+The chat window is also where voice input lives: the microphone in the input bar, plus Wake Word activation and global Transcription Mode.
 
-### Management window
+### Settings
 
-`⌘ ⇧ M`. The sidebar groups **General** (General, Chat, Voice, Themes, Credits, Identity, Permissions, Privacy), **Models** (Local Models, Cloud Models, Media), **Agents** (Orchestrator, Agents, Channels), **Capabilities** (Web Search, Knowledge, Memory, Tools, Skills, Commands), **Automation**, and an optional **Developer Tools** section. Native plugins and MCP connections now live inside Tools; Claude plugin bundles live inside Skills.
+`⌘ ,`. The sidebar groups **General** (General, Conversation, Voice, Themes, Credits, Workspaces, Mobile, Identity, Permissions, Privacy), **Models** (Local Models, Providers, Images), **Agents** (Orchestrator, Agents, Channels), **Capabilities** (Web Search, Knowledge, Memory, Tools & MCP, Skills, Commands), **Automation** (Schedules, Watchers, Computer Use, Browser Use), and a collapsible **Developer Tools** section (Server, Sandbox, Insights). Native plugins and MCP connections live inside Tools & MCP; Claude plugin bundles live inside Skills. [Workspaces](/workspaces) connect you with teammates' shared agents, and [Mobile](/mobile) pairs the Osaurus iPhone app.
 
 ### HTTP API
 
@@ -107,11 +107,11 @@ A local server on port 1337 (configurable). Speaks OpenAI Chat Completions, Anth
 The harness is what makes Osaurus more than a thin SDK shim:
 
 - **Agent Loop** — every chat is an agent loop. The model writes a markdown todo list, calls tools, iterates, and ends with a verified summary or pauses to ask one critical question.
-- **Memory** — persistent on-device memory with three layers (identity, pinned facts, episodes) plus a transcript fallback. Distillation runs once per session, gated on a configured Core Model.
+- **Memory** — persistent on-device memory with four layers (identity, pinned facts, episodes, and the raw transcript, which is read only for literal recall or as a search fallback). Distillation runs once per session, gated on a configured Core Model.
 - **Skills & Methods** — reusable capabilities. [Skills](/skills) are markdown packages of expertise; [Methods](/methods) are scored YAML workflows the agent saved from past runs. Both are discovered and loaded on demand via `capabilities_discover` / `capabilities_load`.
 - **Schedules & Watchers** — automation. Schedules run on a clock; watchers react to file system changes via FSEvents.
 
-Plugins, schedules, watchers, and the HTTP API all dispatch through the same agent loop — same engine, same loop tools, same intercepts. Sessions are tagged with their source (`chat` / `plugin` / `http` / `schedule` / `watcher`) so you can audit what spawned each conversation in the chat sidebar.
+Plugins, schedules, watchers, and the HTTP API all dispatch through the same agent loop — same engine, same loop tools, same intercepts. Sessions are tagged with their source (such as `chat`, `plugin`, `http`, `channel`, `schedule`, `watcher`, `imported`, or `delegation`) so you can audit what spawned each conversation in the chat sidebar.
 
 ## Inference
 
@@ -164,5 +164,5 @@ Understand a piece:
 - [Identity Cryptography](/identity-internals) — full crypto spec
 - [Storage & Encryption](/storage) — the plaintext default, opt-in SQLCipher, recovery
 - [Global Proxy](/global-proxy) — routing outbound traffic through one validated proxy
-- [Developer Tools](/developer-tools) — Insights and Server Explorer in the Management window
+- [Developer Tools](/developer-tools) — Insights and the Server → API Reference tab in Settings
 - [Building from Source](/developer) — clone, build, test, contribute

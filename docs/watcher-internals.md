@@ -14,13 +14,25 @@ This is the developer-facing companion to [Watchers](/watchers). The user-facing
 1. FSEvents detects a change in the watched folder
 2. Debouncing: rapid changes coalesce into a single trigger (per the responsiveness tier)
 3. Fingerprinting: a Merkle hash of file metadata captures the current state
-4. Dispatch: an AI agent task runs with your instructions and the folder context
+4. Dispatch: an AI agent task runs in the watched folder with your instructions, the folder context, and the changed paths
 5. Convergence: after the agent completes, re-fingerprint
    - If it changed (e.g. agent moved files), re-dispatch
    - If stable, return to idle (max 5 iterations)
 ```
 
 The convergence loop matters: it lets the agent organize files without re-triggering itself endlessly.
+
+## Dispatch and execution mode
+
+A watcher-triggered run always targets the folder that fired the trigger:
+
+- **The resolved path travels with the dispatch.** The dispatch carries the path the engine is actually fingerprinting alongside the security-scoped bookmark. If the bookmark is stale or its scope can't be started, the run falls back to the plain path — the same fallback the engine uses — after checking the folder is readable.
+- **Host folder wins over the sandbox.** Custom agents default to sandbox-on, which would jail file tools to `/workspace/agents/<id>/`. For dispatches that supply their own folder — watchers, scheduled tasks, and plugin dispatches with an explicit folder bookmark — the folder takes priority and the run executes in trusted host-folder mode, the same surface a normal folder chat uses. Interactive chats and external API callers keep the normal sandbox-first priority.
+- **No sandbox paths in a dispatched folder run.** A dispatched host-folder run refuses `/workspace/...` paths on the host route instead of answering them from the VM, so a run can't mistake the agent's sandbox home for the watched folder.
+- **Grounded prompt.** The trigger prompt names the watched folder and lists the changed paths from the directory diff (bounded at 20 plus an overflow count).
+- **Unreadable folders are reported.** If the folder can't be restored or read (deleted, moved, or denied by macOS privacy controls), the run starts with an explicit preamble telling the model the folder couldn't be read and to report that rather than inspect other directories.
+
+**Workspace agents** can also be watcher targets. They run headless on their owner's Mac over the relay and receive the change summary as text; the folder isn't shared, and a change is skipped if the host is offline.
 
 ## States
 

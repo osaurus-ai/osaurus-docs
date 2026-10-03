@@ -37,7 +37,7 @@ Each time a method is used, the system records a `MethodEvent` (`loaded`, `succe
 
 ## How capabilities are selected
 
-Each agent has a tool mode (in the agent's **Capabilities** settings). In **Auto** mode (the default), the model starts each session with a small, fixed always-loaded hot set and expands it on demand from your enabled capabilities. In **Manual** mode, all enabled capabilities are sent to the model every turn.
+Each agent has a tool mode (in **Settings… → Agents →** the agent **→ Abilities → Tools**). In **Auto** mode (the default), the model starts each session with a small, fixed always-loaded hot set and expands it on demand from your enabled capabilities. In **Manual** mode, all enabled capabilities are sent to the model every turn.
 
 ## Mid-conversation discovery
 
@@ -58,7 +58,7 @@ Methods live in `~/.osaurus/methods/methods.sqlite` (SQLCipher-encrypted if you'
 
 There isn't a dedicated "Methods" tab in the app — methods live alongside skills in the same capability index. To inspect what's been learned:
 
-- **Management → Insights** shows when methods were loaded and whether they succeeded or failed
+- **Settings… → Insights** shows when methods were loaded and whether they succeeded or failed
 - The methods database is browsable via SQLite tools if you really need to dig in
 
 ## Skills, Methods, Tools — the comparison

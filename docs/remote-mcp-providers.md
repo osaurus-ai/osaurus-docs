@@ -19,15 +19,19 @@ Where [Remote Providers](/remote-providers) provide *inference* (cloud models), 
 
 ## Adding an MCP provider
 
-1. Open the Management window (`⌘ ⇧ M`)
-2. Click **Tools** in the sidebar, then open the **MCP** tab
-3. Click **+ Add Provider**
-4. Pick a service from the catalog, or choose **Custom Server** to enter your own URL
-5. Configure authentication if required (OAuth sign-in, API key, or none)
-6. Click **Add Provider**
+1. Open **Settings…** (`⌘ ,`)
+2. Click **Tools & MCP** in the sidebar (under **Capabilities**), then open the **Services** tab
+3. Click **Add Service** — or click **Add** on a row in the **Directory** below the Services list
+4. Pick a service from the catalog (Linear, Notion, GitHub, Atlassian, Vercel, Supabase, Stripe, Zapier, Exa Search, DeepWiki, Hugging Face, Sentry, and more), or choose **Custom Server** to enter your own URL or stdio command
+5. Configure authentication if required (OAuth sign-in, API key / Bearer token, or none)
+6. Save the service
+
+The **Services** header shows a one-line summary (connected · needs attention · tools) and a ⋯ menu with **Show** (filter), **Reconnect All**, **Test Connections**, and **Copy Diagnostics**.
+
+In chat, you can also ask the [Orchestrator](/glossary#orchestrator) to add an MCP server; it applies an `mcp_servers:` entry through `osaurus_config` after a one-tap approval. OAuth sign-in and tokens still go through the secure native UI.
 
 :::note
-Use the **Tools** sidebar item, not **Cloud Models**. Cloud Models manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools → MCP**.
+Use **Tools & MCP**, not **Providers**. Providers manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools & MCP → Services**.
 :::
 
 ## Configuration
@@ -70,6 +74,10 @@ When you connect:
 
 Reconnects and discovery refreshes never expose a half-updated catalog: the old set remains active until the replacement is ready.
 
+Some servers publish object schemas without a `properties` field; Osaurus fills in an empty one so strict inference providers accept the tool. Integer arguments are forwarded as integers — a `0` or `1` is never sent as a boolean.
+
+A remote tool can't register under the name of a built-in [Apple Apps](/apple-apps) tool (`calendar_events`, `messages_send`, …); the registration is logged and dropped.
+
 ### Tool namespacing
 
 Remote tools are prefixed with the provider name to avoid conflicts:
@@ -78,7 +86,12 @@ Remote tools are prefixed with the provider name to avoid conflicts:
 provider_toolname
 ```
 
-So a provider named `myserver` exposing `search` is registered as `myserver_search`.
+So a provider named `myserver` exposing `search` is registered as `myserver_search`. The exact exposed names are listed under **Tools & MCP → All Tools**.
+
+Servers document their own tools by their canonical names (`search`), both in tool descriptions and in the `instructions` they return on connect. Two things keep those references usable after prefixing:
+
+- Each exposed description starts with ``Exposed as `myserver_search` (server name `search`).`` and maps sibling tools the description cites by canonical name too.
+- A call to a bare canonical name (`search`) resolves to the prefixed tool of the server that publishes it, then passes through the normal exposure and permission gates. If two connected servers publish the same name, the one exposed to the request wins; if both are exposed, the model is told both names and asked to pick. A name no server publishes gets `tool_not_found`.
 
 ### Tool execution
 
@@ -195,9 +208,11 @@ Before saving a provider, you can test the connection:
 
 Use **Insights** to monitor MCP activity:
 
-1. Open Management window (`⌘ ⇧ M`)
-2. Click **Insights**
+1. Open **Settings…** (`⌘ ,`)
+2. Click **Insights** (under **Developer Tools**)
 3. Filter by source or search for the provider name
+
+Each call is an **MCP tool** row with the server, tool, arguments, result preview, and transport — stdio servers show as Local, HTTP servers as Cloud. For connection problems, use **Copy Diagnostics** in the Services ⋯ menu.
 
 ## Security
 
@@ -221,7 +236,7 @@ Non-secret configuration is stored at:
 
 Suppose you have an MCP server at `https://mcp.example.com/sse`:
 
-1. Click **Add MCP Provider**
+1. Click **Add Service → Custom Server**
 2. Enter:
    - **Name:** "Example Server"
    - **URL:** `https://mcp.example.com/sse`

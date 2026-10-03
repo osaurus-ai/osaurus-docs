@@ -68,7 +68,7 @@ The gate picks at most one section, the planner fits it under the token budget, 
 
 ## Consolidation
 
-`MemoryConsolidator` runs in the background every 24 hours (configurable) and on demand from the **Run Consolidation Now** button in the Memory UI. Each pass:
+`MemoryConsolidator` runs in the background **at most once every** `consolidationIntervalHours` (24 by default) and on demand from the **Run Now** button in the Memory UI. The last successful pass is persisted, and a scheduler checks every 30 minutes (first check about a minute after launch) whether a pass is due — so the interval means "at most once per N hours", not "after N hours of continuous uptime", and an overdue pass catches up shortly after launch. Scheduled passes are deferred while inference or chat work is in flight and retried on the next check; **Run Now** bypasses both the interval and the idle gate, and reports why if it couldn't run (already running, memory disabled, or database not open). Each pass:
 
 | Step | What it does |
 |---|---|
@@ -93,7 +93,7 @@ Episodes carry a one-to-three-sentence summary, topics, entities, decisions, act
 
 ## Settings reference
 
-Open **Management → Memory** for the UI, or edit `~/.osaurus/config/memory.json` directly.
+Open **Settings… → Memory** for the UI, or edit `~/.osaurus/config/memory.json` directly.
 
 | Setting | Default | Range | Description |
 |---|---|---|---|
@@ -104,7 +104,7 @@ Open **Management → Memory** for the UI, or edit `~/.osaurus/config/memory.jso
 | `relevanceGateMode` | `heuristic` | `off` / `heuristic` / `llm` | How the read path decides whether to inject memory |
 | `memoryBudgetTokens` | `800` | 100 – 4,000 | Single overall budget for the dynamic section |
 | `summaryDebounceSeconds` | `60` | 10 – 3,600 | Inactivity period before distillation |
-| `consolidationIntervalHours` | `24` | 1 – 168 | How often the consolidator runs |
+| `consolidationIntervalHours` | `24` | 1 – 168 | Minimum hours between scheduled consolidation passes |
 | `salienceFloor` | `0.2` | 0.0 – 1.0 | Pinned facts below this and idle 30+ days are evicted |
 | `episodeRetentionDays` | `365` | 0 – 3,650 | How long episodes / transcript are kept (0 = forever) |
 

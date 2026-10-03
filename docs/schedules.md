@@ -1,63 +1,67 @@
 ---
 title: Schedules
 sidebar_label: Schedules
-description: Run an agent on a timer — daily journaling prompts, weekly summaries, monthly reviews. Set it and forget it.
+description: Have an agent do a task on a timer — daily journaling prompts, weekly summaries, monthly reviews. Set it up once and let it run.
 ---
 
 # Schedules
 
-Some AI tasks are better on autopilot. A daily journal prompt at 8 AM. A weekly code summary on Friday afternoon. A monthly goals review on the first. Schedules let you set those up once and let Osaurus run them — you just review the results.
+Some AI tasks are better on autopilot. A daily journal prompt at 8 AM. A weekly code summary on Friday afternoon. A monthly goals review on the first. Schedules let you set these up once and let Osaurus run them — you just review the results.
 
-Where [Watchers](/watchers) react to file changes, schedules run on a clock.
+All you need is one of your own [agents](/glossary#agent) and Osaurus running at the scheduled time. Where [Watchers](/watchers) react to file changes, schedules run on a clock.
 
-## Quick start
+## Get started
 
-1. Open the Management window (`⌘ ⇧ M`) → **Schedules**
-2. Click **Create Schedule**
+1. Open **Settings…** (`⌘ ,`) → **Schedules**.
+2. Click **Create Schedule**.
 3. Fill in:
    - **Name** — what this schedule is for
-   - **Frequency** — once, minutes, hourly, daily, weekly, monthly, yearly, or a cron expression
-   - **Time** — when it runs (for recurring schedules)
-   - **Agent** — which agent handles the task
-   - **Instructions** — the prompt to send when it fires
-4. Click **Save**
+   - **Frequency** — once, every few minutes, hourly, daily, weekly, monthly, yearly, or a custom pattern
+   - **Time** — when it runs (for repeating schedules)
+   - **Agent** — which agent does the task (one of your agents, or a shared [workspace](/glossary#workspace) agent)
+   - **Instructions** — the message to send the agent when it runs
+4. Click **Create Schedule** to save it.
 
-The schedule is now active. Review past runs anytime via **History**.
+The schedule is now active. See past runs anytime with **History**.
 
 ## Frequency options
 
 | Frequency | What it does | Example |
 |---|---|---|
-| **Once** | Single run at a specific date | One-time reminder |
-| **Minutes** | Every N minutes | Frequent polling tasks |
-| **Hourly** | Every hour (or every N hours) | Inbox sweeps |
+| **Once** | Runs a single time on a set date | One-time reminder |
+| **Minutes** | Every few minutes | Frequent check-ins |
+| **Hourly** | Every hour (or every few hours) | Inbox sweeps |
 | **Daily** | Every day at a set time | Morning journaling |
-| **Weekly** | Once a week on a chosen day | Weekly progress reports |
-| **Monthly** | Once a month on a chosen date | Monthly goal reviews |
-| **Yearly** | Once a year on a chosen date | Annual reflection |
-| **Cron Expression** | Full cron syntax for anything else | `0 9 * * 1-5` (weekday mornings) |
+| **Weekly** | Once a week on a day you choose | Weekly progress reports |
+| **Monthly** | Once a month on a date you choose | Monthly goal reviews |
+| **Yearly** | Once a year on a date you choose | Annual reflection |
+| **Cron Expression** | A custom [cron](/glossary#cron) pattern for anything else | Weekday mornings |
 
-For recurring schedules, configure the time (24-hour) and the day-of-week (weekly) or day-of-month (monthly).
+For repeating schedules, set the time (24-hour clock) and the day of the week (weekly) or day of the month (monthly).
 
 :::tip[Timing]
-Schedules run when Osaurus is active. If your Mac is asleep or Osaurus isn't running at the scheduled time, the task runs when you next launch the app.
+Schedules run while Osaurus is open. If your Mac is asleep or Osaurus is closed at the scheduled time, the task runs once the next time you open the app. Even if it missed several times, it catches up with a single run rather than replaying each one.
 :::
 
 ## Picking an agent
 
-Each schedule runs through one of your agents. The agent's system prompt, default model, and theme apply to the run. Different schedules can use different agents.
+Each schedule runs through one of your agents. The agent's [system prompt](/glossary#system-prompt), default model, and theme are used for the run. Different schedules can use different agents.
 
-Tools and skills are picked automatically at run time based on your instructions — pick the agent whose personality best fits the task; the right capabilities will load themselves. [How auto-selection works →](/skills#how-skills-get-picked)
+To have the run work in a particular folder, set the optional **Working Directory** in the editor. Without one, the run uses the agent's [Working Folder](/glossary#working-folder), if it has one. Either way, a scheduled run with a folder works directly with the files there — even if the agent normally runs in its [Sandbox](/glossary#sandbox).
+
+A shared **workspace agent** runs on its owner's Mac, with their instructions, model, and tools. If their Mac is offline when the schedule fires, that run is skipped until the next scheduled time.
+
+The right [tools](/glossary#tool) and [skills](/glossary#skill) are picked automatically for each run, based on your instructions. Just pick the agent whose personality fits the task best. [How skills get picked →](/skills#how-skills-get-picked)
 
 **Example pairings:**
 
-- **Daily Journal** — A reflective, conversational agent
-- **Code Summary** — A technical agent (Git tools surface automatically when the prompt mentions a repo)
-- **Research Digest** — A research-focused agent (Search and Fetch tools surface automatically)
+- **Daily Journal** — a reflective, conversational agent
+- **Code Summary** — a technical agent (Git tools appear automatically when the instructions mention a code repository)
+- **Research Digest** — a research-focused agent (web search tools appear automatically)
 
 ## Writing good instructions
 
-Be specific. The instructions are the prompt sent to the agent — clear prompts produce useful runs.
+Be specific. The instructions are the message sent to the agent — clear instructions give useful results.
 
 **Daily journaling:**
 
@@ -90,43 +94,43 @@ Format as a concise bullet-point summary.
 
 ### Viewing your schedules
 
-The Schedules tab shows all your configured schedules with name, frequency, next run time, assigned agent, and active/paused status.
+The Schedules screen lists all your schedules with their name, frequency, next run time, agent, and whether they're active or paused.
 
 ### Editing
 
-1. Click on the schedule
-2. Modify the settings
-3. Click **Save**
+1. Click the schedule.
+2. Change the settings.
+3. Click **Save Changes**.
 
 ### Pausing and resuming
 
-Toggle a schedule on or off without deleting it. Paused schedules don't run until you resume them.
+Turn a schedule off or on without deleting it. Paused schedules don't run until you turn them back on.
 
-### Running manually
+### Running now
 
-Trigger any schedule immediately:
+To run a schedule right away:
 
-1. Click on the schedule
-2. Click **Run Now**
+1. Click the schedule.
+2. Click **Run Now**.
 
-Useful for testing new schedules, running outside the normal time, or catching up on missed runs.
+This is handy for testing a new schedule, running it at an unusual time, or catching up on a missed run. If it's already running, Osaurus tells you instead of starting a second run.
 
 ### Deleting
 
-1. Click on the schedule
-2. Click **Delete**
-3. Confirm
+1. Click the schedule.
+2. Click **Delete**.
+3. Confirm.
 
 ## Reviewing past runs
 
-After a schedule fires, you can see exactly what happened:
+After a schedule runs, you can see exactly what happened:
 
-1. Click on the schedule
-2. Click **History**
+1. Click the schedule.
+2. Click **History**.
 
-The full conversation opens — your instructions, the agent's response, any tool calls or actions taken.
+The full conversation opens — your instructions, the agent's reply, and any tools it used.
 
-Each run is also saved as a chat session tagged `schedule` (visible as a badge in the chat sidebar). Filter the sidebar by source to browse all your scheduled runs in one place.
+Each run is also saved as a chat with a **schedule** badge in the chat sidebar. Filter the sidebar by source to see all your scheduled runs in one place.
 
 ## Example schedules
 
@@ -168,39 +172,49 @@ Each run is also saved as a chat session tagged `schedule` (visible as a badge i
 
 ## Tips
 
-1. **Start simple** — Begin with one or two schedules and add more as needed
-2. **Use descriptive names** — Make it easy to identify schedules at a glance
-3. **Match agent to task** — Choose an agent with appropriate tools and style
-4. **Be specific in instructions** — Clear prompts yield better results
-5. **Review results regularly** — Check that schedules are producing useful output
-6. **Adjust timing** — Find times that work with your routine
-7. **Use "Run Now" to test** — Verify new schedules work before waiting for the timer
+1. **Start simple** — begin with one or two schedules and add more later.
+2. **Use clear names** — so you can tell schedules apart at a glance.
+3. **Match the agent to the task** — pick an agent with the right style and tools.
+4. **Be specific in instructions** — clear instructions give better results.
+5. **Check results now and then** — make sure each schedule is still useful.
+6. **Adjust the timing** — find times that fit your routine.
+7. **Test with Run Now** — check a new schedule works before waiting for the timer.
 
 ## Troubleshooting
 
-### Schedule didn't run
+### A schedule didn't run
 
-- **Was Osaurus running?** Schedules require the app to be active
-- **Is the schedule enabled?** Paused schedules don't run
-- **Has the time passed yet?** Check the next-run time on the card
+- **Was Osaurus open?** Schedules only run while the app is open.
+- **Is the schedule turned on?** Paused schedules don't run.
+- **Has the time come yet?** Check the next run time on the card.
 
 ### Unexpected results
 
-- **Review the instructions** — Ambiguous prompts lead to inconsistent results
-- **Check the agent** — Make sure the right agent is assigned
-- **Inspect what tools fired** — Open Insights (Management `⌘ ⇧ M` → **Insights**) to see exactly which capabilities were loaded and which tool calls ran. If the wrong tools loaded, make the schedule's instructions more specific.
+- **Check the instructions** — vague instructions give inconsistent results.
+- **Check the agent** — make sure the right one is picked.
+- **See which tools ran** — open [Insights](/developer-tools#insights) (**Settings… → Insights**) to see exactly which skills and tools were used. If the wrong ones loaded, make the instructions more specific.
 
 ### Missed schedules
 
-If Osaurus wasn't running at the scheduled time:
+If Osaurus wasn't open at the scheduled time:
 
-- Missed schedules run automatically on the next app launch
-- Use "Run Now" to trigger manually anytime
+- A missed schedule runs once automatically the next time you open the app (several missed times become one run).
+- Use **Run Now** to run it yourself anytime.
+
+---
+
+## Under the hood
+
+- **Cron syntax:** **Cron Expression** accepts standard cron syntax, for example `0 9 * * 1-5` for 9:00 AM on weekdays.
+- **Missed runs:** missed slots collapse into a single catch-up run on the next launch.
+- **File access:** a run with a **Working Directory** (or an inherited Working Folder) gets host file access to that folder, even when the agent normally runs with the [sandbox](/sandbox) on.
+- **Chat tagging:** each run is saved as a chat session tagged `schedule`.
+- **Capability selection:** tools and skills are auto-selected per run from the instructions; Insights records which capabilities loaded and which tool calls ran.
 
 ---
 
 **Related:**
 
-- [Agents](/agents) — pick which agent runs your schedules
-- [Watchers](/watchers) — event-based automation (complements Schedules)
-- [Skills](/skills) — capabilities are auto-selected per run
+- [Agents](/agents) — choose which agent runs your schedules
+- [Watchers](/watchers) — run an agent when files change (works alongside Schedules)
+- [Skills](/skills) — skills are picked automatically for each run

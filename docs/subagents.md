@@ -1,91 +1,143 @@
 ---
 title: Subagents
 sidebar_label: Subagents
-description: Delegate one task or a mixed batch to saved agents and local or remote models, with bounded concurrency and local-model residency safety.
+description: Let one agent hand a job to another — your own agents or ones teammates share — and get the answer back in the same chat, with you in control of who, how many, and how long.
 ---
 
 # Subagents
 
-Subagents let a chat delegate a bounded task to another model — **local or remote** — or to one of your saved agents, and get a compact result back without cluttering the conversation. Offload research to a bigger cloud model, hand a coding question to a specialist agent, or generate media, all mid-turn.
+A [subagent](/glossary#subagent) is an agent that another agent brings in to handle one job and report back. Handing off work like this is called [delegation](/glossary#delegation). It lets one chat use the right specialist for each part of a task — a coding question to your coding agent, three research questions at once to your research agent — while your chat stays short and tidy.
 
-Every newly created custom agent is added to the built-in Orchestrator's spawn pool by default. The Orchestrator can create and delegate to a specialist in the same turn. Other parent agents still use their own explicit spawn pools and approval policies.
+You don't need to set anything up to start: every agent you create can already be used by the [Orchestrator](/glossary#orchestrator), the agent built into Osaurus. Just ask it to hand something off.
 
-## Spawn tools
+## Get started
 
-| Tool | What it does |
+1. Choose which agent will do the handing off:
+   - **The Orchestrator:** open **Settings… (`⌘ ,`) → Orchestrator → Subagents**.
+   - **An agent you created:** open it in **Settings… → Agents**, go to **Abilities → Subagents**, and turn on **Delegate to subagents**.
+2. Under **Allowed subagents**, choose who it may hand work to: **Add agent**, **Add shared agent**, or **Add all agents**. Don't have any specialists yet? **Create starter agents** makes a Coder, a Researcher, and a Writer using your current model, and adds them.
+3. In a chat, ask for something that benefits from a specialist: *"Have the research agent summarize this paper, then continue."* For separate tasks, ask it to run them at the same time.
+
+## What happens when an agent hands off work
+
+- **The specialist works in its own separate chat**, with its own instructions, model, tools, and [Working Folder](/glossary#working-folder). It sends back a short answer.
+- **You see its progress live** in your chat, but its step-by-step work isn't added to your conversation. That keeps your chat focused and leaves room for the model to think.
+- **Files it makes come back to your chat** as cards you can open, just like files from any agent.
+- **No folder of its own?** It works in the folder of the agent that handed it the job. For the Orchestrator, that's the [Orchestrator's Working Folder](/orchestrator#working-folder).
+- **Specialists can't hand work on** to other agents, and they can't ask you questions directly. If one needs something from you, it says so in its answer, and you can reply through the main chat.
+- **Every job is logged** in **Settings… → Orchestrator → Delegations**.
+
+Ways to hand off work:
+
+| You ask for | What happens |
 |---|---|
-| `spawn_agent(input, agent)` | Delegate a task to one of your saved agents — it uses that agent's persona and allowed child tools |
-| `spawn_model(input, model)` | Delegate to a bare model (no persona) — useful for "ask a bigger/faster model" moments |
-| `spawn_batch(jobs)` | Fan out independent jobs across a mixed set of allowed agents and bare models |
+| **One job** | One specialist works on it; the answer comes back in the same reply. |
+| **Several jobs at once** | They run together as one batch, after **one** approval. Answers come back in the order they were asked. |
+| **A follow-up** | The same specialist picks up where it left off. |
+| **A background job** | The agent keeps going right away; the answer arrives later as a new message. |
 
-The subagent runs its own bounded job and returns a single compact result. Its inner steps render live in the chat row but never enter your conversation's transcript, so context stays lean.
+### Teammates' shared agents
 
-If the child shares files with `share_artifact`, Osaurus safely adopts them into the parent session. Artifact bytes do not enter the spawn result JSON; the files render as ordinary artifact cards in the parent conversation.
+Agents your teammates share in a [workspace](/glossary#workspace) you've joined can be handed work just like your own. They're added to the Orchestrator's **Allowed subagents** as the workspace loads, appear as *Name@Workspace*, and run on your teammate's Mac. Osaurus asks you before using a teammate's agent, unless you change that setting.
 
-For `spawn_batch`, every job carries a stable ID, an `agent` or `model` target, and its own input. One batch can mix saved agents, local models, and remote models. Osaurus validates the whole batch first, asks for **one approval for the batch**, and returns one result per job in the same order as the input.
+### Pictures, video, and controlling apps
 
-Three more capabilities share the same machinery and the same per-agent settings surface:
+The same system powers several abilities on agents you create:
 
-- **`image`** — generate or edit a picture inline; see [Image & Video Generation](/image-generation)
-- **`video`** — quote and start a cloud text-to-video or image-to-video job, then return the finished video
-- **`computer_use`** — drive a macOS app; see [Computer Use](/computer-use)
-- **`browser_use`** — drive a persistent, isolated browser; see [Browser Use](/browser-use)
+- **Image** — create or edit a picture right in the chat. See [Image & Video Generation](/image-generation).
+- **Video** — get a price, then make a video in the cloud from text or a picture, and bring back the finished video.
+- **Computer Use** — use another Mac app. See [Computer Use](/computer-use).
+- **Browser Use** — use its own private web browser. See [Browser Use](/browser-use).
+- **AppleScript** — automate Mac apps with scripts.
 
-## Getting started
+Turn these on in an agent's **Abilities → Subagents** tab; they're off until you do. The Orchestrator doesn't use them itself. Add an agent that has them to the Orchestrator's **Allowed subagents**, and it hands that work over.
 
-1. Open **Agents → Abilities → Subagents** on the agent you want to grant delegation. Configure the built-in agent under **Settings → Orchestrator**.
-2. Enable **Spawn & Delegation** and pick the **spawnable pool** — which saved agents and models this agent may delegate to. The pool is searchable, and you can attach a note to each entry to tell the model when to use it.
-3. Ask for something that benefits from delegation: *"Have the research agent summarize this paper, then continue."* For independent work, ask it to run the tasks as a batch.
-4. Approve the first use. You can set Spawn to **Always Allow** in the same settings surface.
+## Settings
 
-## Batch execution and residency
+The same settings appear in **Settings… → Orchestrator → Subagents** and on each agent's **Abilities → Subagents** tab.
 
-Delegation works in any direction — local to local, local to remote, remote to local, remote to remote. Only one case touches GPU memory: delegating from a local model to a **different** local model.
-
-| Direction | Behavior |
+| Setting | What it controls |
 |---|---|
-| Local → same local model | Runs in place — no swap |
-| Local → different local model (handoff on) | Unload the chat model, run the job, reload, continue |
-| Local → different local model (handoff off) | Rejected up front — nothing is evicted |
-| Local ↔ remote, remote ↔ remote | Runs in place |
+| **Allowed subagents** | Which agents this one may hand work to, including teammates' shared agents. Deleting an agent removes it from every list. |
+| **Permission** | Whether to **Ask**, **Deny**, or **Always Allow** before using one of your agents. The default is **Always Allow**. With **Ask**, you approve once per batch. |
+| **Permission for shared (workspace) agents** | The same choice for teammates' agents. The default is **Ask**. |
+| **Limits** | How much one specialist may do: **Max output tokens per subagent** (how long its answer can be; default 8192 [tokens](/glossary#token)), **Max turns per subagent** (how many steps it can take; default 24), **Time limit per subagent (seconds)** (default 900, which is 15 minutes), **Max local subagents at once** (default 3), and **Max remote subagents at once** (default 8). |
+| **Advanced** | Use one model for every specialist. Leave it on **Use each agent's model** unless you need this. |
 
-**Local Orchestrator Handoff** is on by default. With handoff on, two large models never fight for memory; with it off, Osaurus refuses the delegation cleanly instead of erroring mid-run.
+**Max local subagents at once** is how many specialists running on models on your Mac may work at the same time. It shares one value with **Concurrent Sessions** in **Settings… → Server → Settings → Concurrency & Batching → Concurrent Sessions**; changing either one changes the other. Concurrent Sessions starts out automatic (the field is left empty): Osaurus picks a value that suits your Mac's memory, and it may differ from the default of 3. It's a maximum: Osaurus may run fewer at once if memory is tight.
 
-`spawn_batch` groups work by resolved model:
+An agent's **Abilities → Subagents** tab also has the **Image** (with its picture model), **Video**, **Computer Use**, **Browser Use**, and **AppleScript** cards described above.
 
-- Jobs using the **same local model** reuse one loaded model and can run concurrently through continuous batching.
-- Jobs using **different local models** run as serial waves, so cold loads and residency handoffs never race.
-- **Remote jobs** start independently and can overlap every local wave.
-- Before each local wave, RAM admission considers the model footprint, per-child working memory, current engine occupancy, and continuous-batching capacity. A wave may be narrowed, split into subwaves, or refused before unloading a model.
+## Local models and memory
 
-Results still preserve the original job order, regardless of completion order.
+Handing off works in any direction: an agent on a [local model](/glossary#local-model) or a [cloud model](/glossary#cloud-model) can hand work to a specialist on either. Only one case needs care: an agent on a local model handing work to a specialist on a **different** local model. Two big models loaded at once can use up your Mac's memory, so Osaurus manages it for you.
 
-### One concurrency setting
+Two settings in **Settings… → Orchestrator → Subagents → Local Models & Memory** control this. They apply to every agent that hands off work:
 
-**Max subagents per batch** and **Server → Concurrent Sessions** are the same canonical setting (1–32). Changing either updates the other. It is a ceiling for accepted batch size and local fan-out; RAM admission, engine occupancy, continuous batching, and local-model grouping can reduce the concurrency of a particular wave.
+| Setting | Default | What it does |
+|---|---|---|
+| **Swap local models for subagents** | On | Osaurus puts away the first model, runs the specialist's model, then brings the first one back and carries on. Turning this off keeps both loaded, which uses more memory. |
+| **Check memory before delegating** | On | Osaurus checks there's enough memory before loading anything, and runs fewer specialists at once — or none — if there isn't. Turning this off skips the checks, and Osaurus may run out of memory or quit unexpectedly. |
 
-## Per-agent configuration
+How each kind of specialist runs:
 
-Everything is scoped to the agent, in its **Subagents** tab:
+| Specialist's model | What happens |
+|---|---|
+| Same local model as the agent handing off | Shares the model that's already loaded, with no swapping. Several can run at once. If memory is tight, each gets less room so it can still run, just more slowly. |
+| A different local model | Swapped in and out as described above, one at a time. With swapping off, both stay loaded. |
+| A cloud model, or the agent handing off uses a cloud model | Runs without affecting the models on your Mac |
 
-- **Spawn & Delegation** — enable, plus separate allow-lists of spawnable agents and bare local or remote models
-- **Permission** — Ask, Always Allow, or Deny; Ask produces one prompt for an entire `spawn_batch`
-- **Child tools** — choose None or Read Only. A saved-agent child can receive the cancellation-audited subset of its enabled tools; a bare-model child has no target-agent tools. Read Only can additionally grant bounded `file_read` / `file_search` access.
-- **Budgets** — delegate tokens, turns, tool calls, elapsed time, and the shared batch/concurrency limit
-- **Image** — enable the `image` tool and pick the agent's image model
-- **Video** — enable metered cloud video generation; spend consent is requested before a quoted job starts
-- **Computer Use** — enable, autonomy ceiling, screen context ([details](/computer-use))
-- **Browser Use** — enable, plus an optional model override ([details](/browser-use))
-- **AppleScript** — enable the AppleScript subagent and pick its model
+If a specialist won't fit, Osaurus says so **before** unloading anything, so your current model stays ready.
 
-Spawn remains unavailable until its allow-list is configured. The Orchestrator's pool is seeded from your custom agents; the other delegation capabilities ship disabled until you enable them.
+## Troubleshooting
+
+- **The agent won't hand off work.** Check that **Delegate to subagents** is on (for agents you created) and that the specialist is in **Allowed subagents**.
+- **Fewer specialists run at once than I set.** Osaurus lowers the number when memory is tight, or when **Concurrent Sessions** is set lower.
+- **A specialist stopped before finishing.** It hit a limit. Raise **Max turns per subagent**, **Time limit per subagent (seconds)**, or **Max output tokens per subagent**.
+- **I keep getting asked before a teammate's agent runs.** Change **Permission for shared (workspace) agents** to **Always Allow**.
+- **"Not enough memory" for a specialist.** Use the same model as the main agent, a smaller model, or a cloud model.
+
+---
+
+## Under the hood
+
+### `spawn_agent`
+
+`spawn_agent(input, agent)` is the one delegation tool. The worker runs as a real chat session of the target agent — its system prompt, model, tools, and Working Folder — and returns a compact summary plus a `session_id`.
+
+| Pattern | How it works |
+|---|---|
+| **One task** | One `spawn_agent` call; the result comes back into the turn |
+| **A wave** | Several `spawn_agent` calls in one message run as one wave: **one approval**, shared limits, results in call order |
+| **Follow up** | `continue: <session_id>` sends the next message to that same worker. A worker that needs something from you ends with `NEEDS INPUT:`; answer it the same way. |
+| **Background** | `background: true` returns immediately; the result arrives later as a follow-up message |
+
+Workers get their agent's full tool surface, except they can't spawn further agents or call `clarify` directly. There's no separate tool-call cap — the turn, token, and time limits bound a run. The worker's inner steps render live in the chat row but never enter the parent transcript. Files shared with `share_artifact` are adopted into the parent session and render as ordinary artifact cards.
+
+Media and automation capabilities use the same machinery: `image`, `video`, `computer_use`, `browser_use`, and an AppleScript subagent.
+
+### Concurrency
+
+- **Max local subagents at once** and the Server's **Concurrent Sessions** are the same setting (range 1–32). In Automatic mode (field left empty), the value mirrors the resolved Memory Safety profile and isn't stored as an explicit override.
+- It's the BatchEngine ceiling for same-model local waves; RAM admission checks and current engine occupancy can run a smaller wave.
+- With **Continuous Batching** off, each local model runs one job at a time even if Concurrent Sessions is higher.
+- **Max remote subagents at once** covers cloud, provider, and shared workspace subagents (range 1–32).
+
+### Model residency
+
+- **Check memory before delegating** checks available memory and each worker's working-memory cost before anything loads, and splits or refuses a wave when needed.
+- A memory check refuses before evicting anything: if a worker won't fit, the parent's model stays loaded and the agent reports the shortfall.
+- Workers on different local models run in sequence so loads never race; cloud workers overlap freely.
+- The same swap setting governs local image jobs and context compaction that use a different local model.
 
 ---
 
 **Related:**
 
+- [Orchestrator](/orchestrator) — the built-in agent that hands off work by default
 - [Agents](/agents) — creating and configuring agents
+- [Workspaces](/workspaces) — sharing agents with your team
 - [Image & Video Generation](/image-generation) — the `image` and `video` tools
 - [Computer Use](/computer-use) — the `computer_use` subagent
 - [Browser Use](/browser-use) — the `browser_use` subagent
-- [Models](/models) — local and remote models a subagent can target
+- [Models](/models) — local and cloud models agents can run on

@@ -110,7 +110,7 @@ See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f
 └─────────────────────────────────────────────────────┘
 ```
 
-Most features are accessible through the Management window (`⌘ ⇧ M`).
+Most features are accessible through **Settings…** (`⌘ ,`).
 
 ## Contributing
 
@@ -317,7 +317,7 @@ Logger.shared.level = .trace
 
 ## Developer tools
 
-Osaurus has built-in dev tools — Insights for live request monitoring and Server Explorer for endpoint testing. Open the Management window (`⌘ ⇧ M`) and click **Insights** or **Server**.
+Osaurus has built-in dev tools — Insights for live request monitoring and the **Server → API Reference** tab for endpoint testing. Open **Settings…** (`⌘ ,`) and click **Insights** or **Server** (under Developer Tools).
 
 [Full Developer Tools guide →](/developer-tools)
 

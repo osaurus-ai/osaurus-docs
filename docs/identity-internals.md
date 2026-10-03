@@ -27,13 +27,18 @@ Osaurus takes a different approach: **address-based identity**. Every participan
 ## Address hierarchy
 
 ```
-Master Address (Human)
-├── Agent Address (index 0)
-├── Agent Address (index 1)
-├── Agent Address (index 2)
-│   ...
-└── Device ID (per physical device)
+Master Address (Human)            ← iCloud Keychain / 24-word phrase; same on every device
+├── Device A (device ID a1b2c3d4)
+│   ├── Agent Address v2 (scope a1b2c3d4, index 0)
+│   ├── Agent Address v2 (scope a1b2c3d4, index 1)
+│   └── ...
+├── Device B (device ID c3d4e5f6)
+│   ├── Agent Address v2 (scope c3d4e5f6, index 0)
+│   └── ...
+└── Legacy Agent Address v1 (index n)   ← minted before device scoping; master-global
 ```
+
+The master is shared by every device that holds the same identity. Each device has its own hardware-bound device ID, and every agent address minted on that device is derived from `(master, deviceID, index)`. Two Macs (or a Mac and a phone) restored from the same phrase therefore mint **disjoint** agent addresses even when both allocate index 0 — no cross-device index coordination is needed. Ownership is still provable from the master alone: any device holding the master can re-derive and sign for any of its agents given the stored `(deviceScope, index)` path.
 
 ### Master address
 
@@ -54,11 +59,19 @@ Each agent gets a deterministic child key derived from the master key.
 
 | Property | Detail |
 |---|---|
-| Derivation | HMAC-SHA512 with domain separation |
+| Derivation | HMAC-SHA512 with domain separation; v2 additionally binds the minting device's ID |
 | Storage | **Never stored** — re-derived on demand from the master key |
-| Association | Each agent's `agentIndex` and `agentAddress` are persisted on the `Agent` model |
+| Association | Each agent's `agentIndex`, `agentDeviceScope` (nil for legacy v1), and `agentAddress` are persisted on the `Agent` model. Together the first two form the agent's `AgentKeyPath`, which every derivation and signing site takes. |
 
 Agent addresses enable per-agent scoping: an access key signed by an agent can only authorize actions for that specific agent.
+
+| Operation | Effect |
+|---|---|
+| **Assign** | Allocates the next unused index under this device's scope (v2) and persists the derived address plus `agentDeviceScope`. No-op if the agent already has one. |
+| **Rotate Key** | Allocates a fresh unused v2 path, re-derives a new address, and revokes every active `osk-v1` key whose audience matched the previous address. Paths are never reused. Rotating a legacy v1 agent moves it to v2. The rotation propagates everywhere the old address was pinned: the HTTP server restarts with the new validator, the relay tunnel removes the old address and adds the new one, every workspace share is re-issued (share first, then unshare), and owner-device key records are dropped. |
+| **Revoke** | Clears the agent's address, index, and device scope, and revokes every active `osk-v1` key scoped to it. The agent's prompt and settings stay intact. |
+
+Existing v1 agents keep their addresses — nothing about pairings, shares, or access keys changes on upgrade. New and rotated addresses are always v2.
 
 ### Device ID
 
@@ -71,6 +84,8 @@ A hardware-bound identity that proves which physical device is making a request.
 | Fallback | Software-generated random ID when App Attest is unavailable (development builds) |
 
 The device ID adds a second authentication factor: even if someone obtains a valid identity signature, they cannot forge the device assertion without physical access to the Secure Enclave.
+
+The device ID is a **device fact, not an identity fact**. It's attested independently of master creation: setup, loading an existing identity, and restoring from the phrase all ensure the device is attested, returning the existing ID or attesting a new one but never replacing one that exists. A device that received the master through iCloud Keychain sync or a phrase restore is therefore attested on first load. **Reset Identity** and **Recover from phrase** replace the master but keep the device ID.
 
 ## Key derivation
 
@@ -87,7 +102,26 @@ The device ID adds a second authentication factor: even if someone obtains a val
 
 Stored in iCloud Keychain with `kSecAttrAccessibleWhenUnlocked`. iCloud sync is attempted first; if unavailable, stored device-only with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`.
 
+A phone or second device can't yet receive the master through iCloud Keychain: that would require a shared Keychain access group, which needs a provisioning-profile entitlement the Developer ID build doesn't ship with. Until that lands, the **24-word recovery phrase** is the only way to bootstrap the same identity on a client with a different bundle ID. See [Mobile](./mobile.md) for how the iPhone app pairs instead.
+
 ### Agent key
+
+Two derivations exist. Which one applies is decided by the agent's stored `AgentKeyPath`: `deviceScope == nil` → v1, otherwise v2.
+
+**v2 (device-scoped — everything minted or rotated now):**
+
+```
+HMAC-SHA512(
+    key:  masterKey,                                                  // 32 bytes
+    data: "osaurus-agent-v2" || utf8(deviceScope) || 0x00 || bigEndian(index)
+)
+    → first 32 bytes of HMAC output
+    → same address derivation as master key
+```
+
+`deviceScope` is the minting device's device ID. The `0x00` terminator makes the variable-length scope unambiguous against the index. Different devices under the same master produce disjoint address spaces.
+
+**v1 (legacy, master-global — agents minted before device scoping):**
 
 ```
 HMAC-SHA512(
@@ -98,7 +132,9 @@ HMAC-SHA512(
     → same address derivation as master key
 ```
 
-The domain prefix `osaurus-agent-v1` prevents cross-protocol key reuse. The big-endian index encoding ensures a canonical byte representation across platforms. Each unique index produces a completely independent keypair.
+The distinct domain prefixes (`osaurus-agent-v1` / `osaurus-agent-v2`) prevent cross-protocol and cross-version key reuse: a v2 address at index 0 is unrelated to the v1 address at index 0. The big-endian index encoding ensures a canonical byte representation across platforms. Each unique path produces a completely independent keypair.
+
+No wire format carries an index or scope — `osk-v1` keys, invites, workspace rosters, relay auth frames, and Secure Channel hellos all pin an *address + signature*.
 
 Agent keys are **never persisted**. They are re-derived from the master key whenever a signature is needed, which requires biometric authentication to access the master key. The derived `agentAddress` is persisted on the `Agent` model so it can be displayed without triggering biometric prompts.
 
@@ -197,7 +233,7 @@ Fields are sorted alphabetically for canonical JSON encoding (ensuring consisten
 - **Master-scoped:** Signed by the master key. `iss` and `aud` are both the master address. Grants access to all agents.
 - **Agent-scoped:** Signed by a derived agent key. `iss` and `aud` are both the agent address. Grants access only to that specific agent.
 
-The `/pair` Bonjour flow always issues **agent-scoped** keys (`agentIndex` from the approved agent). Keys generated manually from the Settings UI may be either, depending on what the user selects.
+The `/pair` Bonjour flow always issues **agent-scoped** keys (signed along the approved agent's `AgentKeyPath`). Keys generated manually from the Settings UI depend on where you create them: **Settings… → Server → Overview → Access Keys** mints master-scoped keys, and an agent's **Access Keys** list in Identity mints agent-scoped keys.
 
 ### Expiration options
 
@@ -277,8 +313,25 @@ Revocation data is persisted in macOS Keychain (`kSecAttrAccessibleWhenUnlockedT
 The local restore path is a **24-word BIP39 mnemonic** that round-trips the 32-byte master key's entropy:
 
 - **Encode:** 256 bits of entropy + the high 8 bits of `SHA-256(entropy)` as checksum = 264 bits = 24 × 11-bit indices into the canonical English BIP39 wordlist (2048 words)
-- **View:** Management → Identity → **View recovery phrase** (the phrase is cached in the Keychain via `MasterMnemonicStore`, or derived on demand from the master key)
-- **Restore:** Management → Identity → **Restore from recovery phrase** — validates the checksum, re-installs the master key into the Keychain, and existing agents and access keys start working again
+- **View:** Settings… → Identity → **View recovery phrase** (the phrase is cached in the Keychain via `MasterMnemonicStore`, or derived on demand from the master key)
+- **Restore:** Settings… → Identity → **Restore from recovery phrase** — validates the checksum, re-installs the master key into the Keychain, and existing agents and access keys start working again
+
+### What the phrase does and doesn't recover
+
+The phrase rebuilds the **master** only. Agent addresses are re-derived from the master plus each agent's stored key path:
+
+| Layout | Path | Recoverable from the phrase **alone**? | From the phrase **plus the Agent record**? |
+|---|---|---|---|
+| v1 (legacy) | `index` | Effectively yes — the index space is small enough to scan for a known address | Yes |
+| v2 (device-scoped) | `(deviceScope, index)` | **No** — the scope is an opaque 8-hex device ID that exists only on the `Agent` record | Yes |
+
+The path lives in the agent JSON on disk (`~/.osaurus/agents/<id>.json`) and anything that copies it — Time Machine, or an exported `.osaurus-agent` bundle. It is **not** in the Workspaces roster, which carries only the address, name, description, and proof. This is the price of collision-free addresses across devices: keep agent exports or a `~/.osaurus` backup alongside the phrase.
+
+### Identity drift and scope repair
+
+The Identity view checks persisted derivatives against the current master and surfaces a banner when agent addresses or access keys reference a previous master. Each agent is checked against **its own** derivation (v1 or v2), so a legacy agent isn't flagged just because the v2 derivation at the same index differs.
+
+If an older build re-saved a v2 agent without its `agentDeviceScope`, but the v2 derivation under *this* device's scope reproduces the stored address exactly, the scope is written back automatically — no address, index, or key changes — and the view reports "Restored the device scope for N agent address(es) saved by an older version. No keys were changed." A dropped scope diagnosed on a *different* device stays flagged, since nothing lossless can be done there.
 
 Separately, `RecoveryManager` generates a one-shot `OSAURUS-XXXX-XXXX-XXXX-XXXX` code (8 random bytes from `SecRandomCopyBytes`) intended as a **server-side claim token** for a future flow. It is not shown in the current UI and **cannot** rebuild the local master key — only the mnemonic can.
 
@@ -311,11 +364,21 @@ Access keys bridge the gap between hardware-bound internal identity and the need
 1. Connector fetches a **single-use challenge nonce** from `GET /pair/challenge` (rate-limited per IP)
 2. Connector signs `nonce:encPub` — the challenge bound to its ephemeral encryption public key — with its `connectorAddress` private key (domain prefix `Osaurus Signed Pairing`)
 3. The Osaurus instance verifies the signature, resolves the target agent, and shows an approval dialog naming both the connector and the agent
-4. On approval, the host mints an **agent-scoped** `osk-v1` key for the approved agent (`agentIndex = agent.agentIndex`) with a **90-day expiration** by default. The user can opt in to a non-expiring key via the dialog's "Remember this device permanently" toggle
+4. On approval, the host mints an **agent-scoped** `osk-v1` key for the approved agent (signed along `agent.agentKeyPath`) with a **90-day expiration** by default. The user can opt in to a non-expiring key via the dialog's "Remember this device permanently" toggle
 5. The key is **HPKE-sealed** to the connector's ephemeral public key, and the response is signed by the host with the `Osaurus Signed Pairing Server` domain prefix so the connector can verify the host's identity. (A plaintext `apiKey` is only returned for legacy clients that omit `encPub`.)
 6. The response body containing the new key is sent on the wire but **never persisted to the request log** — `InsightsService` redacts both `apiKey` JSON values and `Bearer osk-…` headers as defense-in-depth across all logged bodies
 
-Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. The Settings → Server pane labels them as **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."*
+Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. The Settings… → Server pane labels them as **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."*
+
+### Owner redeem (same identity, another device)
+
+A device holding the *same* master — a second Mac restored from the phrase, or a phone — can obtain an agent-scoped key for an agent hosted on this Mac without a workspace, router attestation, or invite. It's an `owner_redeem` envelope on `POST /pair-invite`:
+
+1. **Challenge.** The client sends `agent_address`, `device_id`, and an optional `device_name`. The host returns a single-use nonce (120 s TTL) bound to `(agent_address, device_id)` without revealing whether the agent exists. One outstanding challenge per pair (asking again replaces it) under a hard table cap, so unauthenticated step-one traffic can't grow the table.
+2. **Prove the master.** The client sends the nonce, a fresh X25519 `encPub` (required — validated before the nonce is consumed), and an EIP-191 **master** signature over `osaurus-owner:redeem:<agent_address_lower>:<nonce>`. The signature must recover to this host's own master address.
+3. **Mint and seal.** The agent must be hosted here (`404` otherwise) and must not be built-in (`403`). The host mints an `osk-v1` key labelled `Owner device – <device_name>` with a 90-day expiry, HPKE-seals it to `encPub` — it is never returned in plaintext — and records it in `~/.osaurus/identity/owner-devices.json`.
+
+There's one live key per `(device, agent)`; re-redeeming replaces the previous key. The key appears in the agent's key list and can be revoked like any other, and rotating the agent's key revokes them all.
 
 ### Pre-auth body limits
 
@@ -339,13 +402,16 @@ The address-based design naturally extends to agent-to-agent communication acros
 |---|---|
 | Master key never leaves Keychain | Stored with `kSecAttrAccessibleWhenUnlocked`, read requires `LAContext` biometric auth |
 | Agent keys never stored | Re-derived on demand via HMAC-SHA512 from master key |
+| Multi-device: unique addresses | v2 derivation binds the minting device's ID, so devices sharing one master mint disjoint agent addresses with no coordination |
+| Multi-device: same identity everywhere | Master syncs via iCloud Keychain or phrase; device attestation is ensured on load/restore, never gated on master creation |
+| Owner-device access | `owner_redeem` requires a fresh master signature over a single-use, device-bound nonce; keys are HPKE-sealed, 90-day, agent-scoped, and never issued for built-in agents |
 | Device keys hardware-bound | Secure Enclave P-256 via App Attest (`DCAppAttestService`) |
 | Anti-replay | The two-layer identity token carries a per-device monotonic counter (`cnt`); on access keys, `cnt` is recorded at creation for bulk revocation. Routine `osk-v1` Bearer auth does not use a per-request counter — replay protection over the network comes from the [Secure Channel](/secure-channel) sequence numbers |
 | Domain separation | `Osaurus Signed Message`, `Osaurus Signed Access`, `Osaurus Signed Pairing`, `Osaurus Signed Pairing Server`, `Osaurus Signed Invite`, and `Osaurus Secure Channel` prefixes prevent cross-protocol signature reuse |
 | Recovery phrase | 24-word BIP39 mnemonic of the master key; viewable behind biometrics, restorable on a new Mac |
 | Canonical encoding | Access key payloads use sorted-key JSON for deterministic signature verification |
 | Memory safety | Master key bytes are zeroed after use (`memset` / index-level zeroing) |
-| Pairings scoped to one agent | `/pair` mints agent-scoped keys (`agentIndex` from approved agent), 90-day default expiry |
+| Pairings scoped to one agent | `/pair` mints agent-scoped keys (signed along the approved agent's key path), 90-day default expiry |
 | Issued credentials never logged | `/pair` success path logs a redacted body; `InsightsService.redactCredentials` scrubs `osk-v1` values and `Bearer` headers everywhere |
 | Pre-auth body-size limits | `/pair` capped at 64 KiB, other public routes at 32 MiB; rejected with `413` before the auth gate |
 
@@ -354,7 +420,9 @@ The address-based design naturally extends to agent-to-agent communication acros
 | File | Responsibility |
 |---|---|
 | `MasterKey.swift` | Generate, store, read, sign with the secp256k1 master key in iCloud Keychain |
-| `AgentKey.swift` | Deterministic child key derivation (HMAC-SHA512) and signing for per-agent identities |
+| `AgentKey.swift` | Deterministic child key derivation (HMAC-SHA512, v1 master-global and v2 device-scoped), `AgentKeyPath`, and signing for per-agent identities |
+| `IdentityHealthCheck.swift` | Classifies persisted derivatives as healthy / mismatched / recoverable-scope against the current master |
+| `OwnerDeviceAccessHost.swift` | `owner_redeem` on `/pair-invite`: challenge table, master-signature verification, built-in guard, key mint + HPKE seal, per-device key records |
 | `DeviceKey.swift` | App Attest key generation, attestation, assertion, and software fallback |
 | `OsaurusIdentity.swift` | Public entry point — orchestrates setup and two-layer request signing |
 | `IdentityModels.swift` | Data types: `OsaurusID`, `TokenHeader`, `TokenPayload`, `AccessKeyPayload`, `AccessKeyInfo`, `AgentInfo`, `RevocationSnapshot` |
@@ -364,6 +432,7 @@ The address-based design naturally extends to agent-to-agent communication acros
 | `RevocationStore.swift` | Individual and bulk access key revocation with Keychain persistence |
 | `CounterStore.swift` | Per-device monotonic counter in `UserDefaults` |
 | `MasterKeyMnemonic.swift` | BIP39 24-word mnemonic encode/decode of the master key |
+| `MasterMnemonicStore.swift` | Keychain item for the 24-word phrase, same service as the master |
 | `RecoveryManager.swift` | One-shot server-side claim-token generation (not the local restore path) |
 | `CryptoHelpers.swift` | Keccak-256, domain-separated signing, ecrecover, address derivation, encoding utilities |
 | `OsaurusIdentityError.swift` | Error types for the identity system |
@@ -373,6 +442,7 @@ The address-based design naturally extends to agent-to-agent communication acros
 **Related:**
 
 - [Identity](/identity) — the everyday view
+- [Mobile](./mobile.md) — pairing the iPhone app
 - [Storage & Encryption](/storage) — how the storage DEK can optionally be derived from the master key
 - [Public Links](/relay) — uses the agent's signature to authenticate the tunnel
 - [HTTP API → Authentication](/api#authentication) — using `osk-v1` from clients

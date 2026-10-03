@@ -126,6 +126,14 @@ Prefer:
 - `default` declared in the schema for any default the implementation uses
 - Concrete examples in `description` strings
 
+A tool can repair known malformed argument shapes before validation by implementing `normalizeArgumentsBeforeValidation` on `OsaurusTool`; `ToolRegistry` runs it first, so the public schema can stay strict. `file_edit` uses it to decode `edits`/`operations` sent as a JSON string, hoist a `path` every entry carries identically, and drop content-free fillers like `"operations": []` that constrained decoders emit next to a real edit.
+
+### Property order on the provider wire
+
+Osaurus encodes request bodies with sorted keys for prompt-cache determinism, which alphabetizes each tool's `properties`. Constrained decoders (JSON-schema grammars, and xAI's grok models in practice) can only reach optional properties in declared order — once the model emits a later key, earlier ones are gone. A tool that cares declares `parameterOrder` (for example `["path", "content", "mode", "dry_run"]` on `file_write`); `ToolRegistry` records it and the encoded body is rewritten just before send so that tool's `properties` follow the authored order while everything else stays sorted. The rewrite is deterministic, so the cache contract still holds. Put the key the model writes first, first.
+
+Don't enumerate per-variant keys on a polymorphic array item. `file_edit.operations.items` is a free-form object whose keys are documented in the `operations` description; each document editor validates its own keys with entry-numbered errors instead.
+
 ### Special-case markers (artifact, chart)
 
 `share_artifact` and `render_chart` carry marker-delimited blobs (`---SHARED_ARTIFACT_START---` / `---CHART_START---`) because the chat UI is tightly coupled to those parsers. The markers ride inside the envelope's `result.text` string — downstream parsers extract `text` from the envelope first, then scan for markers. Prefer not to add new marker-based flows; treat them as legacy.
@@ -145,9 +153,30 @@ Empty-string filler in optional fields (`content: ""`, `filename: ""`) is treate
 
 Foreground (default): returns `{stdout, stderr, exit_code, cwd}` when the command finishes. The optional `timeout` parameter is an **idle** timeout — the command is killed if it produces no output for that many seconds; when omitted, it runs to completion (the user can terminate from the chat card). Pass `background:true` to spawn a detached process — the tool returns `{pid, log_file, cwd, background:true}` as soon as the spawn shim returns. Manage the resulting job through `sandbox_process` (poll/wait/kill).
 
+### `file_edit` matching contract
+
+`file_edit` (and the sandbox writer it routes `/workspace/...` paths through) matches `old_string` with a fixed cascade and applies the first tier that matches:
+
+1. `exact` — byte for byte.
+2. `whitespace_normalized` — whole lines compared with edge whitespace trimmed and inner whitespace runs collapsed (tabs vs spaces, indentation depth).
+3. `blank_lines_collapsed` — as above, ignoring blank lines between the non-blank lines.
+4. `unicode_normalized` — as above, folding curly quotes, dashes, ellipses, and non-breaking spaces to their ASCII forms.
+
+A relaxed tier applies only when it matches exactly once (or `replace_all` is set); otherwise the failure names the tier and count and carries `metadata.retry_with = {"replace_all": true}`. Unchanged lines are always copied from the file, never from `old_string`, so indentation, blank lines, BOM, and line endings survive.
+
+The success payload reports `replacements`, `match_strategy` (the most relaxed tier any edit needed), `matched_lines` (`"12"` or `"12-15"` per block), and for `edits` batches `edits_applied` / `edit_strategies`. Every relaxed match adds a `warnings` entry quoting the verbatim file text that matched. `dry_run` returns the same payload plus a `PREVIEW ONLY` warning and writes nothing.
+
+Existing `.docx`, `.xlsx`, `.pptx`, and `.pdf` files are edited in place with `operations` (or `old_string`/`new_string`, mapped onto `replace_text`). Each edit is validated in a staged copy before the original is swapped. Word and PowerPoint `replace_text` use a two-tier cascade (`exact`, then punctuation/whitespace `normalized`), and a miss whose `old_string` carries Markdown syntax (list markers, `##` headings, `**emphasis**`) is retried without it, since those documents store that as styling, not text. An empty `old_string` on `.docx`/`.pptx` is rejected with a pointer to the operations that insert text (`append_markdown`, `insert_paragraph`, `set_slide_text`, `duplicate_slide`).
+
+`file_write` on a document path refuses `content` that parses as a `file_edit` operations array — rendering it would replace the document with a line of JSON — and returns the equivalent `file_edit` call in `metadata.retry_with`.
+
+### Paged listings
+
+`file_search` and `list_knowledge` page instead of silently truncating. Pass `offset` (the previous result's `next_offset`) to continue. `file_search` with `target: "files"` reports `total` and, when more remain, `next_offset`; an empty files-mode pattern means `*`. `list_knowledge` defaults to 100 rows (max 500) and reports `total` / `next_offset`.
+
 ## Loop tools
 
-Three special tools drive the inline UI for the [Tasks](/agent-loop) experience. The chat layer intercepts their results and renders the live to-do list, "Completed" banner, and clarifying-question prompt. They're available in every chat.
+Three special tools drive the inline UI for the [Tasks](/agent-loop) experience. The chat layer intercepts their results and renders the live to-do list, "Completed" banner, and clarifying-question prompt. They're available in every chat. A fourth intercept, [`prompt_working_folder`](#prompt_working_folder), shares the same run-ending mechanics.
 
 ### `todo`
 
@@ -164,6 +193,26 @@ Pauses the loop and asks one critical question. Optional one-tap answer chips (`
 ### Result envelopes
 
 All three return their payload via the `text` convenience (a single human-readable string). The chat-layer parsers consume the envelope's `result.text` to render the corresponding UI element.
+
+### Surface parity
+
+The run-ending intercepts aren't chat-only. The HTTP `/agents/{id}/run` loop and the plugin completion loop also end the run on a successful `complete`/`clarify`, and a batch carrying an intercept falls back to serial model-order execution on every surface. Only the presentation differs:
+
+| Surface | `complete` | `clarify` | `prompt_working_folder` |
+|---|---|---|---|
+| Chat | Ends run; "Completed" banner | Pauses run; inline overlay, the answer resumes | Opens the folder picker; on a pick the run ends and immediately continues with the folder bound |
+| HTTP `/agents/{id}/run` | Ends run; summary in response | Ends run; question in response (re-send with the answer) | Not exposed; refused as an external-surface tool |
+| Plugin dispatch | Ends run; COMPLETED event | Pauses task; `CLARIFICATION` event, the answer resumes | Not exposed |
+
+### `prompt_working_folder`
+
+The one picker-backed intercept. It's in the schema only for an attended `.chat` session on a custom agent with no working folder and no Sandbox. It opens the native folder picker as a sheet on the chat window with the model's `reason` as the dialog message, then runs the same sequence as the Folder chip (attach the folder to the chat, disable the agent's Sandbox, remember the folder on the agent), rolling back on failure.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `reason` | string | Yes | One short user-facing sentence shown in the picker (e.g. "Save the generated report as report.md"). |
+
+Because the tool schema and execution root are frozen per turn, a success ends the run and chat immediately continues with the file tools in the schema — the model picks up from the success envelope without the user typing. Cancelling returns `user_denied`: the run stops, the message is shown, and the same run never reopens the picker. A failure (stale bookmark, Sandbox could not be disabled) returns `execution_error` and rolls back. The tool is on the external deny list, excluded from spawned subagents, and returns `unavailable` when no live chat window drives the run.
 
 ---
 

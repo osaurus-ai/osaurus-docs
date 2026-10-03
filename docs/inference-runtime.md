@@ -32,7 +32,7 @@ ChatEngine (route resolution, attribution, logging)
 
 ## Continuous batching
 
-Same-model concurrent requests share a single forward pass via `BatchEngine`. **Server → Settings → Concurrency & Batching → Concurrent Sessions** is the canonical ceiling for both request concurrency and subagent batching; Main Chat Spawn and every agent's **Max subagents per batch** editor share that value.
+Same-model concurrent requests share a single forward pass via `BatchEngine`. **Server → Settings → Concurrency & Batching → Concurrent Sessions** is the canonical ceiling for both request concurrency and subagent batching; the Orchestrator's and every agent's **Max local subagents at once** setting share that value. Left empty (Automatic), it resolves to a memory-safe value for your Mac, which may differ from the subagent default of 3.
 
 Leave Concurrent Sessions empty for an automatic Memory Safety value, or set 1–32 explicitly. RAM admission, current engine occupancy, and model residency can still run a smaller subagent wave. With **Continuous Batching** off, the effective local per-model limit is `1` regardless of the configured ceiling. Turning it on allows same-model requests to decode together; `1` retains the compiled-decode fast path, while higher values favor aggregate throughput at the cost of more wired memory and per-request latency.
 
@@ -52,15 +52,15 @@ vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server �
 |---|---|
 | **Prefix Cache** | Master switch for content-addressed prompt reuse. Turning it off also disables GPU and SSD reuse. |
 | **GPU Cache (Paged KV)** | Optional hot prefix tier in unified memory. Some hybrid cache topologies are not page-compatible. |
-| **SSD Cache (L2)** | Persists prompt checkpoints across requests and restarts, even when GPU Cache is off. The default path is `~/.osaurus/cache/kv_v2/`. |
-| **Disk Cache Size (% of disk)** | Shared cap for every model on the cache volume. Blank resolves to 10% of capacity; at model load the runtime also limits use to 25% of currently free space. |
-| **Clear SSD Cache** | Safely locks cache I/O, removes indexed checkpoints and orphaned payload files, and reclaims the space. |
+| **SSD Cache (L2) → Disk Cache** | Persists prompt checkpoints across requests and restarts, even when GPU Cache is off. The default path is `~/.osaurus/cache/kv_v2/`; **Disk Cache Directory** overrides it. |
+| **Disk Cache Size (% of disk)** | Shared cap for every model on the cache volume. Blank (or **Use Automatic Cache Size**) means Automatic: 30% of free space plus the cache's own bytes, so a filling cache doesn't shrink its own cap. An explicit percentage uses total disk size, bounded by 25% of free space plus the cache. Saving a size change updates loaded models without unloading them. |
+| **Clear SSD Cache** | Removes indexed conversation cache files and reclaims the space. Chats, models, and unrecognized files are left alone. If you've edited **Disk Cache Directory**, save first — Clear stays disabled until the directory change is saved. It still clears the saved directory when Prefix Cache is off. |
 | **KV Retention Override** | Explicit per-session retention cap; blank uses the active Memory Safety profile. This is separate from the model's context maximum. |
 | **On-the-fly Compression** | `Engine Selected` keeps native cache types. TurboQuant is an explicit opt-in and is not forced onto hybrid or companion caches. |
 
-Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory, ownership problem, or full disk disables the disk tier rather than writing elsewhere. The diagnostics log the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
+Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory or ownership problem disables the disk tier rather than writing elsewhere. The diagnostics log the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
 
-The cap is root-wide, not per model. At model load it is constrained to 25% of currently free disk, and the SSD tier is disabled when that allowance is below 1 GB. The Context Budget popover shows used space and the resolved cap while it is open; after 75% it warns that older checkpoints may be evicted and long chats may need to prefill again. Existing installs migrate from the old flat 10 GB default to percentage sizing once, while a deliberate later choice remains yours.
+The cap is root-wide, not per model. Low free space is advisory: Settings shows "Disk space is low. SSD caching remains enabled." rather than switching caching off. Eviction is conversation-aware — the chat's session id is the engine's cache chain, so other chats' snapshots are evicted before the chat in progress, and normal trimming is silent (there is no chat popup about cache capacity). The Context Budget popover's disk-cache row shows used space and the resolved cap, and warns past 75% that older checkpoints may be evicted; **Server → Settings → Live Activity** shows disk-cache hits, stores, usage, and evictions. Saved percentages and legacy GB sizes survive migration.
 
 ### Multi-turn KV cache reuse
 
@@ -93,7 +93,7 @@ Leaving a user default blank is what lets the model value win. An explicit `temp
 
 **Server → Settings → Live Activity → Sampler last used** shows the exact temperature, top-p, top-k, min-p, maximum output, and repetition penalty that ran for each model. Warm-up prefills are excluded so the row describes a real request.
 
-For compatible models, speculative controls include an MTP mode/depth and a validated **DFlash 2** drafter selection. Changing these controls may reload the model so the next launch plan uses the new speculative path.
+For compatible models, speculative controls include an MTP mode/depth and a validated **DFlash 2** drafter selection. Native MTP starts **Off**: a compatible local model shows **Speculative Depth** (Off, Auto, 1–3) in the chat model picker's options once its configuration and weight headers are inspected — no request or load is needed. The global setting is **Server → Settings → Speculative Decoding**, and it applies to chat and API requests. The runtime may lower the depth or use ordinary decoding when speculation doesn't help. Force On requires verified bundle tuning unless an eligible manual depth is selected in chat; if the bundle can't honor it, the request reports a policy error instead of silently falling back. Changing these controls may reload the model so the next launch plan uses the new speculative path.
 
 ## Concurrency
 
@@ -110,17 +110,17 @@ For compatible models, speculative controls include an MTP mode/depth and a vali
 
 Open **Server → Settings → Live Activity** for a read-only BatchEngine snapshot that refreshes every two seconds. It reports active and queued slots, per-model configured capacity, high-water marks, engine status, loaded/cache-enabled models, prefix hits and misses, SSD L2 hits/misses/stores, paged evictions, TurboQuant compressions, and hybrid SSM re-derivations. No model loaded means there is no engine snapshot yet.
 
-When macOS swap pressure becomes unsafe for local inference, chat shows a warning with unload and recovery guidance. Treat it as a host-memory signal: stop or unload large local models, close other memory-heavy apps, and retry after pressure falls.
+macOS manages swap: Osaurus no longer shows swap warnings or asks for a "Use Anyway" confirmation. **Memory Safety** load budgets still refuse a load that won't fit, and actual model-load failures appear normally. Local memory warnings are hidden when the selected model is a cloud model.
 
 ## Model loading and eviction
 
-Window-scoped warm-up: models are loaded and prefix-cached when a chat window opens, not at app launch. Each window warms its own model independently, using the window's agent context (system prompt, memory, tools) for the prefix cache.
+Lazy loading: selecting a model in chat only records the choice. The first **Send** loads the weights and prefills the real request, so neither app launch nor opening a chat window loads a model. Each window keeps its own model and agent context (system prompt, memory, tools) for the prefix cache.
 
-When a user switches to a remote model or closes a window, a GC pass checks all open windows and unloads any local model no longer referenced. The warm-up indicator (yellow dot) signals when a model is loading.
+When a user switches to a remote model or closes a window, a GC pass checks all open windows and unloads any local model no longer referenced (unless **Keep Model Loaded** is on). The warm-up indicator (yellow dot) signals when a model is loading.
 
 ### Eviction policy
 
-Configurable in **Management → Server → Settings → Model Memory:**
+Configurable in **Settings… → Server → Settings → Model Memory → Eviction Policy:**
 
 | Policy | Behavior |
 |---|---|
@@ -129,7 +129,14 @@ Configurable in **Management → Server → Settings → Model Memory:**
 
 ### Idle residency
 
-**Management → Server → Settings → Model Management → Keep model loaded after use** controls how long weights stay resident after the last stream releases its lease. The default is **15 minutes**, so follow-up turns don't pay a full cold load; choices are 5/15/30/60 minutes, **Immediately** (the old window-close GC behavior, still useful on low-memory Macs), or **Never**.
+**Settings… → Server → Settings → Model Memory → Model Residency** controls how long weights stay resident after the last stream releases its lease:
+
+| Control | Behavior |
+|---|---|
+| **Keep Model Loaded** | Off by default. On keeps weights resident through idle time and window close; permanent residency is an explicit opt-in. |
+| **Unload After** | Shown while Keep Model Loaded is off. **30 seconds** (default), 5 / 15 / 30 minutes, 1 hour, or **Immediately** (unload when the last generation finishes). A timed choice also unloads when the last chat window using the model closes; active requests finish first. |
+
+A 15-minute value saved by older versions (the former default) migrates to 30 seconds once on upgrade; Never, Immediately, and other durations are kept.
 
 This is a memory-residency policy only — it unloads weights and runtime buffers, never downloaded models or disk KV-cache entries. Strict single-model eviction, manual unload, app quit, and memory cleanup still win over idle timers. `/health` reports `resident_models[]` with per-model `idle_unload_at` and `idle_seconds_remaining`.
 

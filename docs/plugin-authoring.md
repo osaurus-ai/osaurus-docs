@@ -10,6 +10,8 @@ This guide covers building external plugins for Osaurus. Plugins are native bina
 
 For sandbox plugins (JSON recipes that run inside the Linux VM, no compilation), see [Sandbox Internals → Plugin recipes](/sandbox#plugin-recipes).
 
+You'll need the `osaurus` CLI on your `PATH` — install it from **Settings… (⌘,) → Server → Overview → Command Line Tool → Install CLI**.
+
 ## Quick Start (Swift)
 
 ### 1. Scaffold a Plugin
@@ -103,7 +105,7 @@ The manifest describes your plugin's capabilities:
 
 | Field               | Required | Description                                       |
 | ------------------- | -------- | ------------------------------------------------- |
-| `id`                | Yes      | Unique identifier for the tool                    |
+| `id`                | Yes      | Unique identifier for the tool. Must not collide with a built-in tool name — a plugin tool named like a built-in [Apple Apps](/apple-apps) tool (`calendar_events`, `notes_create`, `messages_send`, …) is logged and dropped. |
 | `description`       | Yes      | Human-readable description shown to users and AI  |
 | `parameters`        | Yes      | JSON Schema defining input parameters             |
 | `requirements`      | No       | System permissions needed (see below)             |
@@ -284,8 +286,8 @@ if (host->version >= 5 && host->log_structured) {
 | Tools | `capabilities.tools` | AI-callable functions (also v1) |
 | HTTP Routes | `capabilities.routes` | Register custom HTTP endpoints on the Osaurus server (OAuth, webhooks, APIs) |
 | Web Apps | `capabilities.web` | Serve embedded static frontends with context injection |
-| Config UI | `capabilities.config` | Native settings UI rendered in the Management window with validation |
-| SQLite Storage | host API | Per-plugin sandboxed SQLite database via `PluginHostAPI` |
+| Config UI | `capabilities.config` | Native settings UI rendered from the plugin's card in **Settings… → Tools & MCP → Plugins**, with validation |
+| SQLite Storage | host API | Per-plugin sandboxed SQLite database via `PluginHostAPI` (100 MiB cap; SQLCipher-encrypted when the user turns on encryption under **Settings… → General → Advanced → Data & Storage**) |
 | Agent Dispatch | host API | Programmatically dispatch tasks to other agents |
 | Inference | host API | Call chat completions through any configured model provider |
 | Events | host API | Emit and subscribe to cross-plugin events |
@@ -480,7 +482,11 @@ The [osaurus-emacs](https://github.com/osaurus-ai/osaurus-emacs) plugin is a rea
 
 - Check code signature: `codesign -v libMyPlugin.dylib`
 - Verify manifest.json is valid JSON
-- Check Osaurus logs for error details
+- Check the plugin card's error, then **Settings… → Insights**: pick the **Tools** scope for **Plugin call** rows, and enable **Filter → Show plugin console logs** to see **Plugin log** lines. Retry from the plugin detail page.
+
+### Plugin shows "Built into Osaurus"
+
+The Apple app plugins (`osaurus.calendar`, `osaurus.reminders`, `osaurus.contacts`, `osaurus.notes`, `osaurus.mail`, `osaurus.messages`, `osaurus.maps`, `osaurus.music`) are superseded by built-in [Apple Apps](/apple-apps) tools. Installed copies are skipped at load and never `dlopen`'d; uninstall them whenever you like.
 
 ### Tool not appearing
 
