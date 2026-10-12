@@ -312,7 +312,7 @@ Set how local models stay in memory in **Settings… → Server → Settings →
 
 Osaurus picks a sensible context limit for each model automatically. Multi-turn caching is automatic too, so repeating the same [system prompt](/glossary#system-prompt) across messages is cheap. For tunables, see [Inference Runtime](/inference-runtime).
 
-Custom providers can report model context windows through `/models`. Osaurus recognizes positive integer `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), and `context_window`, shows the value in the picker, and uses it for context budgeting. Missing or malformed values fall back safely without breaking provider discovery.
+Custom providers can report model context windows through `/models`. Osaurus recognizes positive integer `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), `context_window`, and a nested `metadata.context_length` (DeepInfra), shows the value in the picker, and uses it for context budgeting. Missing or malformed values fall back safely without breaking provider discovery.
 
 Audio support is detected from the installed checkpoint, not only the model name. Audio is sent to the local model alongside text and images.
 

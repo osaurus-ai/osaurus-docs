@@ -138,7 +138,7 @@ The model name should match what the remote provider expects.
 
 ### Provider metadata and multimodal input
 
-During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), or `context_window`. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
+During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), `context_window`, or a nested `metadata.context_length` (DeepInfra). Top-level keys take precedence over the nested one. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
 
 For vision-capable providers, image attachments are resized to provider-safe wire dimensions and sent with the corrected MIME type. Osaurus reports unsupported input instead of silently dropping an attachment.
 
