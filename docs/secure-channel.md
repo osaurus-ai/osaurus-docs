@@ -72,7 +72,7 @@ The Secure Channel is a dedicated cryptographic channel, not just HTTPS. It foll
 2. **Forward secrecy.** Session keys come from a fresh ephemeral X25519 exchange every session. Even if a device's long-term identity key is compromised later, recorded past traffic can't be decrypted.
 3. **Mutual authentication.** The server signs the handshake with its secp256k1 agent key, and the client verifies it against the address pinned when you paired, so an impostor or man-in-the-middle can't complete a handshake. Your `osk-v1` access key travels *inside* the ciphertext, so after pairing, credentials never cross the network in plaintext again.
 4. **Tamper, replay, and truncation proof.** Requests are sequence-numbered, so a captured request can never re-execute. Response streams end with an authenticated finish frame, so a connection cut mid-stream is detected.
-5. **No downgrade.** Remote plaintext requests to agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) are refused with `426 Upgrade Required`. Relay traffic counts as remote even though it reaches the server over [loopback](/glossary#loopback). Local callers (CLI, App Intents, same-machine scripts) stay plaintext.
+5. **No downgrade.** Remote plaintext requests to agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) are refused with `426 Upgrade Required`, and so is every owner route, reads included, when a remote caller presents an owner (master-scoped) key: agents, sessions, run streams, review and approval queues, secret prompts, artifacts, tasks, MCP tool calls, memory ingest, credit balance, and unpairing. (For one release, plain `GET /agents` stays readable so phones up to 1.0(5) can learn their pin.) Relay traffic counts as remote even though it reaches the server over [loopback](/glossary#loopback). Local callers (CLI, App Intents, same-machine scripts) stay plaintext. A paired phone never sends its key outside the channel.
 
 ### Handshake and calls
 
@@ -92,7 +92,9 @@ sequenceDiagram
     S->>C: encrypted response frame(s) + authenticated finish
 ```
 
-Every encrypted call is a `POST /secure/call` whose ciphertext decrypts to the complete inner HTTP request: method, path, authorization, and body. On the server, the inner request goes through the normal auth gate, agent-scope check, and routing unchanged. Because the channel sits above HTTP, the relay carries opaque frames it can't read.
+Every encrypted call is a `POST /secure/call` whose ciphertext decrypts to the complete inner HTTP request: method, path, authorization, and body. On the server, the inner request goes through the normal auth gate, agent-scope check, and routing unchanged. An inner request that normalizes to `/secure/*` is refused. Because the channel sits above HTTP, the relay carries opaque frames it can't read.
+
+For a paired phone whose Mac has no custom agents, the handshake is signed by the Mac's **connect identity** instead of an agent key (see [Identity internals](/identity-internals)). Handshakes have their own rate limit, separate from pairing. Secure Channel request and response bodies are kept out of the Insights log. If a response can't be sealed, the connection is closed rather than passing it through in plaintext.
 
 For n8n, when the [n8n channel](/agent-channels#n8n) is bound to a local agent, the Osaurus n8n community node pins that agent's address in the handshake and wraps every channel request in `/secure/call`. That lets a remote n8n work through the relay without enabling plaintext HTTP.
 
@@ -100,23 +102,27 @@ For n8n, when the [n8n channel](/agent-channels#n8n) is bound to a local agent, 
 
 | Status | Code | Meaning | What to do |
 |---|---|---|---|
-| `426` | `secure_channel_required` | Plaintext request to a protected agent route from a remote caller | Upgrade Osaurus on the calling side |
+| `426` | `secure_channel_required` | Plaintext request to a protected agent or owner route from a remote caller | Upgrade Osaurus on the calling side. A paired phone never retries in plaintext; with nothing pinned, it asks to pair again. |
 | `401` | `secure_session_unknown` | Session expired or the server restarted | Re-handshake (automatic) |
 | `409` | `secure_replay` | Sequence number already consumed | Never retry the same envelope |
 | `400` | `secure_malformed` | Bad envelope | Fix the request |
+| `404` | `Unknown agent address` | Handshake for an address that isn't an agent here or the connect identity | Drop the stale pin |
+| `503` | `Secure channel identity unavailable, try again` | The connect identity's master key can't be read right now (for example, a locked Keychain) | Keep the pin and retry |
+
+These codes arrive outside the encryption (the handshake's answer, or `/secure/call`'s outer status), so anyone on the path could forge one. Clients treat them only as "this attempt failed", never as proof that an agent was deleted, a key revoked, or a pin stale. Those conclusions come only from inside the channel: an inner `401`, or a roster fetched through another pinned agent that no longer lists the address.
 
 ### Compatibility details
 
 - **Osaurus ↔ Osaurus (current versions):** fully encrypted, automatic.
 - **Osaurus ↔ older Osaurus:** older peers can't execute agents on upgraded peers until they upgrade.
-- **Third-party OpenAI SDK clients:** unaffected. `/models` and metadata routes still accept plaintext; the requirement applies only to Osaurus peer agent-execution routes.
+- **Third-party OpenAI SDK clients:** unaffected. OpenAI-style routes (`/models`, `/chat/completions`, …) still accept plaintext; the requirement applies to agent-execution routes and to owner routes called with a master key.
 - **Local callers:** unaffected; loopback stays plaintext.
 
 ### How it fits the security stack
 
 The Secure Channel works alongside the other layers; it doesn't replace them:
 
-- **Pairing** establishes *who* a peer is and pins the agent address the channel verifies on every handshake. See [Identity](/identity).
+- **Pairing** establishes *who* a peer is (for the phone, a SPAKE2 exchange keyed by the pairing code; between Macs, a sealed key delivery with challenge-response and a server signature) and pins the agent address the channel verifies on every handshake. See [Identity](/identity) and [Mobile](/mobile).
 - **`osk-v1` access keys** still authenticate every call, now inside the ciphertext, with the same scoping and instant revocation.
 - **Storage** protects data at rest; the Secure Channel protects it in motion between agents. See [Storage & Encryption](/storage).
 

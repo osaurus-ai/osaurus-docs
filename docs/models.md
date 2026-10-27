@@ -44,11 +44,11 @@ The Osaurus Cloud list shows your favorites plus the model you're using now. Cli
 
 ### Model options
 
-Some models have extra settings. When you select one, a third **Model options** column appears:
+Some models have extra settings. When you select one, a third column appears. If the model has just one option, the column is named after it (for example **Reasoning Effort**); otherwise it's called **Model options**:
 
 - **Thinking** — **Default**, **On**, or **Off**. Thinking models work through a problem step by step before answering. Their reasoning shows in a separate Think panel in the chat.
-- **Reasoning level** — how hard the model thinks, on models that support it.
-- **Speculative Depth** — a speed-up some models support (see [Under the hood](#speculative-depth)).
+- **Reasoning Effort** — how hard the model thinks, on models that support it. Depending on the model this is simply On and Off, or a ladder from Low to Extra High or Max.
+- **Speculative Decoding** — a speed-up some local models support: **Off (AR)** or **On (Adaptive)** (see [Under the hood](#speculative-decoding)).
 - Any other on/off switches the model offers.
 
 Each option shows your saved choice or the model's default. Click **Reset to default** to undo a change. The card stays open while you choose; click outside it or press Escape to close it.
@@ -66,7 +66,9 @@ Local models run on your Mac using [MLX](/glossary#mlx), Apple's technology for 
 
 Each entry shows the model's name, size in [parameters](/glossary#parameters) (like "4B" for 4 billion), how it was compressed ([quantization](/glossary#quantization), like 4-bit or 8-bit), and how much disk space it needs.
 
-To bring in a model that isn't listed, paste its [Hugging Face](/glossary#hugging-face) web address (or its `org/repo` name) into the search field. Osaurus checks that it can run the model before offering the download.
+To bring in a model that isn't listed, paste its [Hugging Face](/glossary#hugging-face) web address (or its `org/repo` name) into the search field. Osaurus checks that it can run the model before offering the download. If you paste an image model, Osaurus offers it under [Image Models](/image-generation) instead.
+
+The free-space figure on the Models page matches what Finder shows, including space macOS can free up on its own.
 
 ### Your first model
 
@@ -93,7 +95,7 @@ Osaurus keeps its own [collection of tuned models on Hugging Face](https://huggi
 | **Gemma 4 E2B / E4B** (8-bit) | Small models that also understand images, for lower-memory Macs. |
 | **Gemma 4 12B MXFP8** | Google's Gemma, which takes images, video, and audio as well as text. |
 
-**The wider catalog** includes LFM2.5 8B (Liquid AI), Ornith 1.5 9B, Qwen 3.6 models that understand images, reasoning models (Nemotron-3 Nano Omni, ZAYA1, DeepSeek V4 Flash), coding models (Poolside Laguna-XS.2, MiniMax M2.7), Ling-2.6 Flash, Mistral Medium 3.5 and Pixtral, and some very large showcase models (Kimi K2.6, Hunyuan 3, Nemotron-3 Ultra 550B). Each card shows the size, what the model can do, and a **Versions** picker for its compressed variants.
+**The wider catalog** includes LFM2.5 8B and 24B (Liquid AI), Ornith 1.5 9B and 122B, Allosaurus 0.2, Flint 40B, Qwen 3.6 models that understand images, MiniCPM-V 4.7, Nemotron 3.5 Super-VL and Bolt, reasoning models (Nemotron-3 Nano Omni, ZAYA1, DeepSeek V4 Flash and V4.1 Flash), coding models (Poolside Laguna-XS.2, MiniMax M2.7), Ling-2.6 Flash, Mistral Medium 3.5 and Pixtral, and some very large showcase models (Kimi K2.6, Hunyuan 3, Nemotron-3 Ultra 550B). Each card shows the size, what the model can do, and a **Versions** picker for its compressed variants.
 
 **Rule of thumb:** a model's name hints at how it's compressed. Smaller versions use less memory; larger ones give better answers. Pick the `MXFP8` version when your Mac has room, `MXFP4` or `JANGTQ4` as a good middle ground, and the 2-bit `JANGTQ` or low-bit `JANG` versions when memory is tight. The full list of name endings is in [Under the hood](#about-the-quantizations).
 
@@ -106,6 +108,8 @@ On Apple Silicon, models share your Mac's regular memory (RAM). A rough guide:
 - **Mixture-of-experts models** (names like "35B-A3B"): only a small part of the model works on each word, so a 35B model with 3B active behaves closer to a 3B model in day-to-day memory use.
 
 For example, `gemma-4-e2b-it-4bit` (2B, 4-bit) needs about 1.5 GB. Pick a size that leaves room for your other apps and for your [Core Model](/glossary#core-model) (the small helper model Osaurus uses in the background).
+
+Some large models, such as Qwen3.8 Flash-Next and Allosaurus, keep part of their download on your disk and read it only when needed. For those, the memory estimate is smaller than the download size, and the model's details say how much stays on disk.
 
 ### Models that understand images and audio
 
@@ -183,7 +187,7 @@ When you need more power, connect a [provider](/glossary#provider) — a company
 |---|---|
 | **OpenAI** | GPT-4o, o-series, and more — API key or ChatGPT / Codex sign-in |
 | **Anthropic** | The Claude family |
-| **Gemini** | Google Gemini |
+| **Gemini** | Google Gemini, with a control for how hard it reasons |
 | **xAI / Grok** | xAI's Grok — API key or sign-in in your browser |
 | **Mistral** | Mistral models, with a control for how hard they reason |
 | **DeepSeek** | DeepSeek V-series |
@@ -203,7 +207,7 @@ Your agents' memory carries over when you switch. Moving from a local Gemma mode
 
 ## Image models
 
-Osaurus can also run local **image models** (Z-Image Turbo, FLUX.1 Schnell, Qwen-Image, Ideogram) to create and edit pictures fully offline, plus hosted image and video options from Venice and Osaurus Cloud. Download them from **Settings… → Images → Image Models** and set defaults under **Images → Defaults**. [Image & Video Generation →](/image-generation)
+Osaurus can also run local **image models** (Z-Image Turbo, FLUX.1 Schnell, FLUX 3 Image Klein, Qwen-Image 2.1, Ideogram) to create and edit pictures fully offline, upscale them with SeedVR2, plus hosted image and video options from Venice and Osaurus Cloud. Download them from **Settings… → Images → Image Models** and set defaults under **Images → Defaults**. [Image & Video Generation →](/image-generation)
 
 ## Troubleshooting
 
@@ -272,13 +276,17 @@ The **Use this model** button opens a link like `osaurus://open_from_hf?model=<o
 
 Catalog entries list quantizations such as MXFP8, MXFP4, JANGTQ, JANG, 4-bit, and 8-bit. Raptor 0.6 4B is a dense text model with a 1M-token [context window](/glossary#context-window). Ornith 1.5 35B-A3B is a vision-language mixture-of-experts (MoE) model; LFM2.5 8B is an MoE with about 1B active parameters.
 
-### Speculative Depth
+### Speculative decoding {/* #speculative-decoding */}
 
-Models with a supported native MTP (multi-token prediction) head show **Speculative Depth** in the model options: **Off**, **Auto**, **1**, **2**, or **3**. Flash Next starts **Off** across its quantizations; Qwen3.8-27B keeps its depth-3 default. An explicit choice is kept when you switch models or relaunch. Headless bundles (such as Flash Next JANG_1L) don't advertise MTP, and the setting doesn't override your sampling settings. The same global setting is under **Settings… → Server → Settings → Speculative Decoding** and applies to chat and API requests.
+**Speculative Decoding** defaults to **Default**, which resolves from the selected bundle. Qwen Flash-Next bundles with a usable native MTP (multi-token prediction) head start **On (Adaptive)**, including supported affine and JANGH variants. Qwen 27B uses a compatible bundled DFlash 2 drafter automatically when one is present. A bundle without compatible draft support runs ordinary autoregressive (AR) decoding.
+
+The model picker shows **Off (AR)** or **On (Adaptive)** before weights load. The runtime chooses the depth; there are no manual depth buttons, and legacy manual depths migrate to Adaptive. Explicit Off turns speculation off, including bundled and selected external drafters, and survives reload. **Reset to default** restores the bundle's policy.
+
+On is a request, not proof that a particular request uses speculation: unsupported media and schema-constrained requests run AR. **Settings… → Server → Settings → Speculative Decoding** shows the loaded model's actual resolution and the reason. Sampling stays bundle-driven unless you override it. Remote models don't expose this control.
 
 ### Thinking (reasoning) models
 
-Whether a local model supports thinking is detected from its chat template, not hardcoded, so new reasoning families work as soon as you download them. The **Thinking** chip reports the model's true default (some families think unless told not to; others only when asked). Reasoning streams separately from the answer: the Think panel in chat, `reasoning_content` over the API. A few families get tuned defaults (for example, Ling ships with thinking off, with explicit opt-in preserved).
+Whether a local model supports thinking is detected from its chat template, not hardcoded, so new reasoning families work as soon as you download them. When a bundle declares its own reasoning modes (native Off/On, or a list of effort tiers) in any of the supported metadata formats, the picker shows exactly those. The **Thinking** chip reports the model's true default (some families think unless told not to; others only when asked). Reasoning streams separately from the answer: the Think panel in chat, `reasoning_content` over the API. A few families get tuned defaults (for example, Ling ships with thinking off, with explicit opt-in preserved).
 
 #### DeepSeek V4 Flash 0731
 
@@ -291,11 +299,19 @@ DeepSeek V4 Flash bundles have a four-level **Reasoning Mode** in the model's op
 
 Low, High, and Max pass the matching 0731 effort value to the runtime; they aren't aliases for a generic on/off toggle.
 
+#### DeepSeek V4.1 Flash
+
+DeepSeek V4.1 bundles (detected from `model_type` in `config.json`, so renamed bundles still work) offer the full **Reasoning Effort** ladder: Off, Low, Medium, High, Extra High, and Max. Off and its aliases (such as `none`) select the direct-answer rail, and an explicit thinking-off always beats an effort. Over the API, `chat_template_kwargs.enable_thinking` (or `thinking`) and `chat_template_kwargs.reasoning_effort` are honored when the top-level fields are absent. V4.1 bundles take image input and support the dSpark drafter.
+
 Leave [temperature](/glossary#temperature) unset to use the bundle's sampling defaults unless you need deterministic output. An explicit agent or request `temperature: 0` overrides those defaults, forces greedy argmax decoding, and makes `top_p` inert. On long DSV4 reasoning runs, that deterministic path can amplify repetition once the model revisits a prior state.
 
 ### Tool calling
 
-Tool calling works across every family in the catalog. The tool-call parser handles JSON, Qwen XML, Mistral, GLM-4, LFM2, Kimi K2, Gemma 3/4, and MiniMax M2 dialects automatically, so agents don't care which model produced the call.
+Tool calling works across every family in the catalog. The tool-call parser handles JSON, Qwen XML, Mistral, GLM-4, LFM2, Kimi K2, Gemma 3/4, and MiniMax M2 dialects automatically, so agents don't care which model produced the call. Liquid (LFM) models use their native tool format, with full schemas and thinking history preserved.
+
+### Memory estimates
+
+The RAM verdict and "Estimated memory while running" count every production compute weight. For bundles that ship an SSD-resident n-gram embedding table (Qwen4Exp architectures such as Flash-Next and Allosaurus), the table is excluded: the catalog reads its size from the shard headers, and load admission subtracts the same bytes, so the catalog and pre-load check agree. The download size is unchanged.
 
 ### Loaded models and eviction
 

@@ -39,7 +39,7 @@ If you installed the full download, the button on screen 2 reads **Create your D
 - **A model that runs on your Mac (recommended).** Osaurus suggests one on a card marked **Picked for your Mac**. On most Macs that's **Raptor 0.6**. Macs with lots of memory get a bigger pick, and Macs with little memory get the lightest one that fits. Click **Download**, or **Change model** to choose another. You don't have to wait: you can continue while it downloads. A [local model](/glossary#local-model) like this works offline, and nothing you type leaves your Mac.
 - **Osaurus Cloud.** Hosted models paid for with [credits](/glossary#credits). You get a free welcome credit to start. Click **Set up later** to start on [Osaurus Cloud](/glossary#osaurus-cloud) now and decide about a local model later.
 - **An AI company account you already have.** Under **Prefer to connect your AI Provider?**, pick OpenAI, Anthropic, xAI, OpenRouter, or Gemini (**More** lists the rest). Paste your [API key](/glossary#api-key) (a password from that company), or sign in where offered.
-- **Claude Code.** Use your existing Claude Code sign-in.
+- **Claude Code.** Use your existing Claude Code sign-in. Your first agent then runs on the [Claude Code runtime](/harness-runtimes), with Claude Code's own tools.
 - **Custom.** Paste the web address of another compatible AI service, including one running on your own Mac.
 
 You can add more models later in **Settings… → Local Models** or **Settings… → Providers**.

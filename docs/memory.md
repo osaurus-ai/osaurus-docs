@@ -37,7 +37,7 @@ Lasting facts about you. Two kinds:
 
 ### Pinned facts — takeaways worth keeping
 
-Specific facts from past chats that are worth remembering: *"Working on a Tauri-based note app", "Allergic to tree nuts", "Daughter's name is Maya"*. Facts you stop mentioning slowly fade; facts that keep coming up stay sharp. They only appear when they're relevant to what you're asking.
+Specific facts from past chats that are worth remembering: *"Working on a Tauri-based note app", "Allergic to tree nuts", "Daughter's name is Maya"*. Facts you stop mentioning slowly fade; facts that keep coming up stay sharp. They only appear when they're relevant to what you're asking. One-off requests ("read this file and summarize it") aren't saved as facts, so a finished task doesn't come back later as something to redo.
 
 ### Episodes — short chat summaries
 

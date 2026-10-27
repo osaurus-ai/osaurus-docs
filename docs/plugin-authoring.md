@@ -269,6 +269,12 @@ The host API is **append-only**: v2 established the full base set, and v3–v6 e
 | **v5** | `log_structured(level, message, payload)` — emit JSON fields that become searchable in Insights |
 | **v6** | `free_string(ptr)` — a host-owned, allocator-stable free path for strings the host returned |
 
+`complete_cancel` is non-blocking and cancels the active host task directly, even while the stream is still waiting for its first event; it doesn't wait for another delta. Your downstream work must cooperate with task cancellation before cleanup finishes. It's safe to call from `on_chunk`, and if concurrent calls reuse a `stream_id`, cancellation reaches every active call with that ID.
+
+Plugin tool calls follow the shared `ToolRegistry` timeout policy (streaming-aware tools like `shell_run` and `sandbox_exec` keep their own lifecycle instead of a wall-clock cap), and plugin inference has the host bridge's overall 30-minute deadline.
+
+The host validates the plugin's `osr_plugin_api` table before calling `init`: every populated function slot must resolve to a loaded image, or the plugin is rejected with a message naming the bad slots. A struct layout that doesn't match the header fails here instead of crashing the app.
+
 Because a newer slot is `NULL` on an older host, always guard a newer call against `host->version`:
 
 ```c

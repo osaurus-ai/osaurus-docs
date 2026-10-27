@@ -53,14 +53,14 @@ vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server �
 | **Prefix Cache** | Master switch for content-addressed prompt reuse. Turning it off also disables GPU and SSD reuse. |
 | **GPU Cache (Paged KV)** | Optional hot prefix tier in unified memory. Some hybrid cache topologies are not page-compatible. |
 | **SSD Cache (L2) → Disk Cache** | Persists prompt checkpoints across requests and restarts, even when GPU Cache is off. The default path is `~/.osaurus/cache/kv_v2/`; **Disk Cache Directory** overrides it. |
-| **Disk Cache Size (% of disk)** | Shared cap for every model on the cache volume. Blank (or **Use Automatic Cache Size**) means Automatic: 30% of free space plus the cache's own bytes, so a filling cache doesn't shrink its own cap. An explicit percentage uses total disk size, bounded by 25% of free space plus the cache. Saving a size change updates loaded models without unloading them. |
+| **Disk Cache Size (% of disk)** | Shared cap for every model on the cache volume. Blank (or **Use Automatic Cache Size**) means Automatic: 30% of free space plus the cache's own indexed bytes (including companions), so a filling cache doesn't shrink its own cap. An explicit percentage greater than 0 and up to 100 uses total volume size with no 25% or 30% ceiling; it sets a maximum, not a reservation. Settings shows a red advisory when the limit exceeds available space or free space is low, but doesn't reduce your limit. Saving a size change updates loaded models without unloading them. |
 | **Clear SSD Cache** | Removes indexed conversation cache files and reclaims the space. Chats, models, and unrecognized files are left alone. If you've edited **Disk Cache Directory**, save first — Clear stays disabled until the directory change is saved. It still clears the saved directory when Prefix Cache is off. |
 | **KV Retention Override** | Explicit per-session retention cap; blank uses the active Memory Safety profile. This is separate from the model's context maximum. |
 | **On-the-fly Compression** | `Engine Selected` keeps native cache types. TurboQuant is an explicit opt-in and is not forced onto hybrid or companion caches. |
 
 Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory or ownership problem disables the disk tier rather than writing elsewhere. The diagnostics log the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
 
-The cap is root-wide, not per model. Low free space is advisory: Settings shows "Disk space is low. SSD caching remains enabled." rather than switching caching off. Eviction is conversation-aware — the chat's session id is the engine's cache chain, so other chats' snapshots are evicted before the chat in progress, and normal trimming is silent (there is no chat popup about cache capacity). The Context Budget popover's disk-cache row shows used space and the resolved cap, and warns past 75% that older checkpoints may be evicted; **Server → Settings → Live Activity** shows disk-cache hits, stores, usage, and evictions. Saved percentages and legacy GB sizes survive migration.
+The cap is root-wide, not per model. Low free space is advisory: Settings shows a warning rather than switching caching off. SSD seeds survive model reloads, and an edited chat never resumes from a checkpoint of its pre-edit history. Eviction is conversation-aware — the chat's session id is the engine's cache chain, so other chats' snapshots are evicted before the chat in progress, and normal trimming is silent (there is no chat popup about cache capacity). The Context Budget popover's disk-cache row shows used space and the resolved cap, and warns past 75% that older checkpoints may be evicted; **Server → Settings → Live Activity** shows disk-cache hits, stores, usage, and evictions. Saved percentages and legacy GB sizes survive migration.
 
 ### Multi-turn KV cache reuse
 
@@ -93,7 +93,15 @@ Leaving a user default blank is what lets the model value win. An explicit `temp
 
 **Server → Settings → Live Activity → Sampler last used** shows the exact temperature, top-p, top-k, min-p, maximum output, and repetition penalty that ran for each model. Warm-up prefills are excluded so the row describes a real request.
 
-For compatible models, speculative controls include an MTP mode/depth and a validated **DFlash 2** drafter selection. Native MTP starts **Off**: a compatible local model shows **Speculative Depth** (Off, Auto, 1–3) in the chat model picker's options once its configuration and weight headers are inspected — no request or load is needed. The global setting is **Server → Settings → Speculative Decoding**, and it applies to chat and API requests. The runtime may lower the depth or use ordinary decoding when speculation doesn't help. Force On requires verified bundle tuning unless an eligible manual depth is selected in chat; if the bundle can't honor it, the request reports a policy error instead of silently falling back. Changing these controls may reload the model so the next launch plan uses the new speculative path.
+**Server → Settings → Speculative Decoding** has three modes: **Off (AR)**, **Default**, and **On (Adaptive)**. Default is the bundle's family policy: adaptive native MTP for Qwen3.8 Flash-Next, and a Qwen 27B bundle's own `dflash2/` drafter (found from the bundle directory with no folder pick). DeepSeek V4.1 and MiniCPM-V 4.7 bundles can also use a dSpark drafter. The chat picker (and the paired phone) show the per-bundle effective state as **Off (AR)** or **On (Adaptive)** before weights load. The runtime chooses depth; legacy manual depths migrate to Adaptive. Explicit Off disables bundled and external drafters. Drafter requests (DFlash 2 and dSpark) take a solo lease under continuous batching so a second request doesn't silently run without speculation. Schema-constrained and unsupported-media requests run AR for that request only. The settings row shows the loaded model's actual resolution and reason. Changing these controls may reload the model so the next launch plan uses the new path.
+
+### Constrained JSON output
+
+`json_schema` requests (`response_format` on Chat Completions, `text.format` on Responses) pass the schema to a genuine next-token grammar mask in the local runtime. The bundle or request sampler chooses among grammar-allowed tokens; nothing is added to the prompt. Each request gets its own matcher, including cache hits. Success requires natural completion on a grammar-authorized stop token; length exhaustion, cancellation, or incomplete output is a terminal error, never partial JSON. Reasoning envelopes, tool calls, and remote providers are rejected with schemas. See [HTTP API → Structured output](/api#structured-output) for the supported subset.
+
+### Decision models (D3)
+
+D3, D3 Flash, and D3 Turbo bundles are decision backbones, not text generators. They carry a D3 badge, are excluded from chat, agent, and worker pickers, and answer `POST /v1/systemone` ([HTTP API](/api#decision-requests)). Each request loads its own weights under the existing compatibility, shard, memory-safety, and exclusive GPU checks, answers its questions with a cache-free forward pass, then unloads. No KV cache, SSD checkpoint, sampler, reasoning effort, or speculative setting applies.
 
 ## Concurrency
 
@@ -137,6 +145,14 @@ Configurable in **Settings… → Server → Settings → Model Memory → Evict
 | **Unload After** | Shown while Keep Model Loaded is off. **30 seconds** (default), 5 / 15 / 30 minutes, 1 hour, or **Immediately** (unload when the last generation finishes). A timed choice also unloads when the last chat window using the model closes; active requests finish first. |
 
 A 15-minute value saved by older versions (the former default) migrates to 30 seconds once on upgrade; Never, Immediately, and other durations are kept.
+
+### Wired residency and allocator caps
+
+**Server → Memory Safety → Keep Model in Memory** requests GPU residency (wired pages) while a local model is loaded. It's on by default when the model fits the GPU working-set ceiling and the OS reserve. Other apps may slow down because wired pages can't be reclaimed; turning it off lets the OS evict model pages, which can slow replies under memory pressure. Saving reloads the model before its next request. It's independent of **Keep Model Loaded** and the idle timer. A model that doesn't fit still loads in Safe Auto with an advisory; Strict keeps its admission checks.
+
+In **Resolved Plan**, **Load Allocator Cap** is a freed-buffer reuse target during loading; inference uses a separate process-wide target based on loaded models, the execution path, and admitted headroom. **Allocator Cache Cap (MB)** bounds both after reload; blank keeps the profile's load target and runtime-managed inference reuse. This is MLX's soft reuse policy, so it doesn't limit live weights, KV state, or physical RAM. `/admin/cache-stats` reports the selected target at `memory_safety.memory_status.cache_limit` and actual occupancy at `mlx_cached_bytes`.
+
+The RAM gauge uses the same capacity accounting as load and delegation admission. The experimental cold-weight tier setting and its status APIs have been removed.
 
 This is a memory-residency policy only — it unloads weights and runtime buffers, never downloaded models or disk KV-cache entries. Strict single-model eviction, manual unload, app quit, and memory cleanup still win over idle timers. `/health` reports `resident_models[]` with per-model `idle_unload_at` and `idle_seconds_remaining`.
 

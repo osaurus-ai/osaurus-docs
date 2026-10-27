@@ -36,6 +36,7 @@ On purpose, the Orchestrator doesn't do hands-on work. It can't run code, use th
 - *"Give my Planner agent access to Calendar and Reminders."*
 - *"Start my new chats with Coder."*
 - *"Export my setup as a template."*
+- *"Make me an agent from the Cloud Agent template that tracks invoices."* (works with [agent templates](/agent-templates) you've shown to the Orchestrator)
 
 ## Working Folder {/* #working-folder */}
 
@@ -47,7 +48,7 @@ Agents it hands work to that **don't have a Working Folder of their own** work i
 
 ## Handing work to other agents
 
-Every agent you create is automatically added to the Orchestrator's list of **Allowed subagents** (the agents it may hand work to). This happens however the agent was made: in Settings, by copying another agent, by importing one, or by restoring a backup.
+Every agent you create is automatically added to the Orchestrator's list of **Allowed subagents** (the agents it may hand work to). This happens however the agent was made: in Settings, by copying another agent, from a [template](/agent-templates), by importing one, or by restoring a backup. Two exceptions: an [Osaurus Bundle](/bundles) can keep its agents off the list, and agents that run on a [runtime](/harness-runtimes) like Claude Code can't take delegated work yet.
 
 You stay in control of that list:
 
@@ -103,7 +104,13 @@ Delegation uses `spawn_agent`. Several calls in one message run as **one wave** 
 
 ### Allowed-subagents seeding
 
-Every custom-agent creation path adds the new agent to **Allowed subagents**: creating or duplicating an agent in the UI, applying a declarative configuration, importing an agent bundle, or restoring a backup. Existing installs are seeded once. If you later remove an agent from the list, Osaurus preserves that decision; it doesn't refill an intentionally empty list. Shared agents are addressed as `Name@Workspace`.
+Every custom-agent creation path adds the new agent to **Allowed subagents**: creating or duplicating an agent in the UI, applying a declarative configuration or agent template, importing an agent bundle or [Osaurus Bundle](/bundles), or restoring a backup. Existing installs are seeded once. If you later remove an agent from the list, Osaurus preserves that decision; it doesn't refill an intentionally empty list. Shared agents are addressed as `Name@Workspace`.
+
+An agent entry created with `orchestrator_spawnable: false` isn't added. The key is ignored when patching an existing agent, so a user's choice survives bundle updates, and a `delegation.spawnable_agents` list in the same document still wins. Agents on a [harness runtime](/harness-runtimes) are left out of the roster, and `spawn_agent` to one returns a typed error. `spawn_agent` also refuses an agent flagged **Needs setup** while a blocking item remains ([Agent Templates](/agent-templates#setup-checks)).
+
+### Agent templates
+
+`osaurus_config` `templates` lists visible [agent templates](/agent-templates) under `agent_templates`. `plan` / `apply` with `template: "<name>"` bases the new agent on that template, with optional `overrides` for name, description, system prompt, and model. The plan notes "Based on template: X" and reminds you of the template's non-model requirements.
 
 ### Declarative configuration
 

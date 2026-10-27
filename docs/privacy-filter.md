@@ -67,6 +67,18 @@ All of this lives on the **Rules** tab.
 
 New rules added by an update stay off until you turn them on, so an update never surprises you.
 
+**Spoken numbers count too.** Dictation and voice transcripts often write a number said aloud as words ("four one five, five five five, zero one three two"). Runs of seven or more digit words are read as their digits and checked by the same phone, card, preset, and custom rules, so anything flagged when typed is flagged when spoken. Amounts like "four hundred and fifteen" aren't treated as numbers. Email addresses said aloud ("john dot smith at example dot com") are caught the same way, including when speech recognition drops the "dot" in a sentence about email.
+
+## Voice calls from your iPhone
+
+When you start a voice call from the [iPhone app](/mobile) on a cloud model the filter covers, reading reviews aloud would be slow, so the phone asks once at the start, for that call only:
+
+- **Keep reviewing**, as usual.
+- **Auto-accept** every detection: details are hidden with no review, as in [Computer Use](/computer-use).
+- **Turn the filter off** for the call: turns are sent as written.
+
+Your settings don't change. Only the phone you paired can make this choice.
+
 ## Skip the filter for one provider
 
 Once the filter is on, the **Per-Provider** section of the **Filter** tab lets you turn it off for a specific [provider](/glossary#provider). That's handy for a private server you already trust. Providers you haven't changed stay protected. Renaming a provider keeps your choice.
@@ -131,6 +143,8 @@ Both toggles persist synchronously, so quitting right after toggling can't lose 
 | `email` | Standard `local@domain.tld` addresses |
 | `url` | `http(s)://…` URLs with a scheme |
 | `accountNumber` | Luhn-valid credit and debit card numbers |
+
+`SpokenNumberDetector` reads runs of seven or more digit words ("oh" for zero after a digit, "double"/"triple", commas or dashes between groups; a full stop ends the run) as digits, and the phone and card built-ins, presets, and custom rules must match the whole number, with the same toggles and checks (Luhn included). The spoken words get the placeholder. Spoken email addresses (with "dot", "at", "underscore", "dash"/"hyphen") are read when they end in "dot" and a known ending, and judged by the `email` built-in; when "dot" is dropped, a word after "at" ending in com, org, net, edu, or gov counts in a sentence about email. If the name before "at" was said plainly, only the domain is redacted and the name is left to AI detection. On a phone voice call, the call's choice rides on each turn as `osaurus_privacy` and is honored only for the owner over the Secure Channel (a loopback secure session can't turn the filter off).
 
 US Social Security numbers are the `us.ssn` preset rather than a built-in. Existing installs that had account numbers enabled keep SSN detection on through a settings migration.
 

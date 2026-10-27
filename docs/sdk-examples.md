@@ -361,6 +361,34 @@ requests.post(
 
 Distillation flushes immediately at the end of the batch, so the next chat can reference the imported context right away.
 
+### Structured JSON output (local models)
+
+Constrain a local model's reply to a JSON Schema. The model must be in a non-reasoning mode, and the request can't also carry tools. [Supported schemas →](/api#structured-output)
+
+```python
+import json
+
+response = client.chat.completions.create(
+    model="your-local-model",
+    messages=[{"role": "user", "content": "Describe the current task in one sentence."}],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "task_summary",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {"answer": {"type": "string"}},
+                "required": ["answer"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},  # only if the model's template supports it
+)
+print(json.loads(response.choices[0].message.content)["answer"])
+```
+
 ### Embeddings
 
 The built-in on-device embedding model works through the OpenAI SDK:
@@ -427,6 +455,8 @@ client = anthropic.Anthropic(
     api_key="osk-v1.eyJpc3M…",
 )
 ```
+
+The same key is needed from this Mac for `/agents`, `/sessions`, `/mcp/*`, and `/admin/config/*` when **Require Access Key for Local Admin Routes** is on. [Security →](/security#local-access-key)
 
 ## JavaScript/TypeScript Examples
 

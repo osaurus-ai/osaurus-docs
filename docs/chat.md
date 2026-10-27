@@ -31,7 +31,7 @@ If `⌘;` clashes with another app, change it in **Settings… → General → G
 
 The window has tabs across the top and a panel on each side. Show or hide each panel with the buttons at either end of the toolbar, and drag a panel's inner edge to resize it.
 
-- **Tabs.** Like browser tabs, one conversation each. Your open tabs come back after you close the window or restart the app, and each remembers where you'd scrolled to. Right-click a tab to **Stop**, **Open in New Window**, **Rename**, **Pin**, **Move to Project**, **Export**, **Archive**, **Delete**, or **Close Tab**.
+- **Tabs.** Like Safari tabs, one conversation each, in a single strip across the top. Your open tabs come back after you close the window or restart the app, and each remembers where you'd scrolled to. With only one tab open, it reads as the window title. Drag empty space in the strip (or a lone tab) to move the window, and double-click it to zoom or minimize like a title bar; with two or more tabs, dragging a tab reorders it. Right-click a tab to **Stop**, **Open in New Window**, **Rename**, **Pin**, **Move to Project**, **Export**, **Archive**, **Delete**, or **Close Tab**.
 - **Sidebar (left).** Choose what to open. The buttons at the top switch between **Agents** (one row per agent — click to chat, or click the row's **+** for a fresh chat) and **Projects**. The search field narrows the list; for agents, it also finds agents your [workspace](/glossary#workspace) teammates share and agents found on your network. **Settings** is at the bottom.
 - **Inspector (right).** Details about what's on screen. For a chat, switch between **File Changes** (what this chat changed in your files — see [Reviewing file changes](#reviewing-file-changes)) and **History** (past chats with this tab's agent). For a project, it shows Project Settings.
 - **Minimap.** Long chats show a thin strip with one mark per message you sent. Hover over it to see previews, and click one to jump there.
@@ -42,7 +42,7 @@ The window has tabs across the top and a panel on each side. Show or hide each p
 |---|---|
 | **Message box** | Type or paste your message. `Return` sends; `Shift + Return` adds a new line. What you've typed stays there if you switch tabs or agents. |
 | **Folder** | Choose the chat's [Working Folder](/glossary#working-folder), the one folder the agent may work in. See [Working Folder](#working-folder). The **+** menu also lists folders you've used recently. |
-| **Attach** | Add documents (including plain-text files), plus images, audio, or video when the chosen model can understand them. |
+| **Attach** | Add documents (including plain-text files), plus images, audio, or video when the chosen model can understand them. If the model can't take an image you paste or drop, a **Cannot attach** message says why. |
 | **Microphone** | Click to speak your message instead of typing. |
 | **Model** | Choose the AI [model](/glossary#model) for this chat. See [Choosing a model](#choosing-a-model). |
 | **Context Budget** | Shows how full the chat's [context window](/glossary#context-window) is (how much the model can keep in mind at once). Click it for the **Compact conversation** button. |
@@ -53,7 +53,8 @@ Click the model button in the message box. You'll see a **Provider** column and 
 
 - **Favorites.** The Cloud list shows your favorites plus the Cloud model you're using now. New installs start with a few favorites picked for you. Click the star to add or remove one. **More models** opens the full list.
 - **Cloud browser.** Search by model or company, and filter by **Category** or **Context** (how much the model can take in). Models with published prices show their starting price in [credits](/glossary#credits). Choosing a model closes the browser; starring one keeps it open. **Manage Credits** opens your account.
-- **Model options.** Some models add a **Model options** column with choices like **Thinking** (Default, On, Off), how hard to reason, and other switches. Each shows your choice or the model's default, with **Reset to default** if you've changed it.
+- **Model options.** Some models add an options column with choices like **Reasoning Effort** (how hard to think, or simply On and Off), **Speculative Decoding** for some local models (see [Models](/models#speculative-decoding)), and other switches. Each shows your choice or the model's default, with **Reset to default** if you've changed it.
+- **Runtimes.** Next to the providers, each [runtime](/harness-runtimes) such as **Claude Code** has its own column. Picking one hands this agent's chats to that outside program; picking an ordinary model switches it back. The button then shows the runtime's name. You can't switch while a reply is running.
 - **Loading.** Choosing a model on your Mac doesn't load it right away. It loads when you send your first message. The button is gray until the model is loaded, then turns green.
 - **Switching mid-chat.** If you move a chat off a model on your Mac, Osaurus mentions that the next reply has to re-read the whole conversation, so it may take a moment. Switching between cloud models shows no warning.
 
@@ -174,7 +175,7 @@ Two related voice features work outside the chat window:
 
 Replies are nicely formatted, with headings, lists, tables, **bold** and *italic* text, and code with color highlighting. Links are clickable, including links to your [Knowledge](/glossary#knowledge) documents, which open the file. Right-click those for **Open With**, **Show in Finder**, or **Copy Path**.
 
-- **Copy.** Hover over any message to see a copy button.
+- **Copy.** Hover over any message to see a copy button. It copies the reply itself, without the model's thinking.
 - **Stop.** If a reply is going the wrong way, click **Stop**, edit your message, and try again.
 - **Images.** Click a generated picture to see it full screen.
 - **Follow-up suggestions.** Suggested next questions appear under the latest reply. Click one to send it. To turn them off, use **Suggest Follow-Up Questions** in **Settings… → Conversation**. You can also choose a different model for suggestions for each agent.
@@ -191,6 +192,7 @@ Every model can only keep so much of a chat in mind at once (its [context window
 - **Automatic.** When the chat is about 85% full, Osaurus compacts before sending your next message. If that fails, your message stays in the box and you can choose **Retry** or **Send without compacting**.
 - **What you see doesn't change.** Your chat still shows every message. A marker labeled **Older messages summarized** shows where the summary starts; click it to read exactly what the model now sees.
 - **Your latest messages are kept word for word.** Only older parts are summarized.
+- **A full meter never blocks you.** The meter is an estimate. Even when it shows the chat is over the limit, Osaurus still sends your message, and only shows an error if the model itself reports it ran out of room.
 
 To choose which model writes summaries, go to **Settings… → Conversation → Advanced → Compaction Model**. If you leave it unset, the chat's own model does it. If the summary model is a [cloud model](/glossary#cloud-model), your [Privacy Filter](/privacy-filter) settings apply before anything leaves your Mac.
 
@@ -307,7 +309,13 @@ Connectivity drives model availability automatically. An affected chat falls bac
 - **Compact conversation** is available whenever there's an older span to summarize.
 - Automatic compaction triggers before a send at 85% context utilization.
 - The two most recent user exchanges stay verbatim; older turns are replaced by a summary in the model's outbound context. The visible transcript is unchanged.
+- Context estimates (UTF-8 bytes / 4 plus reservations) are advisory only. They drive compaction and the context chip's warning, but the agent loop always performs the model step; a real context-limit error from the runtime propagates through the normal error path.
+- Compaction requests turn reasoning off in a form self-hosted OpenAI-compatible servers read, and ChatGPT (Codex) compaction requests are streamed so they work on those models.
 - The context window itself is **Settings… → Server → Settings → Cache → Context Window Cap**, not a Conversation setting (the Conversation → Advanced row only links to it). The composer's Context Budget popover is read-only.
+
+### Markdown rendering
+
+Code fences longer than three backticks and tilde fences render correctly. A fence labeled with a language renders as a code block even when its content looks like prose; a bare fence around prose stays prose. Channel output neutralizes inner fences inside code blocks.
 
 ### Voice
 

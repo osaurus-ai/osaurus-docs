@@ -25,6 +25,8 @@ Osaurus comes with one agent built in, the [Orchestrator](/glossary#orchestrator
 
 You can also just ask the Orchestrator: *"Create a research agent with web search."* It shows you a plan; approve it and the agent is created. An agent it creates without a chosen model uses the Orchestrator's current model.
 
+To reuse a setup, save an agent as a template, or start from one someone sent you. See [Agent Templates](/agent-templates).
+
 Everything else — description, look, quick prompts, Sandbox settings, schedules — is in the agent's settings, described [below](#the-agent-detail-view).
 
 ### Descriptions
@@ -66,7 +68,7 @@ flag uncertainty, and structure findings into:
 | Where | How |
 |---|---|
 | Inside a chat | Pick an agent in the sidebar's **Agents** list, or press `⇧ ⌘ .` (**Next Agent**). **File → New Window with Agent** opens a window with a specific agent. |
-| In Settings | Each agent card has a **⋯** menu: **Open**, **Duplicate**, **Open Database**, **Delete** |
+| In Settings | Each agent card has a **⋯** menu: **Open**, **Duplicate**, **Save as Template**, **Open Database**, **Delete** (plus **Run Setup** while the agent shows **Needs setup**) |
 | By voice | Turn on Wake Word for the agent and say its name. See [Voice → Wake Word](/voice#wake-word-vad-mode) |
 | Make a copy | **⋯ → Duplicate**. The quickest way to try a variation of an agent you like. |
 | Reorder | Click the reorder button in the Agents header and drag agents into place. The same order is used in the agent picker. |
@@ -147,7 +149,11 @@ Tools are grouped by where they come from:
 
 For each group you can open it to see every tool, turn the whole group on or off at once, and see how many are on. Each tool shows its name, a short description, and roughly how much context it costs. You can search by name or description.
 
-**Skills aren't in the picker.** [Skills](/glossary#skill) (ready-made playbooks) are shared by all your agents. Every installed skill is available to every agent you create, with nothing to switch on. [Skills →](/skills)
+### Which skills an agent can use
+
+[Skills](/glossary#skill) (ready-made playbooks) are shared by all your agents. By default every installed skill is available to every agent you create, with nothing to switch on.
+
+To narrow that, turn on **Limit to selected skills** above the tool picker. Every installed skill starts ticked; click **Choose Skills…** to untick the ones this agent shouldn't use. Only ticked skills reach the agent, including as slash commands. A skill on the list that isn't installed yet shows **not installed** and starts working once you install it. [Skills →](/skills)
 
 ### Auto vs Manual
 
@@ -157,6 +163,10 @@ A switch at the top of the tool picker decides how tools reach the model:
 - **Manual** — The agent gets every tool you've turned on, every time. Predictable, but it uses more context, and skills aren't used in this mode.
 
 Either way, a tool you've switched off in the picker is never offered to the agent.
+
+## Run an agent on Claude Code or Pi
+
+Normally Osaurus runs an agent's chats itself. **General → Configure → Runtime → Runs on** can hand them to an outside agent program instead, such as Claude Code or Pi. You can also switch from the chat's model picker, where each runtime has its own column. The outside program brings its own model and tools, so the agent's Osaurus abilities, memory, and Sandbox don't apply while it's on a runtime. See [Runtimes](/harness-runtimes).
 
 ## Working folders and the Sandbox
 
@@ -197,7 +207,7 @@ The **Abilities → Subagents** tab controls what this agent can hand off:
 - **Browser Use** — use its own private web browser. See [Browser Use](/browser-use).
 - **AppleScript** — automate Mac apps with scripts.
 
-These are all off until you turn them on. Every new agent you create is automatically available to the Orchestrator. Other agents can only hand work to it if you add it to their own allowed list. Deleting an agent removes it from every list.
+These are all off until you turn them on. Every new agent you create is automatically available to the Orchestrator (an [Osaurus Bundle](/bundles) can opt its agents out). Other agents can only hand work to it if you add it to their own allowed list. Deleting an agent removes it from every list.
 
 ## Memory per agent
 
@@ -274,7 +284,7 @@ Each agent has its own [identity](/glossary#identity). You can create [access ke
 
 ## Tips
 
-- **Start from a template.** **Start From** fills in a name, picture, and instructions. Pick the closest one and adjust. Duplicating an agent you like works too.
+- **Start from a template.** **Start From** fills in a name, picture, and instructions. Pick the closest one and adjust. Duplicating an agent you like works too, and [Agent Templates](/agent-templates) carry a whole setup, including tools and services.
 - **Watch the cost estimate.** Each ability takes up some of the model's working memory. **Abilities → Overview** shows how much, so you can keep agents on small models lean.
 - **Match creativity to the job.** Set a low temperature (0.1–0.3) for code and facts, and a high one (0.7–0.9) for creative work. It's in **General → Configure**.
 - **Use colors to stay oriented.** A different theme per agent helps when you have several windows open.
@@ -287,6 +297,7 @@ Each agent has its own [identity](/glossary#identity). You can create [access ke
 - **An ability says it's paused.** The main **Tools** switch is off. Turn it on in **Abilities → Overview**.
 - **The agent can't run code.** It has a Working Folder, which turns the Sandbox off. Clear the folder and turn the Sandbox back on in **Abilities**, or check **Autonomous Execution** in **Abilities → Sandbox**.
 - **An Apple app shows "Permission needed".** Click the badge and allow access when macOS asks.
+- **The agent shows "Needs setup".** It came from a template or bundle that relies on something your Mac doesn't have yet. Choose **⋯ → Run Setup**. See [Agent Templates](/agent-templates#finish-setting-up-an-agent).
 
 ---
 
@@ -299,7 +310,8 @@ An agent is a saved configuration with its own:
 - **Identity** — name, optional one-line description, optional avatar (mascot or initial monogram), and a cryptographic address derived from your master key
 - **Personality** — system prompt, optional default model, optional generation overrides (temperature, max tokens), optional theme that activates when the agent is selected
 - **Abilities** — every capability switch: tools, memory, knowledge, web search, charts, speech, self-scheduling, database, code execution, and Working Folder, with a live estimate of startup context
-- **Tools** — its own enabled tool set, including the built-in Apple Apps, plus the Auto/Manual toggle. Skills aren't scoped per agent.
+- **Tools** — its own enabled tool set, including the built-in Apple Apps, plus the Auto/Manual toggle, and an optional skill allow-list (`agents[].skills` in config: omitted = unchanged, `null` = all, a list = only those)
+- **Runtime** — `builtin` or a registered [harness runtime](/harness-runtimes), plus Claude Code options when it runs on Claude Code
 - **Working Folder** — the one Mac folder the agent works inside, remembered from the chat Folder chip
 - **Memory** — pinned facts, episode digests, and identity overrides, stored per agent
 - **Database** — an optional private, encrypted SQLite database ([Agent DB](/agent-db))
@@ -339,7 +351,7 @@ See [Sandbox Internals](/sandbox).
 
 ### Orchestrator tools
 
-The Orchestrator inspects the app with `osaurus_inspect`, answers product questions from the bundled guide with `osaurus_help`, and applies reviewed desired-state changes with `osaurus_config`. Child artifacts are adopted into the parent conversation. Every custom-agent creation path — the editor, declarative config, duplicate, bundle import, or backup restore — registers the new agent in its allowed subagents; existing installs are seeded once, and an intentionally empty list isn't repopulated. The agent for new chats is the [`new_chat_agent`](/configuration#declarative-configuration) setting.
+The Orchestrator inspects the app with `osaurus_inspect`, answers product questions from the bundled guide with `osaurus_help`, and applies reviewed desired-state changes with `osaurus_config`. Child artifacts are adopted into the parent conversation. Every custom-agent creation path — the editor, declarative config, duplicate, template, bundle import, or backup restore — registers the new agent in its allowed subagents; existing installs are seeded once, and an intentionally empty list isn't repopulated. An agent entry created with `orchestrator_spawnable: false` (used by [Osaurus Bundles](/bundles)) is left out; patching an existing agent ignores the key, and a `delegation.spawnable_agents` list in the same document wins. Agents on a [harness runtime](/harness-runtimes) are left out of the Orchestrator's roster. The agent for new chats is the [`new_chat_agent`](/configuration#declarative-configuration) setting.
 
 ### Sharing internals
 
@@ -347,9 +359,9 @@ The Orchestrator inspects the app with `osaurus_inspect`, answers product questi
 - Revoking an accepted invite kills the receiver's access key immediately; they're turned away on their next request.
 - **Add to Workspace** is disabled for built-in agents.
 
-### Bundles
+### Export bundles
 
-Bundles are `.osaurus-agent` files sealed with your passphrase. Activating one copies the agent into `~/.osaurus/agents/<id>/`, re-keys its database to the local master key, and registers the agent. The manifest shows table and saved-view counts.
+Export bundles are `.osaurus-agent` files sealed with your passphrase (unrelated to [Osaurus Bundles](/bundles), which installers use with `osaurus import`). Activating one copies the agent into `~/.osaurus/agents/<id>/`, re-keys its database to the local master key, and registers the agent. The manifest shows table and saved-view counts.
 
 ### Access keys
 

@@ -162,14 +162,14 @@ The project's language (Swift, Node, Python, Rust, Go) is auto-detected from man
 | Tool | What it does |
 |---|---|
 | `file_read` | Read a file (line ranges, `tail_lines`, and an explicit `max_chars` cap supported) — or point it at a directory to get a listing (skipping obvious noise like `node_modules`). PDF, Word, PowerPoint, and Excel files are extracted to text; PDFs carry `--- Page N of M ---` markers and accept `pages: "3"` or `pages: "3-5"`. `mode: "structure"` lists the paragraphs, cells, slides, or pages `file_edit` can address. |
-| `file_write` | Create, overwrite, or append to a text file — or generate a document by extension: `.docx`/`.pdf` from Markdown or HTML, `.xlsx` from CSV/TSV or JSON rows, `.pptx` from Markdown. Pass `dry_run: true` to preview the diff without writing. |
+| `file_write` | Create, overwrite, or append to a text file — or generate a document by extension: `.docx`/`.pdf` from Markdown or HTML, `.xlsx` from CSV/TSV or JSON rows (cells starting with `=` become formulas; `'=` keeps literal text), `.pptx` from Markdown. No content-length cap. Pass `dry_run: true` to preview the diff without writing. |
 | `file_edit` | Make a precise edit, replace every match with `replace_all`, or apply an atomic `edits` array. Tolerates whitespace and curly-quote drift when the match is unique. Edits existing `.docx`/`.xlsx`/`.pptx`/`.pdf` files in place with `operations`, keeping formatting. Also supports `dry_run` previews. |
 | `file_copy` | Copy one file byte for byte — the binary-safe way to duplicate a document or image. Undoable. |
 | `file_search` | Fast text search across the folder (including inside PDF/Word/PowerPoint/Excel content), or find files by name glob. Results page with `offset`; file listings report a `total` and `next_offset` so the agent can say "350 files" instead of "the first 50". |
 | `detect_pii` | Scan text files for personal information without changing them |
 | `redact_file` | Replace detected values deterministically in one undoable pass |
 | `file_operation_history` / `file_undo` | Review the session's file writes and edits, and revert individual operations |
-| `shell_run` | Run a shell command — for builds, installs, `mv`/`cp`/`rm`/`mkdir` (asks before running) |
+| `shell_run` | Run a shell command — for builds, installs, `mv`/`cp`/`rm`/`mkdir` (asks before running). Uses your login shell's `PATH`, so tools from Homebrew, mise, nvm, fnm, asdf, and similar managers resolve. |
 | `git_status` / `git_diff` / `git_commit` | When the folder is a git repo. `git_commit` asks before running. |
 
 Files under roughly 60,000 characters normally arrive in one read. Larger reads return a bounded continuation with guidance to use search, bulk edit, or redaction tools instead of paging an entire file through the model; automatic continuation is capped so a malformed task cannot loop forever. Line numbers in reads and search results always refer to the file's real lines.

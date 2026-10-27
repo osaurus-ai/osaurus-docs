@@ -97,7 +97,7 @@ Remote Client                    Relay Service                    Your Mac
 
 HTTPS from a remote client terminates at the relay, which then forwards the request over the tunnel. For plain API calls from third-party clients (for example, an OpenAI SDK calling `/v1/chat/completions`), the relay therefore handles the request and response in readable form.
 
-Osaurus peers wrap every agent request in the [Secure Channel](/secure-channel) (`POST /secure/call`), so the relay only forwards ciphertext. Agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) refuse plaintext from any non-loopback caller with `426 Upgrade Required`, and relay traffic is never treated as a trusted local caller even though it arrives over loopback.
+Osaurus peers wrap every agent request in the [Secure Channel](/secure-channel) (`POST /secure/call`), so the relay only forwards ciphertext. Agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`), and every owner route called with a master key, refuse plaintext from any non-loopback caller with `426 Upgrade Required`, and relay traffic is never treated as a trusted local caller even though it arrives over loopback.
 
 ### Security properties
 

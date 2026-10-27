@@ -9,7 +9,9 @@ description: Wire Osaurus into Cursor, Claude Desktop, Codex CLI, Claude Code, C
 Osaurus offers these integration surfaces:
 
 - **MCP server** — connect any MCP client (Cursor, Claude Desktop, custom) to your Osaurus tools
-- **Remote inference providers** — connect Osaurus *to* OpenAI, Anthropic, Claude Code, etc., so your scripts hit one endpoint
+- **Remote inference providers** — connect Osaurus *to* OpenAI, Anthropic, etc., so your scripts hit one endpoint
+- **Runtimes** — run an agent on Claude Code, Pi, or another agent program instead of Osaurus's own loop ([Runtimes](/harness-runtimes))
+- **Osaurus Bundles** — ship Osaurus with your own agents, skills, and MCP servers preinstalled ([Osaurus Bundles](/bundles))
 - **OpenAI/Anthropic/Ollama-compatible APIs** — drop-in for any SDK, including [Codex CLI](#codex-cli)
 - **Shared configuration** — for native macOS apps to discover the local Osaurus instance
 - **The Osaurus iPhone app** — pair your phone to chat with your Mac's agents from anywhere ([Mobile](/mobile))
@@ -108,7 +110,7 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 1. Open **Settings…** (`⌘ ,`)
 2. Navigate to **Providers**
 3. Click **Add Provider**
-4. Choose a preset, **Claude Code**, or configure a custom endpoint
+4. Choose a preset or configure a custom endpoint
 
 ### Supported Presets
 
@@ -119,7 +121,6 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 | **xAI**        | Grok models                                                         |
 | **OpenRouter** | Access multiple providers (Anthropic, Google, etc.) through one API |
 | **Ollama**     | Connect to a local or remote Ollama instance                        |
-| **Claude Code** | Run Claude through your own signed-in Claude Code CLI ([details](/remote-providers#claude-code)) |
 | **Custom**     | Any OpenAI-compatible endpoint                                      |
 
 See [Remote Providers](/remote-providers) for the full preset list, including OpenCode Zen / Go.
@@ -278,7 +279,7 @@ codex --profile osaurus
 
 ### Claude Code
 
-Osaurus can also *use* Claude Code: add **Claude Code** under **Settings… → Providers → Add Provider** and Osaurus drives your own signed-in `claude` CLI, so Claude Pro/Max subscription models appear in the model picker as **Claude Code (Sonnet / Opus / Haiku)**. See [Remote Providers → Claude Code](/remote-providers#claude-code).
+Osaurus can also *run agents on* Claude Code. It's registered as a [runtime](/harness-runtimes) under **Settings… → Agents → Runtimes**: click **Sign In** to use your own signed-in `claude` CLI, then pick **Claude Code** (Sonnet, Opus, or Haiku) in the chat's model picker. The agent's turns then run in Claude Code with its own tools, using your Claude subscription. Pi and Pi-based agent programs can be added the same way. See [Runtimes](/harness-runtimes).
 
 ### Continue.dev (VS Code / JetBrains)
 
@@ -332,7 +333,7 @@ request.httpBody = try JSONSerialization.data(withJSONObject: body)
 let (data, _) = try await URLSession.shared.data(for: request)
 ```
 
-For non-loopback callers, mint an [`osk-v1` access key](/identity#access-keys) from **Settings… → Server → Overview → Access Keys** and pass it as a Bearer token.
+For non-loopback callers, mint an [`osk-v1` access key](/identity#access-keys) from **Settings… → Server → Overview → Access Keys** and pass it as a Bearer token. Local apps need one too for `/agents`, `/sessions`, `/mcp/*`, and `/admin/config/*` when [Require Access Key for Local Admin Routes](/security#local-access-key) is on.
 
 ### iPhone app
 

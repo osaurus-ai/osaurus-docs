@@ -38,6 +38,12 @@ Memory writes are deferred and debounced. Your chat is never blocked on an LLM c
 
 The hot path is one SQL insert plus a debounce arm. Distillation is **one LLM call per session**, not one per turn — so chitchat sessions of 10+ turns produce a single, coherent digest, and many sessions produce zero pinned facts at all.
 
+Before the distillate fans out, it's screened once, so pinned facts, the project mirror, and identity always get the same result:
+
+- A pinned candidate that equals a turn the user typed in that session is the request itself, not a fact, and is dropped (restated facts never match exactly and still pass). This stops one-off instructions from coming back later as "things to remember".
+- Identity "facts" that only say something is missing ("User's name is not specified") are dropped.
+- Sessions from delegated runs, where the "user" turn is really the delegating agent's instruction, are recorded in a `delegated_conversations` side table. Distilling them labels the requester "Delegating agent" and never writes identity facts; the target agent still gets its episode and pinned facts.
+
 If `coreModelIdentifier` is `nil`, [`MemoryService.distillSession`](https://github.com/osaurus-ai/osaurus/blob/main/Packages/OsaurusCore/Services/Memory/MemoryService.swift) logs and exits early — pending signals stay buffered and nothing is distilled into pinned facts or episodes.
 
 ## How reads happen
@@ -182,6 +188,8 @@ The relevance gate already picks the right slice for context injection — `sear
 When VecturaKit + an embedding model are available, search uses hybrid BM25 + vector matching with MMR reranking.
 
 When VecturaKit isn't available (e.g. embedding model not downloaded yet), Osaurus falls back to FTS5 `MATCH` queries against per-table mirror tables — same Unicode-folded tokenization, no extra setup. SQL `LIKE` is the final fallback for inputs that can't be sanitized into a valid FTS query.
+
+Text queries for Memory and Knowledge drop common English function words ("the", "of", "is"), so a question no longer recalls something just by sharing them; a query made only of function words keeps them. Pinned-fact text matches are ranked by relevance before salience. Turns Osaurus writes itself, such as helper reports, don't trigger recall.
 
 ## Storage layout
 

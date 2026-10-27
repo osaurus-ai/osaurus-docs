@@ -55,6 +55,17 @@ Every request to your Osaurus from another app or device carries a digital signa
 
 [Identity →](/identity)
 
+### Require a key from apps on this Mac {/* #local-access-key */}
+
+By default, apps running on your own Mac can reach Osaurus without a key. That's convenient, but it also means any program you run, or a web page open in your browser, could try to read your chats or drive your agents. To close that off:
+
+1. Open **Settings…** (`⌘ ,`) → **Server → Settings → Authentication**.
+2. Turn on **Require Access Key for Local Admin Routes**.
+
+Now apps on this Mac need an [access key](/glossary#access-key) to read chats, run agents, call tools, or change configuration. Chatting with models through the API still works without one. Web pages are refused unless you list their site by name under **Server → Settings → Connection → Allowed Origins (CORS)**, and even then they need a key. Siri and Shortcuts keep working. The change applies right away, with no restart.
+
+If you use `osaurus mcp` with another AI app, or run `osaurus config` or `osaurus import`, give them a key with `--access-key` or the `OSAURUS_API_KEY` environment variable. An [Osaurus Bundle](/bundles) your company installs can turn this setting on for you.
+
 ## When agents run code, they stay contained
 
 When an agent runs code or installs software, it does so in the [Sandbox](/glossary#sandbox), a sealed-off space separate from the rest of your Mac. On macOS 26 and later, that's a small, separate Linux computer running inside your Mac. Each agent gets its own space and can't read the others' files. You can cut off its internet access completely, or allow only specific websites.
@@ -182,6 +193,8 @@ Sandbox runtime artifacts (the GHCR image, the production Kata kernel, vminit, a
 
 ### Hardening details
 
+- **Local access key:** with **Require Access Key for Local Admin Routes** on, loopback callers must present a valid `osk-v1` key on `/sessions`, `/agents`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*` (with or without `/v1`). Requests with a browser `Origin` get `403 browser_origin_refused` there unless the origin is listed by name (`*` doesn't count), and those routes lose loopback's automatic `*` CORS. Master keys keep their local behavior; agent-scoped keys are confined as for remote callers. App Intents use a per-launch in-process token, and [runtime](/harness-runtimes) tokens still reach `/mcp/*`. The setting is read per request. A bundle turning it off, or adding an origin, is high risk and needs `--yes`.
+- **Owner routes need the Secure Channel remotely:** a remote caller presenting an owner (master-scoped) key gets `426 Upgrade Required` on every owner route, reads included, unless it uses the [Secure Channel](/secure-channel).
 - **Pre-auth body limits:** `/pair` is capped at 64 KiB, other public routes at 32 MiB, the sandbox bridge at 8 MiB. Oversized requests get `413` *before* the auth gate, so an unauthenticated client can't exhaust host memory.
 - **Credential redaction:** issued `osk-v1` keys, `Bearer` headers, `sk-…` keys, JWTs, and API-key headers are redacted before anything is written to the activity log.
 - **Secret containment:** when an agent stores a credential with `sandbox_secret_set`, execution gets the real value but every recorded surface gets a redacted copy: chat and HTTP run history, plugin events, approval prompts, debug logs, Insights, and provider wire snapshots. Malformed secret payloads fail closed to a redacted stub, and known secret values are scrubbed from command output.

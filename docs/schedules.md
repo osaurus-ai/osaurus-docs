@@ -130,7 +130,7 @@ After a schedule runs, you can see exactly what happened:
 
 The full conversation opens — your instructions, the agent's reply, and any tools it used.
 
-Each run is also saved as a chat with a **schedule** badge in the chat sidebar. Filter the sidebar by source to see all your scheduled runs in one place.
+Each run is also saved as its own new chat with a **schedule** badge in the chat sidebar, so one run's conversation never carries into the next. The sidebar groups runs under their schedule; filter it by source to see all your scheduled runs in one place.
 
 ## Example schedules
 
@@ -208,7 +208,7 @@ If Osaurus wasn't open at the scheduled time:
 - **Cron syntax:** **Cron Expression** accepts standard cron syntax, for example `0 9 * * 1-5` for 9:00 AM on weekdays.
 - **Missed runs:** missed slots collapse into a single catch-up run on the next launch.
 - **File access:** a run with a **Working Directory** (or an inherited Working Folder) gets host file access to that folder, even when the agent normally runs with the [sandbox](/sandbox) on.
-- **Chat tagging:** each run is saved as a chat session tagged `schedule`.
+- **Chat tagging:** each run is saved as a new chat session tagged `schedule`. The schedule's session key only groups runs in the sidebar; it never reattaches a run to an earlier chat.
 - **Capability selection:** tools and skills are auto-selected per run from the instructions; Insights records which capabilities loaded and which tool calls ran.
 
 ---

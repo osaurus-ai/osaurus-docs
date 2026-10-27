@@ -12,7 +12,7 @@ New to AI apps, or just ran into a word you don't recognize? This page explains 
 
 ### Access key {/* #access-key */}
 
-A password-like code that lets another app or device use your Osaurus. You create it, you can see when it was last used, and you can revoke it anytime. Access keys start with `osk-v1`.
+A password-like code that lets another app or device use your Osaurus. You create it, you can see when it was last used, and you can revoke it anytime. Access keys start with `osk-v1`. Apps on your own Mac don't need one unless you turn on [Require Access Key for Local Admin Routes](/security#local-access-key).
 
 ### Activity log {/* #activity-log */}
 
@@ -21,6 +21,10 @@ The private record Osaurus keeps on your Mac of what happened: which models ran,
 ### Agent {/* #agent */}
 
 A saved assistant with its own name, instructions, model, and abilities. You might have one agent for writing, one for coding, and one for research. See [Agents](/agents).
+
+### Agent template {/* #agent-template */}
+
+A reusable starting point for a new agent: its instructions, model, tools, and settings, without your chats or memory. You can save any agent as a template, share it as a file, and build new agents from it. See [Agent Templates](/agent-templates).
 
 ### API {/* #api */}
 
@@ -154,6 +158,10 @@ The built-in agent every new chat starts with. It answers questions, helps set u
 
 The label for hosted models in the model picker. They run through [Osaurus Router](#osaurus-router) and are paid for with [credits](#credits).
 
+### Osaurus Bundle {/* #osaurus-bundle */}
+
+*(technical)* A folder a company's installer ships so Osaurus starts with their agents, skills, and tool connections already set up. It's installed with `osaurus import`. Not the same as the `.osaurus-agent` file you get from an agent's **Export Bundle**. See [Osaurus Bundles](/bundles).
+
 ### Osaurus Router {/* #osaurus-router */}
 
 Osaurus's hosted service for cloud models, credits, and team billing. It means you can use cloud models without signing up with each AI company. See [Osaurus Router](/osaurus-router).
@@ -204,6 +212,10 @@ Shrinking a model so it uses less memory and disk space, written like "4-bit" or
 
 Osaurus's servers that pass traffic between your Mac and the outside world, so your phone or a teammate can reach your agents. For Osaurus-to-Osaurus traffic, the relay only sees [encrypted](#end-to-end-encryption) data.
 
+### Runtime {/* #runtime */}
+
+The program that actually runs an agent's turns. By default that's Osaurus's own loop. You can instead run an agent on an outside agent program, like Claude Code or Pi, which brings its own tools. See [Runtimes](/harness-runtimes).
+
 ### Sandbox {/* #sandbox */}
 
 A sealed-off workspace where an agent can run code and install software without touching the rest of your Mac. See [Sandbox](/sandbox).
@@ -215,6 +227,10 @@ The encrypted connection Osaurus sets up automatically between your Mac and your
 ### Skill {/* #skill */}
 
 A ready-made playbook that teaches agents how to do a kind of task, like research or working with calendars. Agents load the right skill when it's needed. See [Skills](/skills).
+
+### Speculative decoding {/* #speculative-decoding */}
+
+*(technical)* A way to make a local model reply faster: it guesses several words ahead, then checks them all at once, keeping the ones that are right. The answer is the same; only the speed changes. In Osaurus it's **Off (AR)** or **On (Adaptive)** in the model picker. See [Models](/models#speculative-decoding).
 
 ### Subagent {/* #subagent */}
 

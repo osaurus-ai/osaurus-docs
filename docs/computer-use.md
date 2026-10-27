@@ -150,7 +150,7 @@ If no chat window is open (for example, a headless dispatch), a gated action end
 
 ### Cloud vision masking
 
-Screenshot redaction runs Vision OCR on-device. In the default mode, every recognized text region is painted over. With **Mask only detected sensitive text** on, only regions matching the Privacy Filter's detectors and the on-device classifier are masked. The cloud route only accepts an already-scrubbed frame, and requires consent.
+Screenshot redaction runs Vision OCR on-device. In the default mode, every recognized text region is painted over. With **Mask only detected sensitive text** on, only regions matching the Privacy Filter's detectors and the on-device classifier are masked. The cloud route only accepts an already-scrubbed frame, and requires consent. If scrubbing fails, the failure is reported and the screenshot isn't attached for a cloud model.
 
 ### Run limits
 

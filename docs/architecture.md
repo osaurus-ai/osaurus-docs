@@ -96,11 +96,11 @@ The chat window is also where voice input lives: the microphone in the input bar
 
 ### Settings
 
-`⌘ ,`. The sidebar groups **General** (General, Conversation, Voice, Themes, Credits, Workspaces, Mobile, Identity, Permissions, Privacy), **Models** (Local Models, Providers, Images), **Agents** (Orchestrator, Agents, Channels), **Capabilities** (Web Search, Knowledge, Memory, Tools & MCP, Skills, Commands), **Automation** (Schedules, Watchers, Computer Use, Browser Use), and a collapsible **Developer Tools** section (Server, Sandbox, Insights). Native plugins and MCP connections live inside Tools & MCP; Claude plugin bundles live inside Skills. [Workspaces](/workspaces) connect you with teammates' shared agents, and [Mobile](/mobile) pairs the Osaurus iPhone app.
+`⌘ ,`. The sidebar groups **General** (General, Conversation, Voice, Themes, Credits, Workspaces, Mobile, Identity, Permissions, Privacy), **Models** (Local Models, Providers, Images), **Agents** (Orchestrator, Agents with its Templates and Runtimes pages, Channels), **Capabilities** (Web Search, Knowledge, Memory, Tools & MCP, Skills, Commands), **Automation** (Schedules, Watchers, Computer Use, Browser Use), and a collapsible **Developer Tools** section (Server, Sandbox, Insights). Native plugins and MCP connections live inside Tools & MCP; Claude plugin bundles live inside Skills. [Workspaces](/workspaces) connect you with teammates' shared agents, and [Mobile](/mobile) pairs the Osaurus iPhone app.
 
 ### HTTP API
 
-A local server on port 1337 (configurable). Speaks OpenAI Chat Completions, Anthropic Messages, Open Responses, and Ollama Chat APIs side by side, plus MCP endpoints, media generation, agent runs, Memory, pairing, and loopback-only declarative configuration under `/admin/config/*`.
+A local server on port 1337 (configurable). Speaks OpenAI Chat Completions, Anthropic Messages, Open Responses, and Ollama Chat APIs side by side, plus MCP endpoints, media generation, [D3 decision requests](/api#decision-requests), agent runs, Memory, pairing, loopback-only declarative configuration under `/admin/config/*`, and the [`osaurus import`](/bundles) back end. An opt-in [local access key](/security#local-access-key) can require keys from callers on this Mac too.
 
 ## Harness
 
@@ -110,6 +110,8 @@ The harness is what makes Osaurus more than a thin SDK shim:
 - **Memory** — persistent on-device memory with four layers (identity, pinned facts, episodes, and the raw transcript, which is read only for literal recall or as a search fallback). Distillation runs once per session, gated on a configured Core Model.
 - **Skills & Methods** — reusable capabilities. [Skills](/skills) are markdown packages of expertise; [Methods](/methods) are scored YAML workflows the agent saved from past runs. Both are discovered and loaded on demand via `capabilities_discover` / `capabilities_load`.
 - **Schedules & Watchers** — automation. Schedules run on a clock; watchers react to file system changes via FSEvents.
+- **Runtimes** — an agent can run on an external harness instead of the built-in loop. `HarnessRuntimeStore` holds the registered runtimes (Claude Code is seeded on first launch; Pi RPC programs are user-added), and each chat gets its own long-running harness process with a scoped agent token for calling back into Osaurus. [Runtimes →](/harness-runtimes)
+- **Templates and bundles** — [agent templates](/agent-templates) are portable, optionally signed agent definitions stored in `~/.osaurus/template-library/`; [Osaurus Bundles](/bundles) let an installer provision agents, skills, MCP servers, and runtimes through `osaurus import`, applied through the same declarative configuration engine.
 
 Plugins, schedules, watchers, and the HTTP API all dispatch through the same agent loop — same engine, same loop tools, same intercepts. Sessions are tagged with their source (such as `chat`, `plugin`, `http`, `channel`, `schedule`, `watcher`, `imported`, or `delegation`) so you can audit what spawned each conversation in the chat sidebar.
 
@@ -134,7 +136,7 @@ An append-only host ABI for native plugins, **v1 through v6**:
 
 Formerly-plugin capabilities like [web search](/web-search) and [browser use](/browser-use) are native built-ins now — no plugin install needed.
 
-Plus **remote MCP providers** to aggregate tools from external MCP servers, and the **Sandbox** for safe code execution (a Linux VM on macOS 26+, a Seatbelt-confined host runner on macOS 15). The sandbox itself accepts JSON-recipe plugins so users can extend an agent's capabilities without compiling anything.
+Plus **remote MCP providers** to aggregate tools from external MCP servers (with elicitation, progress, and annotation-driven default approvals; `ExternalMCPToolPolicy` deny lists still apply on top), and the **Sandbox** for safe code execution (a Linux VM on macOS 26+, a Seatbelt-confined host runner on macOS 15). The sandbox itself accepts JSON-recipe plugins so users can extend an agent's capabilities without compiling anything.
 
 Every tool — built-in, folder, sandbox, plugin, MCP-aggregated — returns the same canonical [Tool Contract](/tool-contract) envelope.
 

@@ -57,7 +57,7 @@ delegation:
   budget_max_seconds: 900
 ```
 
-Documents can manage `memory`, `default_agent`, `new_chat_agent`, custom `agents`, `tools`, `delegation`, slash `commands`, `knowledge_collections`, `channels`, `mcp_servers`, local `models`, native `plugins`, cloud `providers`, `search_providers`, `schedules`, and `watchers`.
+Documents can manage `memory`, `harness_runtimes`, `default_agent`, `new_chat_agent`, custom `agents`, `tools`, `delegation`, slash `commands`, `knowledge_collections`, `channels`, `mcp_servers`, local `models`, native `plugins`, cloud `providers`, `search_providers`, `schedules`, and `watchers`.
 
 A few sections worth knowing:
 
@@ -66,9 +66,14 @@ A few sections worth knowing:
 | `new_chat_agent` | The agent new chats open with: `default` (the Orchestrator) or a custom agent's name. The older `active_agent` name is still accepted. |
 | `agents[].model` | `null` inherits the Orchestrator's model |
 | `agents[].capabilities` | Ability switches, including `image_enabled`, `applescript_enabled`, `browser_use_enabled`, `computer_use_enabled`, and `apple_apps` — a list from `calendar`, `reminders`, `contacts`, `notes`, `mail`, `messages`, `maps`, `music`, `shortcuts` that replaces the agent's set |
+| `agents[].skills` | The agent's skill allow-list: omit to leave it unchanged, `null` for every installed skill, or a list of skill names or slugs (`[]` means none). Only listed skills appear in the agent's prompt, `capabilities_load`, and slash commands. |
+| `agents[].tools` | With `mode: manual`, the exact tool list. Exports list a fully selected plugin or MCP server under `plugins` / `mcp_servers`, and a partly selected one as exact names under `tools.enabled`. |
+| `agents[].runtime`, `agents[].claude_code` | Which [runtime](/harness-runtimes) the agent runs on, and its Claude Code options. Also on `default_agent`, which adds `claude_code.allow_osaurus_config_writes`. |
+| `agents[].orchestrator_spawnable` | `false` keeps a newly created agent out of the Orchestrator's allowed subagents. Ignored when patching an existing agent; a `delegation.spawnable_agents` list in the same document wins. |
+| `harness_runtimes` | External agent runtimes: `name`, `kind` (`claude_code` or `pi_rpc`; required to add, fixed after), `executable`, `arguments` (`{chat_id}`, `{agent_id}`, `{cwd}`, `{system_prompt_file}` are filled per launch), and `environment` (plain values, never secrets). [Runtimes →](/harness-runtimes) |
 | `delegation` | The Orchestrator's allowed subagents (`spawnable_agents`, `spawnable_workspace_agents`), `workspace_auto_join` (set a workspace to `false` to stop its shared agents joining automatically), `permission_defaults` (`spawn`, `spawn_workspace`: `ask` / `deny` / `always_allow`), worker limits (`budget_max_tokens`, `budget_max_turns`, `budget_max_seconds`), and the [local-model memory settings](/subagents#local-models-and-memory) (`local_text_enabled`, `ram_safety_preflight`) |
 
-Working folders and the per-agent model override aren't part of the document; set them in the app. [Apple Apps →](/apple-apps) · [Subagents →](/subagents)
+Working folders and the per-agent model override aren't part of the document; set them in the app. In chat, the Orchestrator can also create an agent from an [agent template](/agent-templates) shown to it, with `template: "<name>"` and `overrides` (`name`, `description`, `system_prompt`, `model`). To install agents, skills, MCP servers, and runtimes from a vendor's installer, see [Osaurus Bundles](/bundles). [Apple Apps →](/apple-apps) · [Subagents →](/subagents)
 
 ### Semantics and safety
 
@@ -77,7 +82,7 @@ Working folders and the per-agent model override aren't part of the document; se
 - **Plan is read-only.** Only `apply` mutates state.
 - **Prune is an explicit argument**, not a document key. It deletes unlisted entries only in sections present in the document and refuses broken cross-references.
 - **Validation is all-or-nothing.** Unknown keys, bad values, and invalid references stop the whole document before changes begin.
-- **High-risk changes need an extra confirmation.** Examples include prune deletions, browser or Computer Use grants, relay exposure, channel writes, new or stdio MCP endpoints, automatic tool policies, and looser delegation permissions.
+- **High-risk changes need an extra confirmation.** Examples include prune deletions, browser or Computer Use grants, relay exposure, channel writes, new or stdio MCP endpoints, runtime commands and environments, moving an agent onto a runtime, Claude Code shell or configuration-change permission, automatic tool policies, and looser delegation permissions.
 - Documents are capped at 512 KiB.
 
 ### Secrets
@@ -88,7 +93,7 @@ Exports never include secrets or reveal whether a credential exists. Documents a
 - `keychain:SERVICE/ACCOUNT`
 - `set_api_key: true` to open the native credential sheet during apply
 
-Provider `api_key_ref`, MCP `token_ref`/`secret_env_refs`, and channel `bot_token_ref` resolve only at apply time. OAuth, device pairing, macOS permission grants (including the Apple app permission prompts), folder pickers, destructive resets, payment, server runtime, app appearance, voice, sandbox resources, privacy filtering, and image targets remain interactive Settings work by design.
+Provider `api_key_ref`, MCP `token_ref` (HTTP bearer token), `secret_header_refs` (HTTP custom headers such as `X-API-Key`, header name → reference), and `secret_env_refs` (stdio environment), and channel `bot_token_ref` resolve only at apply time. OAuth, device pairing, macOS permission grants (including the Apple app permission prompts), folder pickers, destructive resets, payment, server runtime, app appearance, voice, sandbox resources, privacy filtering, and image targets remain interactive Settings work by design.
 
 ### CLI workflow
 
@@ -103,7 +108,7 @@ osaurus config plan osaurus-config.yaml --prune
 osaurus config apply osaurus-config.yaml --prune --yes
 ```
 
-`apply` exits `0` when fully converged, `1` when a change fails or is cancelled, and `3` when changes applied but an interactive step such as credential entry remains.
+`apply` exits `0` when fully converged, `1` when a change fails or is cancelled, and `3` when changes applied but an interactive step such as credential entry remains. With **Require Access Key for Local Admin Routes** on, pass `--access-key KEY` or set `OSAURUS_API_KEY`.
 
 [Orchestrator →](/orchestrator) · [CLI reference →](/cli#osaurus-config) · [HTTP endpoints →](/api#declarative-configuration)
 
@@ -113,6 +118,7 @@ osaurus config apply osaurus-config.yaml --prune --yes
 |---|---|---|
 | `OSU_PORT` | Server port number | `1337` |
 | `OSU_MODELS_DIR` | Custom MLX models directory | `~/MLXModels` |
+| `OSAURUS_API_KEY` | Access key the CLI sends for `osaurus config`, `osaurus import`, and `osaurus mcp` | none |
 
 ```bash
 # Persistent (shell profile)
@@ -178,11 +184,15 @@ Memory is on by default, with ten settings. Edit them in **Settings… → Memor
 |---|---|---|
 | Model Memory | **Eviction Policy** | `Strict (One Model)` keeps one model loaded (default); `Flexible (Multi Model)` allows concurrent models for high-RAM systems |
 | Model Memory | **Keep Model Loaded** / **Unload After** | Off by default: a model unloads 30 seconds after its last request (or when the last chat window using it closes). Pick 5, 15, or 30 minutes, 1 hour, or Immediately instead — or turn on **Keep Model Loaded** to never unload. |
+| Memory Safety | **Keep Model in Memory** | Keeps a loaded model's weights wired in GPU memory. On by default when the model fits; other apps may slow down. Turning it off lets macOS evict model pages. Doesn't change **Keep Model Loaded**. |
+| Memory Safety | **Allocator Cache Cap (MB)** | Bounds MLX's freed-buffer reuse pool after reload. Blank keeps the profile's targets. Doesn't limit model weights or KV state. |
 | Sampling Defaults | | Optional temperature, top-p, top-k, min-p, repetition penalty, and max-token defaults. Blank fields defer to the model bundle. |
-| Cache | **Disk Cache Size (% of disk)** | Blank is Automatic: 30% of free space plus the cache's own bytes. An explicit percentage uses total disk size, bounded by 25% of free space plus the cache. |
+| Speculative Decoding | | **Default** follows the loaded bundle; shows the actual resolution and reason. [Speculative decoding →](/models#speculative-decoding) |
+| Cache | **Disk Cache Size (% of disk)** | Blank is Automatic: 30% of free space plus the cache's own bytes. An explicit percentage (above 0, up to 100) uses total disk size with no other ceiling; it's a maximum, not a reservation, and a red advisory appears when it exceeds available space. |
 | Cache | **Clear SSD Cache** | Safely remove reusable KV checkpoints and reclaim the cache volume |
 | Cache | **Context Window Cap** | Lower every model's chat context window |
 | Connection | **Allowed Origins (CORS)** | For browser apps only; loopback is always allowed. `*` allows any origin, otherwise a comma-separated list. |
+| Authentication | **Require Access Key for Local Admin Routes** | Off by default. When on, callers on this Mac need an access key for `/sessions`, `/agents`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*`. Takes effect on the next request. [Security →](/security#local-access-key) |
 
 Sampler precedence is request/agent → your Sampling Defaults → model bundle → engine. **Live Activity → Sampler last used** reports what actually ran. [Inference Runtime details →](/inference-runtime#sampling-and-speculative-decoding)
 

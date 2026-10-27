@@ -96,6 +96,7 @@ If a specialist won't fit, Osaurus says so **before** unloading anything, so you
 - **A specialist stopped before finishing.** It hit a limit. Raise **Max turns per subagent**, **Time limit per subagent (seconds)**, or **Max output tokens per subagent**.
 - **I keep getting asked before a teammate's agent runs.** Change **Permission for shared (workspace) agents** to **Always Allow**.
 - **"Not enough memory" for a specialist.** Use the same model as the main agent, a smaller model, or a cloud model.
+- **An agent can't be handed work.** Agents that run on a [runtime](/harness-runtimes) like Claude Code can't take delegated work yet. Agents showing **Needs setup** are refused until you finish their setup ([Agent Templates](/agent-templates#finish-setting-up-an-agent)).
 
 ---
 
@@ -125,7 +126,7 @@ Media and automation capabilities use the same machinery: `image`, `video`, `com
 
 ### Model residency
 
-- **Check memory before delegating** checks available memory and each worker's working-memory cost before anything loads, and splits or refuses a wave when needed.
+- **Check memory before delegating** checks available memory and each worker's working-memory cost before anything loads, and splits or refuses a wave when needed. The estimate counts every production compute weight a model loads, and the RAM gauge uses the same capacity accounting.
 - A memory check refuses before evicting anything: if a worker won't fit, the parent's model stays loaded and the agent reports the shortfall.
 - Workers on different local models run in sequence so loads never race; cloud workers overlap freely.
 - The same swap setting governs local image jobs and context compaction that use a different local model.

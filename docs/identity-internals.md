@@ -136,6 +136,21 @@ The distinct domain prefixes (`osaurus-agent-v1` / `osaurus-agent-v2`) prevent c
 
 No wire format carries an index or scope — `osk-v1` keys, invites, workspace rosters, relay auth frames, and Secure Channel hellos all pin an *address + signature*.
 
+### Connect identity
+
+Each Mac also derives one **connect identity** for its paired phone:
+
+```
+HMAC-SHA512(
+    key:  masterKey,
+    data: "osaurus-connect-v1" || utf8(deviceId) || 0x00   // empty deviceId without one
+)
+    → first 32 bytes of HMAC output
+    → same address derivation as master key
+```
+
+It isn't an agent key and isn't stored on any agent. It exists so a phone paired to a Mac with no custom agents still has an address to pin, since the built-in Default agent has none; the pairing payload carries it under the built-in agent only in that case. Only `POST /secure/session` accepts it; the relay, Bonjour, access keys, and invites never see it. Its own domain prefix keeps it apart from every agent key at every index. Once read, its address is cached so handshakes for other addresses skip the Keychain; when the master key can't be read, handshakes get `503` rather than a pin-dropping `404`.
+
 Agent keys are **never persisted**. They are re-derived from the master key whenever a signature is needed, which requires biometric authentication to access the master key. The derived `agentAddress` is persisted on the `Agent` model so it can be displayed without triggering biometric prompts.
 
 ### Device key
@@ -368,6 +383,8 @@ Access keys bridge the gap between hardware-bound internal identity and the need
 5. The key is **HPKE-sealed** to the connector's ephemeral public key, and the response is signed by the host with the `Osaurus Signed Pairing Server` domain prefix so the connector can verify the host's identity. (A plaintext `apiKey` is only returned for legacy clients that omit `encPub`.)
 6. The response body containing the new key is sent on the wire but **never persisted to the request log** — `InsightsService` redacts both `apiKey` JSON values and `Bearer osk-…` headers as defense-in-depth across all logged bodies
 
+The iPhone app pairs differently, through **Settings… → Mobile**: a SPAKE2 (RFC 9382) exchange over secp256k1 keyed by the 6-digit code (`POST /pair/code`, then `POST /pair/confirm`), so the code never travels and a swapped share fails confirmation. The phone's key covers every agent on the Mac. [Mobile →](/mobile#under-the-hood)
+
 Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. The Settings… → Server pane labels them as **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."*
 
 ### Owner redeem (same identity, another device)
@@ -421,6 +438,8 @@ The address-based design naturally extends to agent-to-agent communication acros
 |---|---|
 | `MasterKey.swift` | Generate, store, read, sign with the secp256k1 master key in iCloud Keychain |
 | `AgentKey.swift` | Deterministic child key derivation (HMAC-SHA512, v1 master-global and v2 device-scoped), `AgentKeyPath`, and signing for per-agent identities |
+| `MobileConnectIdentity.swift` | The Mac's connect identity for the paired phone (`osaurus-connect-v1`) |
+| `PairingSPAKE2.swift` | SPAKE2 pairing exchange with the iPhone app |
 | `IdentityHealthCheck.swift` | Classifies persisted derivatives as healthy / mismatched / recoverable-scope against the current master |
 | `OwnerDeviceAccessHost.swift` | `owner_redeem` on `/pair-invite`: challenge table, master-signature verification, built-in guard, key mint + HPKE seal, per-device key records |
 | `DeviceKey.swift` | App Attest key generation, attestation, assertion, and software fallback |

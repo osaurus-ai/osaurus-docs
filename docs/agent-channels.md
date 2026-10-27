@@ -51,6 +51,12 @@ Each channel conversation is an ordinary chat in Osaurus. The first message open
 
 To bring each new conversation to the front instead, turn on **Settings… → Channels → Incoming → Focus Chat on Incoming Messages** (off by default). That's useful on a Mac you keep an eye on just for this.
 
+If someone sends another message while the agent is still replying, it isn't dropped. The agent takes it into the reply it's working on, at its next step, or answers it right after. If the follow-up can't run, the sender is told.
+
+### Slack messages sent through apps
+
+Slack marks messages posted through an app or the API with that app's bot ID, even when you post with your own user token, so Osaurus ignores them as bot messages. To let them through, open **Settings… → Channels → Slack → Reply to incoming messages** and turn on **Accept Messages Sent Through Apps** (off by default). This is useful for, say, a phone shortcut that calls `chat.postMessage`. Only messages whose author is on the sender allowlist are accepted, but any app you've authorized to post as you can then reach the agent. Other bots stay blocked.
+
 ### Checking it works
 
 The **Test** section shows whether the connection is healthy and what happened to recent messages. If a message was turned away, it says why, for example: the sender isn't allowed, the chat isn't one the agent may read, or the app sent the same message twice.

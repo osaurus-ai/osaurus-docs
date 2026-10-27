@@ -29,6 +29,8 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "chat", label: "Chat" },
         { type: "doc", id: "orchestrator", label: "Orchestrator" },
         { type: "doc", id: "agents", label: "Agents" },
+        { type: "doc", id: "agent-templates", label: "Agent Templates" },
+        { type: "doc", id: "harness-runtimes", label: "Runtimes" },
         { type: "doc", id: "projects", label: "Projects" },
         { type: "doc", id: "agent-loop", label: "Tasks" },
         { type: "doc", id: "subagents", label: "Subagents" },
@@ -127,6 +129,7 @@ const sidebars: SidebarsConfig = {
           collapsed: true,
           items: [
             { type: "doc", id: "configuration", label: "Configuration" },
+            { type: "doc", id: "bundles", label: "Osaurus Bundles" },
             { type: "doc", id: "global-proxy", label: "Global Proxy" },
             { type: "doc", id: "storage", label: "Storage & Encryption" },
           ],

@@ -74,6 +74,13 @@ Override the port with the `OSU_PORT` environment variable.
 
 See [Image & Video Generation](/image-generation) for model setup, consent, and examples.
 
+### Decision endpoints
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/v1/systemone` | POST | Ask a [D3 decision model](#decision-requests) typed questions about a state |
+| `/v1/systemone/models` | GET | List exposed installed decision bundles |
+
 ### Declarative configuration
 
 These routes are intentionally loopback-only:
@@ -84,6 +91,7 @@ These routes are intentionally loopback-only:
 | `/admin/config/schema?format=yaml|json` | GET | Get the annotated YAML reference or JSON Schema |
 | `/admin/config/plan` | POST | Validate and preview a YAML/JSON document |
 | `/admin/config/apply` | POST | Apply a planned desired state |
+| `/admin/import/*` | POST | Back end for [`osaurus import`](/bundles) (Osaurus Bundles). Not a public contract; use the CLI. |
 
 ### Memory Endpoints
 
@@ -314,6 +322,7 @@ If you want server-side autonomous tool loops, use `POST /agents/{id}/run` inste
 | `stream` | boolean | No | Enable SSE streaming (default: false) |
 | `tools` | array | No | Function/tool definitions |
 | `tool_choice` | string/object | No | Tool selection strategy |
+| `response_format` | object | No | `{"type": "json_object"}`, or `{"type": "json_schema", "json_schema": {…}}` for [constrained JSON output](#structured-output) on local models |
 | `session_id` | string | No | Group conversation history and session bookkeeping across turns; KV reuse is content-addressed |
 
 When `max_tokens`, `temperature`, or `top_p` are omitted, Osaurus defers to the model's own `generation_config.json` and engine defaults rather than inventing app-wide values.
@@ -369,6 +378,43 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 ```
 
 `prefix_hash` is informational only. Keep `session_id` stable per conversation so chat history and session bookkeeping group correctly; cache reuse itself does not depend on it.
+
+When part of the prompt was restored from the prefix or SSD cache, `usage.prompt_tokens_details.cached_tokens` reports how many prompt tokens were reused, in both non-streaming responses and the final streamed usage chunk. `/v1/messages` reports the same split in Anthropic's usage shape.
+
+### Structured output {/* #structured-output */}
+
+With a local MLX model, `response_format: {"type": "json_schema", …}` on Chat Completions (or `text.format` with `type: "json_schema"` on `/v1/responses`) constrains generation to the schema with a real next-token grammar mask. Osaurus adds no prompt instructions and no sampler overrides.
+
+```json
+{
+  "model": "your-local-model",
+  "messages": [{"role": "user", "content": "Describe the current task in one sentence."}],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "task_summary",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {"answer": {"type": "string"}},
+        "required": ["answer"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
+```
+
+**Supported schema subset:** primitive `type` (or an array of primitive types), `properties`, `required`, `additionalProperties`, `items`, `minItems`/`maxItems` (0–1024), `enum`/`const` (1–1024 values), `anyOf` (1–128 branches), local acyclic `$ref` with `$defs`/`definitions`, and annotation fields (`title`, `description`, `$comment`, `default`, `examples`). An object with named `properties` must set `additionalProperties: false`. Not supported: `oneOf`, `allOf`, `not`, conditionals, numeric bounds, `multipleOf`, `uniqueItems`, `contains`, `pattern`, `format`, `minLength`/`maxLength`, `$schema`, and unknown keywords. Schemas are limited to 1 MiB, depth 64, and 10,000 nodes. Unsupported schemas are rejected, never silently ignored.
+
+**Rules:**
+
+- The model must be in a non-reasoning mode. If its template opens a reasoning block, pass its native off switch (for example `chat_template_kwargs: {"enable_thinking": false}` where the template supports it); requests with active reasoning are rejected.
+- Schema plus tools, agent routes, and remote providers are rejected. Block-diffusion models aren't supported.
+- Speculative decoding is turned off for that request only. Prefix and SSD caches still apply, but each request gets a fresh grammar matcher.
+- Output is compact JSON (no indentation). Success requires the model to finish naturally; running out of tokens or cancelling is an error, and a stream that fails partway ends with a terminal error rather than a partial "success".
+- The tokenizer must be BPE with a plain ByteLevel decoder; other tokenizer families are rejected.
+- `json_object` keeps its previous, unconstrained behavior.
 
 ### POST /agents/&#123;id&#125;/run
 
@@ -438,7 +484,7 @@ Capability names follow Ollama's:
 
 These use the same detectors the runtime consults, so `/api/show` reports what a request against that bundle actually gets.
 
-`/api/show` reads installed local MLX metadata — including models found outside the models directory (Hugging Face cache, LM Studio, custom folders) that `/api/tags` lists — plus the special `foundation` alias. Remote-provider model IDs return `404`, and capability strings do not report audio or video.
+`/api/show` reads installed local MLX metadata — including models found outside the models directory (Hugging Face cache, LM Studio, custom folders) that `/api/tags` lists, under the same bare repo name `/api/tags` advertises — plus the special `foundation` alias. Remote-provider model IDs return `404`, and capability strings do not report audio or video.
 
 ### POST /api/chat
 
@@ -750,6 +796,40 @@ curl http://127.0.0.1:1337/v1/audio/transcriptions \
 ```
 
 Transcription runs entirely on your Mac — audio never leaves the machine.
+
+## Decision requests {/* #decision-requests */}
+
+D3, D3 Flash, and D3 Turbo are decision models, not text generators: they answer typed questions about a state in one forward pass. Install the complete bundle (it includes `decision/decision_config.json` and `decision/readout.safetensors`). Installed decision models show a **D3** badge and are left out of chat, agent, and worker pickers; API visibility follows the normal model settings, and a hidden model can still be requested by name.
+
+### POST /v1/systemone
+
+```json
+{
+  "model": "OsaurusAI/d3-flash-JANG_4M",
+  "state": "Write a Python function that reverses a string.",
+  "questions": {
+    "kind": {
+      "type": "choice",
+      "instructions": "What kind of work is this?",
+      "criteria": {"code": "Writing code", "math": "Mathematics", "chat": "Anything else"}
+    },
+    "reasoning": {"type": "noul", "instructions": "Does this require multi-step reasoning?"},
+    "difficulty": {"type": "score", "criteria": ["easy", "medium", "hard"]}
+  },
+  "images": [],
+  "videos": []
+}
+```
+
+- Each answer carries its question's type and typed result. An invalid question gets its own error object; the others still run. Option order is preserved.
+- `images` and `videos` take base64 data URLs and apply to every question. The endpoint never reads file paths or fetches URLs.
+- D3 Turbo also answers image questions like `{"type": "box", "instructions": "Find the red ball"}`, returning normalized `top`/`bottom`/`left`/`right` edges and a confidence.
+- `usage.output_tokens` is `0`; prompt throughput describes the forward pass.
+- Unsupported fields and types return errors instead of being ignored. Asset-reference composition, boxes in video, and video tracking aren't implemented.
+
+Each request uses the normal authentication, memory admission, and exclusive GPU gate: it loads the model, answers, then unloads before releasing the gate, and never evicts a chat model it doesn't own. No KV cache, SSD checkpoint, sampler, reasoning effort, or speculative decoding setting applies.
+
+`GET /v1/systemone/models` lists the exposed installed decision bundles.
 
 ## MCP Endpoints
 
@@ -1130,6 +1210,10 @@ client = anthropic.Anthropic(
 
 Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Identity →](/identity)
 
+### Requiring a key from this Mac
+
+With **Server → Settings → Authentication → Require Access Key for Local Admin Routes** on, local callers need an access key too on `/sessions`, `/agents` (and everything under it), `/mcp/*`, `/admin/config/*`, and `/admin/import/*`, with or without `/v1`. Inference and model routes are unaffected. Requests with a browser `Origin` header get `403 browser_origin_refused` on those routes unless the origin is listed by name in **Allowed Origins (CORS)** (`*` doesn't count), and a listed origin still needs a key. Master keys behave as before; agent-scoped keys are confined as they are for remote callers. Siri and Shortcuts, and [runtime](/harness-runtimes) tokens on `/mcp/*`, keep working. [Security →](/security#local-access-key)
+
 ### Pre-auth body-size limits
 
 Osaurus rejects oversized request bodies *before* the auth gate runs, so an unauthenticated caller can't exhaust host memory.
@@ -1169,7 +1253,7 @@ MCP tool errors use the MCP content envelope (`{"content":[…],"isError":true}`
 
 Built-in CORS support for browser-based applications:
 
-- **Allowed Origins:** `*` (all origins)
+- **Allowed Origins:** loopback callers get `*`; other callers are checked against **Server → Settings → Connection → Allowed Origins (CORS)**. With the [local access key](/security#local-access-key) on, its protected routes don't get the automatic `*`.
 - **Allowed Methods:** `GET, POST, OPTIONS` for the chat/API routes (admin routes additionally accept `PUT`)
 - **Allowed Headers:** `Content-Type, Authorization`
 

@@ -170,6 +170,18 @@ Existing `.docx`, `.xlsx`, `.pptx`, and `.pdf` files are edited in place with `o
 
 `file_write` on a document path refuses `content` that parses as a `file_edit` operations array — rendering it would replace the document with a line of JSON — and returns the equivalent `file_edit` call in `metadata.retry_with`.
 
+An explicit empty `new_string` (or `content`) survives schema coercion, so a `file_edit` that deletes text works. Refusals to rewrite PDF body text don't advise regenerating the PDF with `file_write`, which would drop layout, images, form fields, and signatures; they point at page annotations (`add_text`, `add_note`, `highlight`), form fields, or editing the source document and exporting under a new name.
+
+### `file_write` size
+
+`file_write` has no `content` length cap, and the 64 KiB streamed tool-call abort is gone; the model's own output-token limit is the only bound, reported through the existing truncated-call path. `source_path` (mutually exclusive with `content`) renders a `.docx`/`.pdf`/`.xlsx`/`.pptx`, or writes a text file, from a text file already in the workspace, so Markdown assembled with `mode: append` can become a document without re-sending it. The source read uses `file_read`'s confinement and secret denylist. Sandbox writes above 96 KiB are split into consecutive appends so no single shell argument is too long. `ToolRegistry` preflight schema rejections are `retryable: false`.
+
+### Workbook formulas and preservation
+
+`file_write` `.xlsx` (JSON or CSV/TSV rows) writes a string cell starting with `=` as a formula and `'=…` as literal text, as spreadsheet apps do. Workbooks with formulas carry `fullCalcOnLoad` so Excel and Numbers compute on open. `db_export` builds through the same writer with formulas off, so stored text beginning with `=` stays literal.
+
+`file_write` refuses to replace an existing `.xlsx` that has anything a regeneration can't write back (non-default styles, column widths, row heights, panes, filters, data validation, conditional formatting, merges, hyperlinks, protection, defined names, or comment, chart, pivot, table, drawing, or macro parts). The refusal names what would be lost and returns the `file_edit` call to make instead. `file_edit` `set_cells` changes only the targeted cells and keeps all of those, including on `/workspace` documents in the sandbox. Plain-value workbooks can still be regenerated.
+
 ### Paged listings
 
 `file_search` and `list_knowledge` page instead of silently truncating. Pass `offset` (the previous result's `next_offset`) to continue. `file_search` with `target: "files"` reports `total` and, when more remain, `next_offset`; an empty files-mode pattern means `*`. `list_knowledge` defaults to 100 rows (max 500) and reports `total` / `next_offset`.

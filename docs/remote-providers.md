@@ -1,7 +1,7 @@
 ---
 title: Remote Providers
 sidebar_label: Remote Providers
-description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, Claude Code, and any OpenAI-compatible endpoint — by API key, browser sign-in, or a signed-in CLI.
+description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, and any OpenAI-compatible endpoint — by API key or browser sign-in.
 ---
 
 # Remote Providers
@@ -21,7 +21,7 @@ Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, 
 1. Open **Settings…** (`⌘ ,`)
 2. Click **Providers** in the sidebar (under **Models**)
 3. Click **Add Provider**
-4. Pick a sign-in provider, **Claude Code**, or **Use an API key** (Anthropic, Google, Ollama, custom, and more)
+4. Pick a sign-in provider or **Use an API key** (Anthropic, Google, Ollama, custom, and more)
 5. Configure connection settings
 6. Click **Save**
 
@@ -46,7 +46,7 @@ Osaurus ships first-class presets for the providers below — pick one and you o
 | **Ollama** | `localhost` | 11434 | `/v1` | OpenAI-compatible | None (local) |
 | **Custom** | (you specify) | — | `/v1` | OpenAI-compatible | Optional |
 
-Need something else? Use **Custom** for LM Studio, [OpenCode Zen / Go](#opencode-zen--go), or any other OpenAI-compatible endpoint. To use a Claude Pro/Max subscription through your own Claude Code install, see [Claude Code](#claude-code). For a hosted, zero-setup option tied to your Osaurus account (no key to paste), see [Osaurus Router](/osaurus-router).
+Need something else? Use **Custom** for LM Studio, [OpenCode Zen / Go](#opencode-zen--go), or any other OpenAI-compatible endpoint. To use a Claude Pro/Max subscription through your own Claude Code install, run your agent on the [Claude Code runtime](/harness-runtimes) instead (see [Claude Code](#claude-code)). For a hosted, zero-setup option tied to your Osaurus account (no key to paste), see [Osaurus Router](/osaurus-router).
 
 ### Signing in with OAuth
 
@@ -138,11 +138,13 @@ The model name should match what the remote provider expects.
 
 ### Provider metadata and multimodal input
 
-During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), `max_context_length` (llama.cpp), or `context_window`. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
+During discovery, Osaurus honors positive integer context-window metadata advertised as `max_model_len` (vLLM), `context_length` (OpenRouter and LM Studio), nested `metadata.context_length` (DeepInfra), `max_context_length` (llama.cpp), or `context_window`. The resolved value appears in the model picker and drives context budgeting; malformed metadata is ignored for that model without breaking the connection.
 
 For vision-capable providers, image attachments are resized to provider-safe wire dimensions and sent with the corrected MIME type. Osaurus reports unsupported input instead of silently dropping an attachment.
 
-Osaurus also carries per-model profiles for well-known remote models (context window, reasoning controls, which sampler knobs to omit), so newer releases such as OpenAI's GPT-6 Astra are recognized with the right context window and reasoning contract, including when discovered through a ChatGPT / Codex sign-in.
+Osaurus also carries per-model profiles for well-known remote models (context window, reasoning controls, which sampler knobs to omit), so newer releases such as OpenAI's GPT-6 Astra and GPT-6.1 Sol are recognized with the right context window and reasoning contract, including when discovered through a ChatGPT / Codex sign-in. Requests through a ChatGPT / Codex sign-in are streamed, including one-shot helper requests, so context compaction works on those models.
+
+Claude models that reject a forced `tool_choice` (such as the Claude 5.5 family) get it downgraded automatically instead of failing with a `400`. When OpenRouter relays an upstream provider error, Osaurus shows that upstream message rather than a generic failure.
 
 ### Prompt caching
 
@@ -237,6 +239,8 @@ Base:     /v1beta
 Auth:     API key (aistudio.google.com)
 Format:   Gemini
 ```
+
+Gemini text models get a **Reasoning Effort** control in the model picker, from a per-model list that follows Google's thinking docs. The levels differ by model (for example, Gemini 3 Pro offers Low and High; 3.6 Flash adds Minimal). Gemini 3 models send `thinkingConfig.thinkingLevel`; Gemini 2.5 models send a `thinkingBudget` of 1,024 / 8,192 / 24,576 tokens for Low / Medium / High. Unlisted Gemini revisions, and image, TTS, embedding, and live models, get no control rather than a guessed one. The control also appears for Gemini models reached through routes that forward it, such as OpenRouter.
 
 ### Azure OpenAI Foundry
 
@@ -334,25 +338,9 @@ OpenCode Go rejects requests without an `x-opencode-session` header ("cannot be 
 
 ### Claude Code
 
-Drives your own signed-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI as a subprocess — the sanctioned way to reach a Claude Pro/Max subscription. Osaurus never mints or stores an Anthropic token; the CLI owns the session.
+Claude Code is no longer a provider. It's a [runtime](/harness-runtimes): an agent's chats run on your own signed-in `claude` CLI, the sanctioned way to reach a Claude Pro/Max subscription. Osaurus never mints or stores an Anthropic token; the CLI owns the session. It's registered for you on first launch under **Settings… → Agents → Runtimes**, and appears as its own column (Sonnet, Opus, Haiku) in the chat model picker.
 
-1. Install Claude Code and run `claude` once in a terminal to sign in
-2. **Settings… → Providers → Add Provider → Claude Code**
-3. Osaurus finds the `claude` binary and shows its version, account, and plan when it's **Signed in and ready** (use **Re-check** after signing in)
-
-The models appear in the picker as **Claude Code (Sonnet)**, **Claude Code (Opus)**, and **Claude Code (Haiku)** (IDs `claude-code/sonnet`, `claude-code/opus`, `claude-code/haiku`). These are Claude Code's own aliases, so they follow whatever the CLI currently resolves them to.
-
-Once Claude Code is installed (or an agent already uses a Claude Code model), each agent's settings under **Settings… → Agents** get a **Claude Code** section:
-
-| Setting | What it does |
-|---|---|
-| **Execution mode** | **Agent** — Claude Code runs its own agent loop under your macOS account; Read, Grep, and Glob are allowed by default. **Text only** — every built-in and MCP tool is disabled and the CLI is a plain text generator. |
-| **Allow file changes** | Auto-approve Edit, Write, and NotebookEdit, with your macOS file access, starting in the chat folder |
-| **Allow shell commands** | Auto-approve Bash under your macOS account — this is **not** the Osaurus Sandbox |
-| **Allow Osaurus read tools** | Attach a scoped MCP bridge for Osaurus status, list, describe, and search |
-| **Allow Osaurus configuration changes** | Permit agent, provider, model, plugin, and MCP configuration writes (requires read tools) |
-
-The permission toggles apply only in **Agent** mode.
+Agents that used the old `claude-code/sonnet`, `claude-code/opus`, or `claude-code/haiku` model IDs move to the Claude Code runtime automatically on upgrade, keeping the same Claude model. See [Runtimes](/harness-runtimes) for setup, options, and safety.
 
 ### LM Studio
 

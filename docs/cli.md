@@ -259,7 +259,7 @@ Start MCP stdio transport for connecting MCP clients.
 osaurus mcp [--access-key KEY] [--tools PATTERNS]
 ```
 
-Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed (without popping the main window). Local-only servers can rely on loopback trust; if **Server → Network exposure** is enabled, pass an [access key](/identity) with `--access-key` or the `OSAURUS_MCP_ACCESS_KEY` environment variable (also accepted: `OSAURUS_ACCESS_KEY`, `OSAURUS_API_KEY`, or a `Bearer …` value in `OSAURUS_MCP_AUTHORIZATION`).
+Proxies the MCP protocol over stdio to the running Osaurus server, auto-launching it if needed (without popping the main window). Local-only servers can rely on loopback trust; if **Server → Network exposure** or **Require Access Key for Local Admin Routes** is on, pass an [access key](/identity) with `--access-key` or the `OSAURUS_MCP_ACCESS_KEY` environment variable (also accepted: `OSAURUS_ACCESS_KEY`, `OSAURUS_API_KEY`, or a `Bearer …` value in `OSAURUS_MCP_AUTHORIZATION`).
 
 `--tools` limits which tools are exposed: comma-separated names, each optionally ending in `*` to match by prefix. Without it, every tool is proxied — 170+ definitions once plugins are loaded — so clients with a narrow purpose should scope it down. Excluded tools are hidden from `tools/list` and refused on call. An explicitly empty value (`--tools ""`) admits nothing.
 
@@ -310,6 +310,8 @@ osaurus config plan <file.yaml|file.json> [--prune]
 osaurus config apply <file.yaml|file.json> [--prune] [--yes|-y]
 ```
 
+Every subcommand takes `--access-key KEY` (or `OSAURUS_API_KEY`). It's only needed when **Require Access Key for Local Admin Routes** is on; a missing or rejected key then exits `1` with a hint. [Security →](/security#local-access-key)
+
 Documents merge by default: absent keys remain untouched, explicit `null` clears an optional override, and named entities match case-insensitively. `--prune` additionally deletes unlisted entries in sections the document declares, so it is always treated as destructive. Browser/Computer Use grants, relay or channel exposure, new MCP endpoints, automatic tool approval, and similar high-risk changes are also refused until apply is repeated with `--yes`.
 
 Configuration files are capped at 512 KiB. Apply exit codes are scriptable:
@@ -321,6 +323,26 @@ Configuration files are capped at 512 KiB. Apply exit codes are scriptable:
 | `3` | Applied, but an interactive step remains in the app (usually credential entry) |
 
 See [Declarative configuration](/configuration#declarative-configuration).
+
+### osaurus import
+
+Install, update, and remove an [Osaurus Bundle](/bundles): a folder with an `osaurus-bundle.json` manifest that a vendor's installer ships with agents, skills, MCP servers, runtimes, and a few server settings.
+
+```bash
+osaurus import validate --from <bundle> [--json]
+osaurus import install  --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+osaurus import update   --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+osaurus import remove   --bundle <id> [agent|skill|mcp|runtime|setting] [<name> ...] [--json]
+osaurus import list     [--bundle <id>] [--json]
+```
+
+`import` never launches Osaurus. If Osaurus is running, the bundle applies right away; otherwise it's queued and applies the next time Osaurus opens. High-risk items (every MCP server and runtime, agents with powerful capabilities, turning the local access key off, adding an allowed origin) need `--yes`. Every subcommand takes `--access-key KEY` (or `OSAURUS_API_KEY`); without an accepted key, the bundle stays queued.
+
+| Exit | Meaning |
+|---|---|
+| `0` | Applied, or queued |
+| `1` | A check or change failed |
+| `3` | Applied, but something must be finished in Osaurus (secret, sign-in, model, folder) |
 
 ### osaurus tools
 
@@ -453,7 +475,7 @@ osaurus manifest validate ./osaurus-plugin.json
 
 ### osaurus bundle
 
-Load and run an MCP Bundle (`.mcpb` file) — a packaged MCP server that Osaurus can host directly.
+Load and run an MCP Bundle (`.mcpb` file) — a packaged MCP server that Osaurus can host directly. Not to be confused with [Osaurus Bundles](/bundles), which use `osaurus import`.
 
 ```bash
 osaurus bundle load ./my-server.mcpb --name "Display Name"
@@ -480,6 +502,8 @@ Configure Osaurus using environment variables:
 | ---------------- | ----------------------- | ------------- |
 | `OSU_PORT`       | Server port number      | 1337          |
 | `OSU_MODELS_DIR` | Custom models directory | `~/MLXModels` |
+| `OSAURUS_API_KEY` | Access key for `osaurus config`, `osaurus import`, and `osaurus mcp` | none |
+| `OSAURUS_MCP_ACCESS_KEY` | Access key for `osaurus mcp` (takes precedence) | none |
 
 **Example:**
 
