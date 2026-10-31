@@ -83,7 +83,7 @@ function chunkPage(markdown) {
       chunks.push({
         heading: current.heading,
         path: current.path,
-        anchor: current.heading ? anchorFor(current.heading) : "",
+        anchor: current.heading ? current.anchor : "",
         text,
       });
     }
@@ -95,10 +95,13 @@ function chunkPage(markdown) {
     if (h) {
       flush();
       const level = h[1].length;
-      const heading = h[2].replace(/\s*\{#[^}]+\}$/, "");
+      // Explicit ids: "## Title {#id}" or MDX "## Title {/* #id */}".
+      const explicit = h[2].match(/\s*\{(?:\/\*\s*)?#([\w-]+)(?:\s*\*\/)?\}\s*$/);
+      const heading = explicit ? h[2].slice(0, explicit.index).trim() : h[2];
+      const anchor = explicit ? explicit[1] : anchorFor(heading);
       if (level === 2) lastH2 = heading;
       const path = level === 3 && lastH2 ? [lastH2, heading] : [heading];
-      current = { heading, path, lines: [] };
+      current = { heading, path, anchor, lines: [] };
       continue;
     }
     // Drop the page's own H1, the title is stored separately.
@@ -152,6 +155,7 @@ for (const page of pages) {
       page: page.id,
       title: page.title,
       section: c.path.join(" > "),
+      ...(c.heading ? {} : { description: page.description }),
       anchor: c.anchor,
       url: c.anchor ? `${page.url}#${c.anchor}` : page.url,
       text: c.text,
