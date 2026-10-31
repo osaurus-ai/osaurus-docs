@@ -25,13 +25,11 @@
     "@docusaurus/theme-mermaid": "^3.10.2",
     "@easyops-cn/docusaurus-search-local": "^0.55.2",
     "@mdx-js/react": "^3.1.1",
-    "@modelcontextprotocol/sdk": "^1.32.2",
     "clsx": "^2.1.1",
     "lucide-react": "^1.24.0",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "zod": "^4.6.7"
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.2",
