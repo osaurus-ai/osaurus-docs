@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { chunkTerms, searchStats } from "../lib/docs-mcp.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS_DIR = join(ROOT, "docs");
@@ -182,6 +183,8 @@ for (const page of pages) {
       url: c.anchor ? `${page.url}#${c.anchor}` : page.url,
       text: c.text,
     });
+    const chunk = chunks[chunks.length - 1];
+    chunk.terms = chunkTerms(chunk);
   }
 }
 
@@ -193,6 +196,7 @@ const index = {
     sections: _c.filter((c) => c.heading).map((c) => ({ heading: c.heading, path: c.path.join(" > "), anchor: c.anchor })),
   })),
   chunks,
+  stats: searchStats(chunks),
 };
 
 mkdirSync(join(ROOT, "generated"), { recursive: true });
