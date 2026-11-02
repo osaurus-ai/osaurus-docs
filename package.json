@@ -14,7 +14,8 @@
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
     "build-index": "node scripts/build-docs-index.mjs",
-    "test:mcp": "npm run build-index && node scripts/test-docs-mcp.mjs"
+    "test:mcp": "npm run build-index && node scripts/test-docs-mcp.mjs",
+    "mcp:dev": "npm run build-index && node scripts/serve-mcp.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.2",
