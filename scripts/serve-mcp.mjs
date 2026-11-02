@@ -38,4 +38,12 @@ const server = http.createServer(async (req, res) => {
   res.end(Buffer.from(await response.arrayBuffer()));
 });
 
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} is already in use, probably by another mcp:dev. Stop it (lsof -i :${PORT}) or run with PORT=<other>.`);
+    process.exit(1);
+  }
+  throw err;
+});
+
 server.listen(PORT, () => console.log(`docs MCP listening on http://localhost:${PORT}/mcp`));
