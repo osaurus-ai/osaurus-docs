@@ -85,9 +85,17 @@ test("missing page and section are tool errors with hints", async () => {
   assert.match(s.content[0].text, /Sections:/);
 });
 
-test("list returns every page", async () => {
-  const r = await call("list_osaurus_docs", {});
-  assert.match(r.content[0].text, /slug: quickstart/);
+test("list returns every page grouped by sidebar section", async () => {
+  const t = (await call("list_osaurus_docs", {})).content[0].text;
+  assert.match(t, /slug: quickstart/);
+  assert.match(t, /^Osaurus docs: \d+ pages in \d+ sidebar sections\./);
+  assert.match(t, /## Getting Started \(\d+\)/);
+  assert.match(t, /## For Developers > Tools & Plugins \(\d+\)/);
+});
+
+test("search snippets keep line breaks", async () => {
+  const t = (await call("search_osaurus_docs", { query: "default server port", limit: 1 })).content[0].text;
+  assert.match(t, /\n   \| `--port`/);
 });
 
 let failed = 0;

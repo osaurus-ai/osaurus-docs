@@ -112,21 +112,42 @@ function chunkPage(markdown) {
   return chunks;
 }
 
-// Doc ids in sidebar order, so listings follow the site's navigation.
-function sidebarOrder() {
+// Doc ids in sidebar order with their category path ("For Developers > Tools & Plugins"),
+// so listings follow the site's navigation. sidebars.ts is plain data once its
+// type annotations are stripped.
+function sidebarEntries() {
   try {
-    const src = readFileSync(join(ROOT, "sidebars.ts"), "utf8");
-    return [...src.matchAll(/id:\s*["']([^"']+)["']/g)].map((m) => m[1]);
-  } catch {
+    const src = readFileSync(join(ROOT, "sidebars.ts"), "utf8")
+      .replace(/^import type .*$/m, "")
+      .replace(/const sidebars:\s*\w+\s*=/, "return")
+      .replace(/^export default sidebars;?\s*$/m, "");
+    const config = new Function(src)();
+    const out = [];
+    const visit = (items, path) => {
+      for (const item of items) {
+        if (typeof item === "string") out.push({ id: item, section: path.join(" > ") });
+        else if (item.type === "doc") out.push({ id: item.id, section: path.join(" > ") });
+        else if (item.type === "category") {
+          const next = [...path, item.label];
+          if (item.link?.type === "doc") out.push({ id: item.link.id, section: next.join(" > ") });
+          visit(item.items || [], next);
+        }
+      }
+    };
+    for (const items of Object.values(config)) visit(items, []);
+    return out;
+  } catch (err) {
+    console.warn("docs index: could not read sidebars.ts, pages will be unordered", err.message);
     return [];
   }
 }
 
-const order = sidebarOrder();
+const sidebar = sidebarEntries();
 const rank = (id) => {
-  const i = order.indexOf(id);
+  const i = sidebar.findIndex((e) => e.id === id);
   return i === -1 ? Number.MAX_SAFE_INTEGER : i;
 };
+const sectionOf = (id) => sidebar.find((e) => e.id === id)?.section || "";
 
 const pages = walk(DOCS_DIR)
   .map((file) => {
@@ -141,6 +162,7 @@ const pages = walk(DOCS_DIR)
       url: `${SITE_URL}/${slug}`.replace(/\/$/, ""),
       title: data.title || data.sidebar_label || id,
       description: data.description || "",
+      section: sectionOf(id),
       markdown,
       chunks: chunkPage(markdown),
     };
@@ -183,10 +205,14 @@ const llms = [
   "",
   `Official MCP server for these docs: ${SITE_URL}/mcp (Streamable HTTP, no auth). Tools: search_osaurus_docs, read_osaurus_doc, list_osaurus_docs.`,
   "",
-  "## Docs",
-  "",
-  ...pages.map((p) => `- [${p.title}](${p.url})${p.description ? `: ${p.description}` : ""}`),
-  "",
+  ...[...new Set(pages.map((p) => p.section || "Overview"))].flatMap((section) => [
+    `## ${section}`,
+    "",
+    ...pages
+      .filter((p) => (p.section || "Overview") === section)
+      .map((p) => `- [${p.title}](${p.url})${p.description ? `: ${p.description}` : ""}`),
+    "",
+  ]),
 ].join("\n");
 writeFileSync(join(ROOT, "static", "llms.txt"), llms);
 
