@@ -5,6 +5,11 @@
 
 import { loadIndex, handleMessage } from "../lib/docs-mcp.mjs";
 
+// Real MCP messages for these tools are well under 1 KB. Anything far larger,
+// or a big batch, is abuse or a broken client: refuse it before doing work.
+const MAX_BODY_BYTES = 32 * 1024;
+const MAX_BATCH = 10;
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -26,15 +31,25 @@ export async function handle(request) {
 
   if (method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
 
-  // No server-initiated stream and no sessions to end.
+  // No server-initiated stream and no sessions to end. Browsers and crawlers
+  // that land here get pointed at the static, CDN-served text versions.
   if (method === "GET" || method === "DELETE") {
-    return new Response("Method Not Allowed", { status: 405, headers: { ...CORS, Allow: "POST, OPTIONS" } });
+    return new Response(
+      "Osaurus Docs MCP server (Streamable HTTP). Send MCP JSON-RPC requests with POST.\n" +
+        "Setup: https://docs.osaurus.ai/docs-mcp\n" +
+        "Plain text docs: https://docs.osaurus.ai/llms.txt and https://docs.osaurus.ai/llms-full.txt\n",
+      { status: 405, headers: { ...CORS, Allow: "POST, OPTIONS", "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } }
+    );
   }
   if (method !== "POST") return rpcError(-32000, "Method not allowed", 405);
 
+  const declared = Number(request.headers.get("content-length"));
+  if (declared > MAX_BODY_BYTES) return rpcError(-32600, "Request too large", 413);
   let payload;
   try {
-    payload = await request.json();
+    const body = await request.text();
+    if (body.length > MAX_BODY_BYTES) return rpcError(-32600, "Request too large", 413);
+    payload = JSON.parse(body);
   } catch {
     return rpcError(-32700, "Parse error", 400);
   }
@@ -50,6 +65,7 @@ export async function handle(request) {
   // Batches are allowed by older protocol versions, so accept them.
   if (Array.isArray(payload)) {
     if (!payload.length) return rpcError(-32600, "Invalid Request", 400);
+    if (payload.length > MAX_BATCH) return rpcError(-32600, `Batch too large (max ${MAX_BATCH})`, 413);
     const responses = payload.map((m) => handleMessage(index, m)).filter(Boolean);
     return responses.length ? json(responses) : json(null, 202);
   }

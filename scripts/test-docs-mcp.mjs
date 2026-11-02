@@ -49,6 +49,29 @@ test("bad JSON and unknown method are JSON-RPC errors", async () => {
   assert.equal((await rpc("does/not/exist")).body.error.code, -32601);
 });
 
+test("oversized bodies and batches are refused", async () => {
+  const big = await handle(new Request("https://x/mcp", { method: "POST", body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping", params: { pad: "x".repeat(40000) } }) }));
+  assert.equal(big.status, 413);
+  const batch = Array.from({ length: 11 }, (_, i) => ({ jsonrpc: "2.0", id: i, method: "ping" }));
+  const many = await handle(new Request("https://x/mcp", { method: "POST", body: JSON.stringify(batch) }));
+  assert.equal(many.status, 413);
+  const ok = await handle(new Request("https://x/mcp", { method: "POST", body: JSON.stringify(batch.slice(0, 10)) }));
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).length, 10);
+});
+
+test("GET points at the setup page and llms.txt", async () => {
+  const r = await handle(new Request("https://x/mcp"));
+  assert.equal(r.status, 405);
+  assert.match(await r.text(), /llms\.txt/);
+});
+
+test("long pages are cut at 30k characters with a section list", async () => {
+  const r = await call("read_osaurus_doc", { slug: "api" });
+  assert.ok(r.content[0].text.length < 33000);
+  assert.match(r.content[0].text, /Read the rest by section/);
+});
+
 test("tools/list exposes three read-only tools", async () => {
   const { tools } = (await rpc("tools/list")).body.result;
   assert.deepEqual(tools.map((t) => t.name), ["search_osaurus_docs", "read_osaurus_doc", "list_osaurus_docs"]);
@@ -91,6 +114,14 @@ test("list returns every page grouped by sidebar section", async () => {
   assert.match(t, /^Osaurus docs: \d+ pages in \d+ sidebar sections\./);
   assert.match(t, /## Getting Started \(\d+\)/);
   assert.match(t, /## For Developers > Tools & Plugins \(\d+\)/);
+});
+
+test("words that are Object.prototype names don't break scoring", async () => {
+  for (const query of ["constructor", "toString valueOf", "hasOwnProperty proto"]) {
+    const r = await call("search_osaurus_docs", { query });
+    assert.ok(!r.isError);
+    assert.doesNotMatch(r.content[0].text, /NaN|function/);
+  }
 });
 
 test("search snippets keep line breaks", async () => {

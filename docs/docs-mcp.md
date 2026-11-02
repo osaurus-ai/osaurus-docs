@@ -118,6 +118,14 @@ Your Osaurus agents can use it too. Add it as a [Remote MCP Provider](/remote-mc
 
 Point any MCP client that supports Streamable HTTP at `https://docs.osaurus.ai/mcp`. No headers or keys are needed.
 
+## Limits
+
+The server is free to use and has a few limits to keep it fast for everyone:
+
+- `read_osaurus_doc` returns up to 30,000 characters. Longer pages end with a list of their sections, so read those one at a time with `section`.
+- Requests over 32 KB and batches of more than 10 messages are refused.
+- Heavy traffic from one address may be rate limited with HTTP `429`. Wait a moment and retry.
+
 ## Plain text for agents without MCP
 
 If your tool can't use MCP, the same content is published as plain text:
