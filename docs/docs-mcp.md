@@ -26,7 +26,7 @@ This server serves the *documentation*. To let an agent use the *tools installed
 | --- | --- |
 | `search_osaurus_docs` | Searches every page by section. Returns the best matches with a snippet, the page slug, and a link to the exact heading. |
 | `read_osaurus_doc` | Returns a page as markdown with code and config examples intact. Pass `section` (a heading or anchor) to read one part of a long page. |
-| `list_osaurus_docs` | Lists every page in site order with its slug and description. |
+| `list_osaurus_docs` | Lists every page grouped by sidebar section, with the page count, slugs, and descriptions. |
 
 A typical agent flow is `search_osaurus_docs("add a remote MCP provider")`, then `read_osaurus_doc("remote-mcp-providers", section: "adding-an-mcp-provider")`.
 
