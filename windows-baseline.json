@@ -1,0 +1,12 @@
+{
+  "repo": "osaurus-ai/winsaurus",
+  "documented_branch": "release/0.1.9-beta",
+  "documented_commit": "f05e9bed0f451cf4e5317c5a79ae4f6ced03bd9e",
+  "documented_release": "0.1.9",
+  "published_release": "0.1.8",
+  "withheld_features": ["workflows", "media", "voice"],
+  "verified_date": "2026-11-03",
+  "reviewed_date": "2026-11-03",
+  "scope": "Everything under windows/.",
+  "notes": "Pages describe the Microsoft Store release on the 0.1.9 beta line. 0.1.8 is the version on the Store today; the osaurus command arrives in 0.1.9, and the CLI page says so. Features withheld from this release are not documented; a page is added the day its feature ships. Advance only after every page under windows/ has been checked against the new release."
+}

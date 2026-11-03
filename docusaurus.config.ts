@@ -92,13 +92,28 @@ const config: Config = {
       {
         hashed: true,
         indexBlog: false,
-        docsRouteBasePath: "/",
+        docsRouteBasePath: ["/", "/windows"],
+        docsDir: ["docs", "windows"],
         highlightSearchTermsOnTargetPage: true,
       },
     ],
   ],
 
   plugins: [
+    // Osaurus for Windows: a second docs instance under /windows with its own sidebar, because the Windows app is a
+    // separate reimplementation whose labels, paths and features differ page by page. windows-baseline.json records
+    // the Windows release these pages describe, as upstream-baseline.json does for the Mac pages.
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "windows",
+        path: "windows",
+        routeBasePath: "windows",
+        sidebarPath: "./sidebars-windows.ts",
+        editUrl: "https://github.com/osaurus-ai/osaurus-docs/edit/main/",
+        showLastUpdateTime: true,
+      },
+    ],
     [
       "vercel-analytics",
       {
@@ -233,6 +248,13 @@ const config: Config = {
           label: "Docs",
         },
         {
+          type: "docSidebar",
+          sidebarId: "windowsSidebar",
+          docsPluginId: "windows",
+          position: "left",
+          label: "Windows",
+        },
+        {
           to: "/installation",
           label: "Install",
           position: "left",
@@ -290,6 +312,7 @@ const config: Config = {
             { label: "Overview", to: "/" },
             { label: "Installation", to: "/installation" },
             { label: "Quick Start", to: "/quickstart" },
+            { label: "Osaurus for Windows", to: "/windows" },
             { label: "Security & Privacy", to: "/security" },
           ],
         },
@@ -336,7 +359,7 @@ const config: Config = {
     },
     prism: {
       theme: osaurusPrismTheme,
-      additionalLanguages: ["bash", "json", "swift", "yaml"],
+      additionalLanguages: ["bash", "json", "swift", "yaml", "powershell"],
     },
     mermaid: {
       theme: { light: "base", dark: "base" },

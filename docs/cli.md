@@ -8,6 +8,10 @@ description: Command-line control of the Osaurus server, models, declarative con
 
 The Osaurus CLI controls your local LLM server, desired-state configuration, MCP tools, and models from the terminal.
 
+:::tip[On Windows?]
+The Windows app has its own `osaurus` command with the same command names and a few differences. See [CLI on Windows](/windows/cli).
+:::
+
 ## Quick Start
 
 ```bash

@@ -58,12 +58,23 @@ gh api "repos/$UPSTREAM/compare/$DOCUMENTED_RELEASE_SHA...$BASE" \
 
 The first comparison finds drift since the last review. The second identifies behavior documented from `main` but not yet present in the recorded stable release. Reconcile every affected document against the chosen source commit and release, then run `npm run typecheck` and `npm run build`. Advance the baseline only after that review and both gates complete successfully.
 
+## Osaurus for Windows
+
+The Windows app is a separate reimplementation, so its pages live apart from the Mac's: `windows/`, served under `/windows` by a second docs instance (`id: "windows"`) with its own sidebar in `sidebars-windows.ts`. A Mac page that a Windows reader might land on (Installation, CLI) carries a short "On Windows?" tip pointing across; otherwise the Mac pages stay Mac-only, and the refresh above never needs to touch `windows/`.
+
+`windows-baseline.json` records the Windows release the pages describe: the release branch and commit in `osaurus-ai/winsaurus`, and the features that release withholds. Document only what ships: a withheld feature gets its page the release it ships in, and the "Not in this release yet" list on `windows/mac-differences.md` loses its line the same day. When a new Windows release is cut, check every page under `windows/` against it, run `npm run typecheck` and `npm run build`, then advance the baseline.
+
+Windows pages follow the same writing rules as the Mac pages. Use the Windows app's own labels (**Settings** in the agent sidebar opens Control Center; there is no **Settings…** window), Windows paths (`%LOCALAPPDATA%\osaurus`), and PowerShell for terminal examples.
+
 ## Project layout
 
 | Path | Purpose |
 |------|---------|
 | `docs/` | All documentation pages (Markdown/MDX) |
+| `windows/` | Osaurus for Windows pages, served under `/windows` |
 | `sidebars.ts` | Sidebar structure (manual, source of truth for ordering) |
+| `sidebars-windows.ts` | The Windows section's sidebar |
+| `windows-baseline.json` | The Windows release the `windows/` pages describe |
 | `docusaurus.config.ts` | Site config: navbar, footer, SEO, plugins, redirects |
 | `src/css/custom.css` | Osaurus brand theme, mirroring the osaurus.ai design system |
 | `src/components/` | Custom React components exposed to MDX |

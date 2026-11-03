@@ -8,6 +8,10 @@ description: Download and install Osaurus on your Mac in about a minute. It's fr
 
 Osaurus is a free Mac app. To install it, download it, drag it into your Applications folder, and open it. You need a Mac with an M-series chip ([Apple Silicon](/glossary#apple-silicon)) running macOS 15.5 or later.
 
+:::tip[On Windows?]
+Osaurus for Windows is a public beta for Windows 11, from the Microsoft Store. See [Installing Osaurus for Windows](/windows/installation).
+:::
+
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
 <a href="https://osaurus.ai/" class="button button--primary button--lg">Download from osaurus.ai</a>
 &nbsp;&nbsp;

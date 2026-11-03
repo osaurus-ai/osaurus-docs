@@ -15,6 +15,7 @@ hide_title: true
   <div className="docs-hero__actions">
     <a href="/installation" className="button button--primary button--lg">Install Osaurus</a>
     <a href="/quickstart" className="button button--secondary button--lg">Quick Start</a>
+    <a href="/windows" className="button button--secondary button--lg">Osaurus for Windows</a>
   </div>
 </div>
 
