@@ -26,9 +26,24 @@ const sidebars: SidebarsConfig = {
       items: [
         { type: "doc", id: "models", label: "Local Models" },
         { type: "doc", id: "claude-code", label: "Claude Code" },
+        { type: "doc", id: "agents", label: "Agents" },
+        { type: "doc", id: "memory", label: "Memory" },
         { type: "doc", id: "sandbox", label: "Sandbox" },
         { type: "doc", id: "mobile", label: "iPhone" },
         { type: "doc", id: "account", label: "Account" },
+      ],
+    },
+    {
+      type: "category",
+      label: "Abilities & Automation",
+      collapsed: false,
+      items: [
+        { type: "doc", id: "browser", label: "Browser Use" },
+        { type: "doc", id: "web-search", label: "Web Search" },
+        { type: "doc", id: "skills-and-mcp", label: "Skills, Commands & MCP" },
+        { type: "doc", id: "automation", label: "Schedules & Watchers" },
+        { type: "doc", id: "channels", label: "Agent Channels" },
+        { type: "doc", id: "workspaces", label: "Workspaces" },
       ],
     },
     {

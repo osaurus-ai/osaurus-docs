@@ -64,7 +64,7 @@ A few places to start:
 
 - **Models**: download [local models](/windows/models). The **Catalog** tab shows what fits your PC, with a badge on each: **Runs well**, **Tight fit**, **GPU + RAM** (part of the model runs from system memory, more slowly), or **Too large**.
 - **Providers**: add cloud models: sign in with ChatGPT, Grok, or OpenRouter; paste an API key for OpenAI, Anthropic, Gemini, Azure OpenAI, DeepSeek, or Venice AI; use Claude Code; or connect Ollama or any OpenAI-compatible endpoint.
-- **Agents**: create more agents for different jobs. The [Orchestrator](/orchestrator), Osaurus's built-in agent, can also set Osaurus up for you: ask it to add a provider, download a model, or create an agent.
+- **Agents**: create more [agents](/windows/agents) for different jobs. The [Orchestrator](/windows/agents#the-orchestrator), Osaurus's built-in agent, can also set Osaurus up for you: ask it to add a provider, download a model, or create an agent.
 
 ## Keyboard shortcuts
 

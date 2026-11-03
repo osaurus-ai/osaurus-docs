@@ -12,11 +12,8 @@ Osaurus for Windows is its own app, written for Windows, so it isn't identical t
 
 These work as the Mac pages describe; only the menu path differs (the Mac's **Settings…** is **Settings** at the bottom of the agent sidebar on Windows):
 
-- [Chat](/chat), [Agents](/agents), [Agent Templates](/agent-templates), the [Orchestrator](/orchestrator), and [Subagents](/subagents)
-- [Memory](/memory) and [Skills](/skills)
-- [Browser Use](/browser-use) and [Web Search](/web-search)
-- [Schedules](/schedules), [Watchers](/watchers), and [Agent DB & Self-Scheduling](/agent-db)
-- [Workspaces](/workspaces), [iPhone pairing](/windows/mobile), [Public Links](/relay), the [Secure Channel](/secure-channel), and [Agent Channels](/agent-channels)
+- [Chat](/chat)
+- [iPhone pairing](/windows/mobile), [Public Links](/relay), and the [Secure Channel](/secure-channel)
 - The [Osaurus Router](/osaurus-router) and Osaurus Cloud
 - The [HTTP API](/api) on `http://127.0.0.1:1337`, with the same OpenAI, Anthropic, Ollama, and MCP endpoints
 - [Osaurus Bundles](/bundles) and declarative [Configuration](/configuration), through the [`osaurus` command](/windows/cli)
@@ -33,6 +30,15 @@ These work as the Mac pages describe; only the menu path differs (the Mac's **Se
 | Secrets | macOS Keychain | Encrypted database, key protected by Windows DPAPI; bundle secrets in Credential Manager |
 | Command line | [`osaurus`](/cli) | [`osaurus`](/windows/cli), with a few differences |
 | Updates | Sparkle, in the app | Microsoft Store |
+
+These features work much as on the Mac, with differences in where things are and what's included. Each Windows page lists them:
+
+- [Agents](/windows/agents), including templates, sharing, the Orchestrator, and delegation
+- [Memory](/windows/memory)
+- [Browser Use](/windows/browser) and [Web Search](/windows/web-search)
+- [Skills, Commands & MCP](/windows/skills-and-mcp)
+- [Schedules & Watchers](/windows/automation), including wake-ups and the private database
+- [Agent Channels](/windows/channels) and [Workspaces](/windows/workspaces)
 
 ## Windows-specific
 
