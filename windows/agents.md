@@ -16,7 +16,7 @@ An agent (a Dino) is an assistant with its own instructions, model, tools, and m
 
 You can also ask the [Orchestrator](#the-orchestrator) to make one for you.
 
-**Settings → Agents** lists your agents. Click the pencil to edit one. The **…** menu has **Duplicate**, **Save as template…**, **Share…**, and **Delete**. Right-clicking an agent in the sidebar gives the same, plus **New conversation** and **Conversations…**. Deleting an agent keeps its conversations in history.
+**Settings → Agents** lists your agents. Click the pencil to edit one. The **…** menu has **Duplicate**, **Save as template…**, **Share…**, and **Delete**. Right-clicking an agent in the sidebar gives **New conversation**, **Conversations…**, **Edit**, **Duplicate**, **Share…**, **Delete**, and **Manage agents…**. Deleting an agent keeps its conversations in history.
 
 Switch agents with **Ctrl+Alt+Up** and **Ctrl+Alt+Down**; **Ctrl+B** hides the sidebar.
 
@@ -36,7 +36,7 @@ The editor has five tabs. **Save** saves; leaving with unsaved changes asks firs
 
 ### Abilities
 
-Each ability is a card with a switch; click the card to open its settings.
+Each ability is a card. Some have a switch to turn them on; click a card to open its settings (**Web browser** has only its switch).
 
 | Card | What it does |
 |---|---|
@@ -66,7 +66,7 @@ A template is an agent as a file (`.osaurustemplate`) that you can share and mak
 
 ## Share an agent
 
-**Share…** creates an invite link that lets someone else's Osaurus use the agent, running on your PC. Choose how long the link lasts (1, 7, or 30 days), then **Copy link**. If the agent isn't reachable from outside yet, click **Publish on the relay** first. **Links you have made** lists your links; **Revoke** stops one.
+**Share…** creates an invite link that lets someone else's Osaurus use the agent, running on your PC. Choose **Expires after** (1, 7, or 30 days), click **Create invite link**, then **Copy link**. If the agent isn't reachable from outside yet, click **Publish on the relay** first. **Links you have made** lists your links; **Revoke** stops one.
 
 Agents others have shared with you are under **Paired remote agents** on the Agents page.
 

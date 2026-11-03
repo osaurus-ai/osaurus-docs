@@ -40,4 +40,6 @@ Osaurus for Windows is a separate app written for Windows, not a copy of the Mac
 
 ## Where to read next
 
-Pages under **Windows** in the top bar are written for the Windows app. The rest of the site describes the Mac app; for features that work the same on both, those pages apply to Windows too, though menu names and file paths will differ.
+Pages under **Windows** in the top bar are written for the Windows app, with one page for each feature: [agents](/windows/agents), [memory](/windows/memory), [local models](/windows/models), the [sandbox](/windows/sandbox), [browser use](/windows/browser), [schedules and watchers](/windows/automation), and more in the sidebar. Each one says where it differs from the Mac.
+
+The rest of the site describes the Mac app. Its pages go into more depth on how features work, and the [HTTP API](/api) applies to Windows too.

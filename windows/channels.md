@@ -22,7 +22,7 @@ Discord, Slack, and Telegram don't need your PC to be reachable from the interne
 
 ## Add a channel
 
-On the **Connections** tab, click **Add Discord**, **Add Slack**, **Add Telegram**, **Add n8n**, or **Add Custom HTTP**. Each editor walks you through it in four sections: **Connect**, **Conversations**, **Agent Behavior**, and **Test**.
+On the **Connections** tab, click **Add Discord**, **Add Slack**, **Add Telegram**, **Add n8n**, or **Add Custom HTTP**. Each editor walks you through connecting, then where the bot may listen and post, who may talk to it, and how it replies.
 
 - **Discord**: create an application and bot in the Developer Portal (**Open the Developer Portal**), turn on **Message Content Intent**, paste the bot token, and click **Connect**. Then **Open invite link** to add the bot to your server. The bot shows as offline in Discord; that's expected.
 - **Slack**: give the app a name and click **Create app in Slack**, which opens Slack with the settings filled in. Paste the **Bot token** (`xoxb-…`) and the **App token** (`xapp-…`), and click **Connect**.
@@ -32,19 +32,19 @@ Tokens are stored encrypted on this PC.
 
 ### Who and where
 
-Under **Conversations**, choose the channels, chats, or groups Osaurus may use, each set to **Listen only** or **Can post** (or **Can reply**). Under people, choose who may talk to the agent. Someone new who messages the bot shows as **Waiting for approval**, with **Allow** and **Deny**.
+Under **Where can Osaurus listen and post?** (on Telegram, **…listen and reply?**), choose the channels, chats, or groups Osaurus may use, each set to **Listen only** or **Can post** (or **Can reply**). Under **Who can talk to the agent?**, choose the people. Someone new who messages the bot shows as **Waiting for approval**, with **Allow** and **Deny**.
 
 ### Answering messages
 
-Under **Agent Behavior**:
+Under **Replies**:
 
 1. Turn on **Send incoming messages to an agent** and choose the **Agent that answers**.
-2. **When should it respond?** **Only when @mentioned** (the default) or **Every message in the channels above**.
+2. **When should it respond?** Only when @mentioned (the default; on Telegram, a reply to the bot counts too), or **Every message in the channels above**.
 3. **Reply automatically** posts its replies in the channel. Off, replies stay in Osaurus for you to read.
 
 **Routing rules** send messages to different agents: a message starting with a name (`sales: …`) picks that rule first, then a rule for the channel, then the agent above. Agents answering a channel can't use their MCP tools unless you turn on **Let the answering agent use its MCP tools**.
 
-Use **Test** to check the connection; **Recent activity** shows what came in and what happened to it.
+Use **Test connection** to check it; **Recent activity** shows what came in and what happened to it.
 
 ## n8n
 
@@ -52,7 +52,7 @@ Use **Test** to check the connection; **Recent activity** shows what came in and
 2. Choose **Which agent answers?** (or **Decide later**), and how replies get back: n8n waits for the reply, or Osaurus also pushes it to an n8n webhook.
 3. Click **Create connection**, then **Pair with n8n**. Use **Show pairing code** for the Osaurus node, or copy the addresses and secret for n8n's HTTP Request nodes.
 
-For **Another computer on my network**, Osaurus must listen on your network first: set the address in **Settings → Connections → Network access** (it needs an access key) and restart Osaurus. An n8n on the internet can't be paired with Windows yet.
+For **Another computer on my network**, Osaurus must listen on your network first: set the address in **Settings → Connections → Network access** and restart Osaurus. Then turn on **Allow plaintext HTTP from other machines** in the n8n editor, unless n8n reaches Osaurus over an encrypted connection. An n8n on the internet can't be paired with Windows yet.
 
 ## Custom HTTP
 
@@ -69,7 +69,7 @@ On the **Agent posting** tab, **Add destination** lets an agent post to a channe
 | **Ask first** (default) | You approve each message |
 | **Auto-send** | It posts without review; you have to confirm you understand |
 
-Each destination is limited to 10 messages an hour, 30 seconds apart, by default. On Windows only chat runs can post; schedules, watchers, and wake-ups can't yet.
+Each destination is limited to 10 messages an hour, 30 seconds apart, by default. Only chat runs can post to a new destination; to let schedules, watchers, or wake-ups post too, tick them under **Which kinds of run may post here** in its advanced settings.
 
 The agent's **Chat** tab lists the channels it can post to.
 
@@ -85,7 +85,7 @@ The agent's **Chat** tab lists the channels it can post to.
 - One Slack, one Discord, and one Telegram bot.
 - The Discord bot appears offline.
 - Editors have **Save** and **Cancel**; tokens are saved when you click **Connect**.
-- n8n can't be paired over the internet, and only chat runs can post to destinations.
+- n8n can't be paired over the internet.
 
 ---
 

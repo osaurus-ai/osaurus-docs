@@ -37,7 +37,7 @@ The **…** menu has **Read waiting messages now** (learn from recent chats righ
 
 ## Turn memory off for an agent
 
-Open the agent's **Abilities** tab and the **Memory** card. Set **Memory** to **Off**: it learns and recalls nothing, and nothing already stored is deleted. **Always on** keeps it on whatever the default.
+Open the agent's **Abilities** tab and the **Memory** card. Set **Memory** to **Off**: it learns and recalls nothing, and nothing already stored is deleted. **Always on** keeps it on for this agent.
 
 **Let it search memory** lets a model on your PC look things up in memory by itself. Cloud models always can; small local models tend to over-search, so it's off by default and they're reminded of relevant memories instead.
 

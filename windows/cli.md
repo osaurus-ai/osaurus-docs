@@ -138,7 +138,7 @@ Prints the id of every model you can use: downloaded local models and the models
 osaurus show <model_id>
 ```
 
-Prints a model's family, format, size, quantization, and capabilities.
+Prints what Osaurus knows about a model. For a downloaded local model, that's its family, format, and quantization, plus details from the file's header such as its architecture and longest context.
 
 ### osaurus pull
 

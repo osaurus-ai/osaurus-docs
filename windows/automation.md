@@ -6,7 +6,7 @@ description: Run an agent on its own in Osaurus for Windows — at times you cho
 
 # Schedules and Watchers on Windows
 
-An agent can work without you there: at times you choose ([Schedules](/schedules)), whenever a folder changes ([Watchers](/watchers)), or when it books its own next run (wake-ups). They work as the Mac pages describe, with the differences below. All three are under **Settings → Automation**, and only agents you create can run them.
+An agent can work without you there: at times you choose ([Schedules](/schedules)), whenever a folder changes ([Watchers](/watchers)), or when it books its own next run (wake-ups). They work as the Mac pages describe, with the differences below. Schedules and watchers have their own pages under **Automation** in Settings (**Settings → Schedules**, **Settings → Watchers**); wake-ups are set on the agent's **Abilities** tab. Only agents you create can run them.
 
 ## When they run
 
@@ -14,7 +14,7 @@ Automation runs while Osaurus is running, including when the window is closed an
 
 A schedule time missed while the PC was asleep or Osaurus was closed runs once when it's back, however many were missed, and the agent is told it's late.
 
-Nobody is there to answer questions during these runs, so an agent can't change files or run commands unless you allow it in the schedule's or watcher's editor (see [While nobody is watching](#while-nobody-is-watching)).
+Nobody is there to answer questions during these runs, so an agent can't change your files or run commands unless you allow it in the schedule's or watcher's editor (see [While nobody is watching](#while-nobody-is-watching)).
 
 ## Schedules
 
@@ -74,6 +74,8 @@ Both editors have this section. With both switches off, the agent can look and r
 
 - **Create and edit files in this folder** lets it write and edit files in the chosen folder.
 - **Run commands** lets it run commands. Moving and renaming files needs this. A command can reach anything your Windows account can, not just this folder.
+
+A schedule with no folder, for an agent that uses the [sandbox](/windows/sandbox), works in the agent's own sandbox home instead. There it can create files and run commands without these switches, and none of your files are in reach.
 
 Your choices are saved as always-allow rules for that agent in that folder, so they also apply when you chat with the agent there. Review or revoke them in **Settings → Behavior**. An agent whose **File edits and commands** permission is **Deny** stays denied.
 

@@ -42,7 +42,7 @@ Saved logins are stored encrypted on this PC. To see a saved password, click **S
 | Action | Asks you? |
 |---|---|
 | Reading pages, following links a page showed | Never |
-| Typing, choosing options | Only when **Settings → Behavior → Tool approvals** is set to ask each time |
+| Typing, choosing options | Only when the agent asks before each tool call (its **Permissions** tab, or **Settings → Behavior → Tool approvals** when it follows that setting) |
 | Submitting a form; clicking buttons such as Send, Buy, Pay, Delete, Sign in, Post | Always |
 | Going to, or typing on, a site your request didn't name | Always |
 | Signing in with a saved login that isn't set to sign in without asking | Always |
