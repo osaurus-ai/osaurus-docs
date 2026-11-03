@@ -88,8 +88,6 @@ Everything lives in one folder, `%LOCALAPPDATA%\osaurus` (usually `C:\Users\<you
 
 The databases are encrypted with SQLCipher. Their key is a random 32-byte key protected with Windows DPAPI, so it opens only under your Windows account on this PC.
 
-Store apps normally have their writes redirected into a private folder that uninstalling deletes. Osaurus is exempt for exactly `%LOCALAPPDATA%\osaurus`, which is why your data survives an uninstall.
-
 To run Osaurus against a different data folder (for testing), set the `OSAURUS_DATA_DIR` environment variable. The `osaurus` command takes `--data-dir` for the same purpose; see [CLI on Windows](/windows/cli#using-a-separate-profile).
 
 ### Test the local server

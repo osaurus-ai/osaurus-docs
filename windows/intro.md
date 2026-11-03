@@ -23,7 +23,7 @@ Osaurus for Windows is in public beta on Windows 11, from the [Microsoft Store](
     First launch: pick a model, meet the Orchestrator, and find your way around Control Center.
   </JourneyCard>
   <JourneyCard to="/windows/mac-differences" title="Windows and Mac" icon="Columns2">
-    What's the same as Osaurus for Mac, what works differently, and what isn't on Windows yet.
+    What's the same as Osaurus for Mac, what works differently, and what isn't on Windows.
   </JourneyCard>
   <JourneyCard to="/windows/cli" title="Command line" icon="Terminal">
     The osaurus command: start and stop the server, pull models, connect MCP clients, and install bundles.

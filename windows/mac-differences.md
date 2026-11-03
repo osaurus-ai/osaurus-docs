@@ -1,7 +1,7 @@
 ---
 title: Windows and Mac
 sidebar_label: Windows and Mac
-description: What Osaurus for Windows shares with Osaurus for Mac, what works differently, and what isn't on Windows yet.
+description: What Osaurus for Windows shares with Osaurus for Mac, what works differently, and what isn't on Windows.
 ---
 
 # Windows and Mac
@@ -50,14 +50,5 @@ These are Mac features with no Windows version:
 - [Computer Use](/computer-use)
 - [Apple Apps](/apple-apps)
 - [Shortcuts, Spotlight & Siri](/app-intents)
-
-## Not in this release yet
-
-These are being built for Windows and aren't in version 0.1.9:
-
-- [Image & Video](/image-generation) generation
-- [Voice](/voice) and [Text-to-Speech](/text-to-speech)
-- [Projects](/projects) and [Knowledge](/knowledge)
-- [Runtimes](/harness-runtimes) other than Claude Code
 
 Release notes for each Windows version are posted in the [community forum](https://community.osaurus.ai/tag/windows/2).

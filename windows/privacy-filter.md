@@ -10,6 +10,10 @@ Before a message goes to a [cloud model](/glossary#cloud-model), the [Privacy Fi
 
 It's **on by default** for every cloud model. Models that run on your PC are never filtered, because nothing leaves it. Settings are in **Settings → Privacy filter**.
 
+:::warning[It won't catch everything]
+The filter is a safety net, not a guarantee. It can miss personal details, especially names, addresses, and anything written in an unusual way or in a language other than English, and it can replace text that isn't personal. Check the card before you send, add [your own rules](#your-own-rules) for details it should always catch, and for anything that must never leave your PC, use a [model that runs on it](/windows/models) instead.
+:::
+
 ## What you see in a chat
 
 **Before sending.** When your message contains something the filter would replace, a card appears in the chat: "N items you typed will be redacted before sending". It lists each value and the placeholder it becomes.
