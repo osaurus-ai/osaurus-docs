@@ -28,6 +28,8 @@ The `osaurus` command comes with Osaurus 0.1.9 and later.
 
 ## A local model is slow
 
+See also [Local models](/windows/models#troubleshooting).
+
 - **Check its fit badge** in **Settings → Models**. **GPU + RAM** means part of the model runs from system memory, which is slower; **Too large** means it won't run well on this PC. Pick a smaller model, or a smaller build (quantization) of the same one.
 - **Check the accelerator:** **Settings → Models → Local engine → Accelerator**. **Auto (recommended)** uses CUDA on an NVIDIA card with its driver installed, then Vulkan, then the processor. If your graphics card isn't being used, update its driver, or pick **NVIDIA CUDA** or **Vulkan (any GPU)** yourself. The change takes effect after a restart.
 - **Close other programs using the graphics card**, such as games and other AI apps. Osaurus judges fit by what's free right now.
@@ -35,7 +37,7 @@ The `osaurus` command comes with Osaurus 0.1.9 and later.
 
 ## The sandbox won't start
 
-Osaurus says what's missing in **Settings → Sandbox**. The usual causes:
+Osaurus says what's missing in **Settings → Sandbox**. The usual causes are below; [Sandbox](/windows/sandbox#troubleshooting) has the full list.
 
 - **"The sandbox needs WSL containers"**: run `wsl --update` in a terminal (you need WSL 3.0.1 or newer), then restart Osaurus.
 - **"The sandbox needs the Virtual Machine Platform Windows feature"**: turn it on in **Windows Features** (search for "Turn Windows features on or off") and restart the PC.

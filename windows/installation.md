@@ -20,6 +20,16 @@ Osaurus for Windows is a free app from the Microsoft Store. It's in public beta,
 
 You don't need to install anything else first: everything Osaurus needs comes in the package.
 
+### Install with winget
+
+If you'd rather use a terminal, Osaurus can be installed with [winget](https://learn.microsoft.com/windows/package-manager/winget/), Windows's package manager:
+
+```powershell
+winget install 9P2W5T5WTTZ1 -s msstore --accept-package-agreements
+```
+
+`--accept-package-agreements` lets it run without pausing to ask you to agree to the Store license. The install is the same as one from the Store app, and the Store keeps it up to date.
+
 ## System requirements
 
 - **Windows 11**, on an x64 or ARM64 PC
