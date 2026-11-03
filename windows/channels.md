@@ -15,7 +15,7 @@ Channels connect your agents to chat apps and services. An agent can answer mess
 | **Discord** | A bot you create; Osaurus checks for new messages every few seconds |
 | **Slack** | A Slack app over Socket Mode |
 | **Telegram** | A bot you create with @BotFather |
-| **n8n** | Your n8n workflows send messages in and get replies back |
+| **n8n** | n8n sends messages in and gets replies back |
 | **Custom HTTP** | Your own JSON service, for posting and reading only |
 
 Discord, Slack, and Telegram don't need your PC to be reachable from the internet: Osaurus reaches out to them. Each can be set up once. WhatsApp and iMessage aren't on Windows.

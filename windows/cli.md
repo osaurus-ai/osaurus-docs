@@ -206,7 +206,7 @@ Manages [sandbox plugins](/glossary#sandbox), which run inside the Osaurus sandb
 
 ### osaurus config
 
-Sets Osaurus up from a YAML or JSON document: providers, agents, MCP servers, and settings. The workflow is export, edit, plan, apply.
+Sets Osaurus up from a YAML or JSON document: providers, agents, MCP servers, and settings. The steps are export, edit, plan, apply.
 
 ```powershell
 osaurus config export [-o file] [--format yaml|json]   # the current configuration (never secrets)
