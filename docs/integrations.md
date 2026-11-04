@@ -23,6 +23,8 @@ For LAN, Relay, and any non-loopback caller, authenticate with an [`osk-v1` acce
 
 Osaurus is a full [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server. Connect any MCP client to give AI agents access to your installed tools.
 
+Looking for the docs themselves as an MCP server? See [Docs MCP](/docs-mcp).
+
 ### Cursor
 
 Add to your Cursor MCP settings (Settings → Features → MCP Servers):

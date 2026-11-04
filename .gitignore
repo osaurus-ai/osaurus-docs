@@ -18,3 +18,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Docs MCP index and llms files, built by scripts/build-docs-index.mjs
+/generated
+/static/llms.txt
+/static/llms-full.txt

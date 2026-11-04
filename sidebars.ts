@@ -102,6 +102,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "sdk-examples", label: "SDK Examples" },
         { type: "doc", id: "cli", label: "CLI" },
         { type: "doc", id: "integrations", label: "Integrations" },
+        { type: "doc", id: "docs-mcp", label: "Docs MCP" },
         {
           type: "category",
           label: "Tools & Plugins",
