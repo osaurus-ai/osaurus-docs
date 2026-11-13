@@ -14,9 +14,9 @@ Computer Use is an experimental feature. Start with the default **Balanced** set
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Computer Use**.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Computer & Browser Use**.
 2. Under **Setup**, click **Grant** next to **Accessibility** (required). You can also grant **Screen Recording**, which is optional and only needed if you want the agent to take screenshots.
-3. Go to **Settings… → Agents**, pick one of your own agents, and open **Abilities → Subagents**.
+3. Go to **Settings → Agents**, pick one of your own agents, and open **Abilities → Subagents**.
 4. Turn on **Computer Use**. The card says **Unavailable** until Accessibility is granted.
 5. Ask the agent for something on screen, like *"Open System Settings and turn on Night Shift"* or *"Fill in this form with my details"*.
 6. When a confirmation card appears, check what the agent wants to do and click allow or deny.
@@ -24,7 +24,7 @@ Computer Use is an experimental feature. Start with the default **Balanced** set
 Each confirmation card shows the app, the action, what it will click, and any text it's about to type. The cards appear in the chat window, so keep it open while the agent works.
 
 :::note[Using it from the Orchestrator]
-The [Orchestrator](/orchestrator) can't use Computer Use itself. Either chat with your Computer Use agent directly, or add that agent to the Orchestrator's agent pool so the Orchestrator can hand the job to it.
+The [Orchestrator](/orchestrator) can't use Computer Use itself. Either chat with your Computer Use agent directly, or add that agent in **Settings → Agents → Delegation → Allowed subagents** so the Orchestrator can hand the job to it.
 :::
 
 ## What happens while it works
@@ -52,7 +52,7 @@ Every action falls into one of four kinds:
 | **Edit** | Typing, choosing a value, clearing a field. Changes you can review or undo. |
 | **Consequential** | Send, submit, delete, purchase. Hard to undo, or reaches other people. |
 
-Pick a setting in **Settings… → Computer Use → Autonomy**:
+Pick a setting in **Settings → Computer & Browser Use → Autonomy**:
 
 | Setting | Navigate | Edit | Consequential |
 |---|---|---|---|
@@ -69,22 +69,22 @@ Osaurus errs on the side of caution. A button labeled Send, Delete, or Purchase 
 Three layers combine, and **the strictest one always wins**:
 
 1. **Your main setting** above applies to every app.
-2. **Per-app rules** (under **Advanced**) can make a specific app stricter, never looser.
+2. **Per-app rules** (under **Autonomy → Advanced**) can make a specific app stricter, never looser.
 3. **Each agent's limit**, set in that agent's **Subagents** tab, can hold the agent stricter than your main setting, never looser.
 
 Two more guardrails apply no matter what you choose:
 
-- **App allowlist** (under **Advanced**). If you add apps here, the agent can only use those apps.
+- **App allowlist** (under **Autonomy → Advanced**). If you add apps here, the agent can only use those apps.
 - **Sensitive apps always ask.** Using Terminal, System Settings, Keychain Access, password managers, and similar apps always needs your OK, even on **Autonomous**.
 
 ## Your screen stays private
 
 By default, everything the agent sees stays on your Mac: the on-screen text, any screenshots, and any text it reads out of images.
 
-A screenshot only goes to a [cloud model](/glossary#cloud-model) if you allow it. Turn on **Allow masked screenshots to reach a cloud model** in **Settings… → Computer Use → Advanced → Cloud vision**. It's off by default. Even then, Osaurus covers text with solid boxes on your Mac before anything is sent:
+A screenshot only goes to a [cloud model](/glossary#cloud-model) if you allow it. Turn on **Allow Masked Screenshots to Reach a Cloud Model** in **Settings → Computer & Browser Use → Autonomy → Advanced → Cloud vision**. It's off by default. Even then, Osaurus covers text with solid boxes on your Mac before anything is sent:
 
 - **Normally, all text is covered**, so nothing readable leaves your Mac. This is the recommended choice.
-- **Turn on Mask only detected sensitive text** to cover only personal details such as names, emails, numbers, and secrets, and leave other text readable. It uses your [Privacy Filter](/glossary#privacy-filter) rules plus an on-device detector. Detection isn't perfect, which is why covering everything is the default.
+- **Turn on Mask Only Detected Sensitive Text** to cover only personal details such as names, emails, numbers, and secrets, and leave other text readable. It uses your [Privacy Filter](/glossary#privacy-filter) rules plus an on-device detector. Detection isn't perfect, which is why covering everything is the default.
 
 If a task would go better with a screenshot but you haven't allowed it, Osaurus asks you at that moment (**Allow once**, **Always allow**, or **Not now**) instead of quietly doing a worse job.
 
@@ -95,7 +95,7 @@ Screen context is separate from operating apps. It gives an agent a quick, text-
 - The snapshot is attached to the first message of each chat and reused for the rest of that chat.
 - It's set per agent: in the agent's **Subagents** tab, under **Computer Use**, use **Share screen context**. It's on by default once an agent has Computer Use. Agents without Computer Use, including the Orchestrator, never share screen context.
 - It's built from on-screen text, not screenshots, so your Privacy Filter can hide personal details before it goes to a cloud model.
-- **Settings… → Computer Use → Screen context** shows a live preview of exactly what would be shared.
+- **Settings → Computer & Browser Use → Screen Context** shows a live preview of exactly what would be shared.
 
 There's also a screenshot slash command in chat for one-off captures. It asks for permission before it runs.
 
@@ -105,7 +105,8 @@ Some apps, like Finder, Safari, Mail, and Notes, can be controlled with AppleScr
 
 - **You see the script first.** It's shown in the confirmation card before it runs. For workflows you trust, you can switch to running scripts automatically with a warning.
 - It needs the macOS [Automation](/glossary#automation-permission) permission, which macOS asks for the first time.
-- Download AppleScript models in **Settings… → Computer Use → Models**. You can set a default there and override it per agent in the agent's **Subagents** tab.
+- Download AppleScript models in **Settings → Local Models → AppleScript** (the **AppleScript Models** row on the Computer & Browser Use page opens it). Set the default in **Settings → Models → Model Defaults → AppleScript Model**, and override it per agent in the agent's **Subagents** tab.
+- **Settings → Computer & Browser Use → AppleScript** explains the Automation permission and how scripts are checked before they run.
 
 ## Troubleshooting
 
@@ -162,7 +163,8 @@ Every run is bounded by a step cap (default 24), a wall-clock budget (5 minutes)
 |---|---|
 | `~/.osaurus/config/computer-use.json` | Global preset, per-app overrides, app allowlist |
 | Agent settings (per agent) | Computer Use enable, autonomy ceiling, screen context |
-| **Settings… → Computer Use** | Presets, permissions, cloud-vision consent, AppleScript models |
+| **Settings → Computer & Browser Use** | Presets, permissions, cloud-vision consent, screen context preview, AppleScript, Browser Use sessions |
+| **Settings → Local Models → AppleScript** | AppleScript model downloads (default under **Model Defaults → AppleScript Model**) |
 
 ### Telemetry
 

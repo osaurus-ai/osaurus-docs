@@ -1,16 +1,18 @@
 ---
 title: Plugin Authoring
 sidebar_label: Plugin Authoring
-description: Build native Swift and Rust plugins for Osaurus using the Generic C ABI. Tools, HTTP routes, SQLite storage, config UI, web apps.
+description: Build native Swift and Rust plugins for Osaurus using the Generic C ABI. Tools, HTTP routes, SQLite storage, config UI and Vault-backed secrets, web apps.
 ---
 
 # Plugin Authoring
 
-This guide covers building external plugins for Osaurus. Plugins are native binaries (`.dylib`) distributed with a `manifest.json`, providing tools that AI agents call via MCP.
+This page is for developers writing a native Osaurus plugin in Swift or Rust.
 
-For sandbox plugins (JSON recipes that run inside the Linux VM, no compilation), see [Sandbox Internals → Plugin recipes](/sandbox#plugin-recipes).
+Plugins are native binaries (`.dylib`) distributed with a `manifest.json`, providing tools that AI agents call via MCP.
 
-You'll need the `osaurus` CLI on your `PATH` — install it from **Settings… (⌘,) → Server → Overview → Command Line Tool → Install CLI**.
+For sandbox plugins (JSON recipes that run inside the Linux VM, no compilation), see [Sandbox Internals](/sandbox).
+
+You'll need the `osaurus` CLI on your `PATH` — install it from **Settings → Server → Command Line Tool → Install CLI**.
 
 ## Quick Start (Swift)
 
@@ -292,8 +294,8 @@ if (host->version >= 5 && host->log_structured) {
 | Tools | `capabilities.tools` | AI-callable functions (also v1) |
 | HTTP Routes | `capabilities.routes` | Register custom HTTP endpoints on the Osaurus server (OAuth, webhooks, APIs) |
 | Web Apps | `capabilities.web` | Serve embedded static frontends with context injection |
-| Config UI | `capabilities.config` | Native settings UI rendered from the plugin's card in **Settings… → Tools & MCP → Plugins**, with validation |
-| SQLite Storage | host API | Per-plugin sandboxed SQLite database via `PluginHostAPI` (100 MiB cap; SQLCipher-encrypted when the user turns on encryption under **Settings… → General → Advanced → Data & Storage**) |
+| Config UI | `capabilities.config` | Native settings UI rendered from the plugin's card in **Settings → Tools & MCP → Plugins**, with validation. Config is scoped per plugin and agent. Keys the manifest declares under `secrets` resolve through the [Vault](/vault): the calling agent's own value, then the value shared by all agents; `config_set` / `config_delete` on a declared secret change the calling agent's own value |
+| SQLite Storage | host API | Per-plugin sandboxed SQLite database via `PluginHostAPI` (100 MiB cap; SQLCipher-encrypted when the user turns on encryption under **Settings → Privacy & Security → Data & Storage**) |
 | Agent Dispatch | host API | Programmatically dispatch tasks to other agents |
 | Inference | host API | Call chat completions through any configured model provider |
 | Events | host API | Emit and subscribe to cross-plugin events |
@@ -488,7 +490,7 @@ The [osaurus-emacs](https://github.com/osaurus-ai/osaurus-emacs) plugin is a rea
 
 - Check code signature: `codesign -v libMyPlugin.dylib`
 - Verify manifest.json is valid JSON
-- Check the plugin card's error, then **Settings… → Insights**: pick the **Tools** scope for **Plugin call** rows, and enable **Filter → Show plugin console logs** to see **Plugin log** lines. Retry from the plugin detail page.
+- Check the plugin card's error, then **Settings → Developer Tools → Insights**: pick the **Tools** scope for **Plugin call** rows, and enable **Filter → Show plugin console logs** to see **Plugin log** lines. Retry from the plugin detail page.
 
 ### Plugin shows "Built into Osaurus"
 
@@ -512,5 +514,5 @@ The Apple app plugins (`osaurus.calendar`, `osaurus.reminders`, `osaurus.contact
 
 - [Tools & Plugins](/tools) — using existing tools
 - [Tool Contract](/tool-contract) — envelope shape every tool returns
-- [Sandbox Internals](/sandbox#plugin-recipes) — JSON-recipe plugins for the Linux VM
+- [Sandbox Internals](/sandbox) — JSON-recipe plugins for the Linux VM
 - [Tools Registry](https://github.com/osaurus-ai/osaurus-tools) — submit yours via PR

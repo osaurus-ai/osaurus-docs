@@ -32,7 +32,7 @@ Osaurus for Windows is in public beta on Windows 11, from the [Microsoft Store](
 
 ## The same Osaurus, built for Windows
 
-Osaurus for Windows is a separate app written for Windows, not a copy of the Mac app. It shares Osaurus's ideas, your [account](/glossary#identity), and the local server that other apps connect to, so most of what the rest of these docs describe works the same way. The [Windows and Mac](/windows/mac-differences) page lists what's different.
+Osaurus for Windows is a separate app written for Windows, not a copy of the Mac app. It shares Osaurus's ideas, your [account](/glossary#osaurus-id), and the local server that other apps connect to, so most of what the rest of these docs describe works the same way. The [Windows and Mac](/windows/mac-differences) page lists what's different.
 
 - **Local models run through llama.cpp** on your graphics card (NVIDIA through CUDA, or any recent GPU through Vulkan) or on your processor, instead of Apple's MLX.
 - **Settings live in Control Center**, the Windows counterpart of the Mac's **Settings…** window.

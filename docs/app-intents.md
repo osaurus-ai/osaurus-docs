@@ -6,7 +6,7 @@ description: Ask Osaurus a question or start one of your agents from the Shortcu
 
 # Shortcuts, Spotlight & Siri
 
-You can use Osaurus without opening it: ask a quick question from Spotlight, say "Ask Osaurus" to Siri, or build it into your own shortcuts in the Shortcuts app. Two actions are ready as soon as you install Osaurus, with nothing to set up. You just need a [model](/glossary#model) set up in Osaurus, and at least one of your own [agents](/glossary#agent) if you want to start agents this way.
+You can use Osaurus without opening it: ask a quick question from Spotlight, say "Ask Osaurus" to Siri, or build it into your own shortcuts in the Shortcuts app. Two actions are ready as soon as you install Osaurus, with nothing to set up. You just need a [model](/glossary#model) set up in Osaurus. To start [agents](/glossary#agent) this way, you can use the starter team that comes with a fresh install, or any agent you make.
 
 ## The two actions
 
@@ -32,13 +32,13 @@ You can use Osaurus without opening it: ask a quick question from Spotlight, say
 
 You can combine these with anything else Shortcuts can do. For example:
 
-- A Focus mode that runs a "wind-down summary" agent every evening.
+- A Focus mode that asks Planner for a wind-down summary every evening.
 - A keyboard shortcut that opens "Ask Osaurus" from Spotlight.
 
 ## Before you start
 
 - **Set up a model**, so "Ask Osaurus" can answer.
-- **Create at least one agent**, so "Run Osaurus Agent" has something to list. The list only shows your own [agents](/agents); the Orchestrator is used by the in-app chat and "Ask Osaurus".
+- **Check your agents.** "Run Osaurus Agent" lists your own [agents](/agents). A fresh install already has the starter team of [teammates](/glossary#teammate) (Planner, Courier, Keeper, Scout, and Builder on Macs with developer tools), so there's nothing to create first. The Orchestrator isn't in the list; it's used by the in-app chat and "Ask Osaurus".
 
 ## Troubleshooting
 

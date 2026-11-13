@@ -1,12 +1,14 @@
 ---
 title: Global Proxy
 sidebar_label: Global Proxy
-description: Route Osaurus's outbound network traffic through a single validated HTTP, HTTPS, or SOCKS proxy — without weakening TLS or accepting embedded credentials.
+description: Route Osaurus's outbound network traffic — model providers, MCP servers, downloads, channels, plugins, and the Remote Access relay — through a single validated HTTP, HTTPS, or SOCKS proxy without weakening TLS.
 ---
 
 # Global Proxy
 
-Osaurus can route its app-managed outbound network traffic through one global proxy endpoint. Set a validated **Proxy URL** in **Settings… → Server → Settings → Global Proxy** and it applies to new outbound sessions without weakening TLS or accepting credentials embedded in the URL.
+This page is for people on networks that require an outbound proxy, and for admins who need to know exactly which Osaurus traffic goes through it.
+
+Osaurus can route its app-managed outbound network traffic through one global proxy endpoint. Set a validated **Proxy URL** in **Settings → Server → Server Settings → Global Proxy** and it applies to new outbound sessions without weakening TLS or accepting credentials embedded in the URL.
 
 ## What the proxy covers
 
@@ -17,7 +19,7 @@ The global proxy covers:
 - Model downloads and Hugging Face lookups, including Rampart and privacy-filter model bundles
 - Slack, Discord, and Telegram API requests, plus custom JSON Agent Channel HTTP requests
 - Plugin HTTP requests, plugin repository refreshes, and plugin artifact installs
-- [Relay](/relay), theme sharing, GitHub skill imports, and remote Markdown images
+- The [Remote Access](/remote-access) relay, GitHub skill imports, and remote Markdown images
 - Sandbox provisioning
 
 Local loopback health checks deliberately stay direct — a proxy setting never affects how Osaurus talks to itself. iMessage channel traffic is local to Messages.app and its helper, so it has no remote HTTP session to proxy. Per-provider proxy selection is not supported; the setting is global by design.
@@ -48,7 +50,7 @@ Credentials are deliberately out of scope for the URL format. Authenticated prox
 
 ## Status and diagnostics
 
-The Global Proxy section shows a live proxy status line:
+The Global Proxy section of **Server Settings** shows a live proxy status line:
 
 | Status | Meaning |
 |---|---|

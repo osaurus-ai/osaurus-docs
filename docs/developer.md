@@ -1,10 +1,12 @@
 ---
 title: Building from Source
 sidebar_label: Building from Source
-description: Build Osaurus from source, contribute to the project, and understand the architecture.
+description: Build Osaurus from source with Xcode 26 and Git LFS, find your way around the repository, run the tests, and contribute.
 ---
 
 # Building from Source
+
+This page is for contributors who want to build Osaurus themselves, change its code, or send a pull request.
 
 Everything you need to build Osaurus from source, contribute, and understand the architecture.
 
@@ -23,17 +25,25 @@ Osaurus is built with **native Swift**—not Python, not Electron, not wrapped w
 
 ### Prerequisites
 
-- **macOS 15.5+** on Apple Silicon
-- **Xcode 16.4+** with Command Line Tools
-- **Swift 6.0+**
-- **Git**
+- **macOS 15.5+** on Apple Silicon (M1 or newer)
+- **Xcode 26+** with Command Line Tools — the packages use Swift tools 6.2, and CI builds with Xcode 26.4.1
+- **Git** and **[Git LFS](https://git-lfs.com)** — the OsaurusSync libraries and the sandbox init image are stored in LFS, so a clone without it won't build
 
 ### Clone and Build
 
+Set up Git LFS **before** you clone, so the large files come down with the repository:
+
 ```bash
-# Clone the repository
+# One-time Git LFS setup
+brew install git-lfs
+git lfs install
+
+# Clone the repository (LFS files download automatically)
 git clone https://github.com/osaurus-ai/osaurus.git
 cd osaurus
+
+# Already cloned without LFS? Fetch the large files now
+git lfs pull
 
 # Open in Xcode
 open osaurus.xcworkspace
@@ -41,6 +51,8 @@ open osaurus.xcworkspace
 # Build and run the "osaurus" scheme
 # Press ⌘R or Product → Run
 ```
+
+On first launch, pick a model in the welcome window (or in **Settings → Models → Local Models**) to generate text locally. For the fast unit-test loop, run `make test`; `make help` lists the other targets.
 
 ### Git hooks (lefthook)
 
@@ -69,17 +81,27 @@ osaurus/
 │   │   ├── Identity/             # Cryptographic identity and access keys
 │   │   ├── Tools/                # MCP tools, plugin ABI, tool registry
 │   │   ├── Folder/               # Working-folder context, file ops, batch tool
+│   │   ├── Resources/Guide/      # In-app guides the Orchestrator reads
 │   │   ├── Utils/                # Cross-cutting utilities
 │   │   └── Tests/                # Unit and integration tests
 │   ├── OsaurusCLI/               # CLI (osaurus command)
-│   └── OsaurusRepository/        # Plugin registry and installation
+│   ├── OsaurusEvals/             # Eval suites (make evals)
+│   ├── OsaurusNetworking/        # Shared networking (global proxy configuration)
+│   ├── OsaurusPluginTestKit/     # Mock host for unit-testing native plugins
+│   ├── OsaurusPlugins/           # First-party plugins
+│   ├── OsaurusRepository/        # Plugin registry and installation
+│   └── Vendor/                   # Vendored binary dependencies (LFS)
 ├── docs/                         # Feature guides and documentation
 ├── scripts/                      # Build, release, and benchmark scripts
 ├── sandbox/                      # Sandbox VM Dockerfile
 └── assets/                       # DMG packaging assets
 ```
 
-See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f/docs/CONTRIBUTING.md) for the architecture guide and layer definitions at the documented upstream baseline.
+See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CONTRIBUTING.md) for the architecture guide and layer definitions.
+
+### Telemetry in local builds
+
+Usage analytics (Aptabase) and crash reporting (Sentry) are **off by default in source builds**: with no key, neither SDK starts, so you can build and contribute without setting anything up. To test them locally, put your own `APTABASE_APP_KEY` and `SENTRY_DSN` in `App/osaurus/Secrets.xcconfig` (it's gitignored — never commit it) and base the Debug configuration on it. Debug builds report to separate debug buckets, so local testing never mixes with production data. See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/CONTRIBUTING.md) for the exact steps and [Telemetry](/telemetry) for what is collected.
 
 ### Running in Development
 
@@ -93,9 +115,11 @@ See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   The Harness                       │
-├──────────┬──────────┬────────────┬──────────────────┤
-│ Agents   │ Memory   │ Agent Loop │ Automation       │
-├──────────┴──────────┴────────────┴──────────────────┤
+├──────────────┬────────────┬────────────┬────────────┤
+│ Orchestrator │ Agents     │ Workflows  │ Automations│
+├──────────────┼────────────┼────────────┼────────────┤
+│ Chat loop    │ Memory     │ Tasks      │ Channels   │
+├──────────────┴────────────┴────────────┴────────────┤
 │              MCP Server + Client                    │
 ├──────────┬──────────┬───────────┬───────────────────┤
 │ MLX      │ OpenAI   │ Anthropic │ Ollama / Others   │
@@ -103,14 +127,15 @@ See [`docs/CONTRIBUTING.md`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f
 ├──────────┴──────────┴───────────┴───────────────────┤
 │      Plugin System (v1–v6 ABI) · Native Plugins     │
 ├──────────┬──────────┬───────────┬───────────────────┤
-│ Identity │ Relay    │ Tools     │ Skills · Methods  │
+│ Vault    │ Osaurus  │ Sync ·    │ Tools · Skills    │
+│          │ ID       │ Relay     │                   │
 ├──────────┴──────────┴───────────┴───────────────────┤
-│  Sandbox VM (Alpine · Apple Containerization)       │
-│  vsock bridge · VirtioFS · per-agent isolation      │
+│  Sandbox (Alpine · Apple Containerization)          │
+│  one Linux container per agent · vsock · VirtioFS   │
 └─────────────────────────────────────────────────────┘
 ```
 
-Most features are accessible through **Settings…** (`⌘ ,`).
+See [Architecture](/architecture) for how these pieces connect. Most features are reachable from **Settings** (`⌘,`).
 
 ## Contributing
 
@@ -123,10 +148,11 @@ Start with issues labeled **"good first issue"**:
 ### Pull Request Process
 
 1. **Fork** the repository
-2. **Create a feature branch**: `git checkout -b feature/my-feature`
-3. **Make your changes** with tests
-4. **Run SwiftLint**: `swiftlint`
-5. **Submit a PR** with a clear description
+2. **Create a feature branch** from `main`: `git checkout -b feat/my-feature` (or `fix/…`, `docs/…`)
+3. **Make your changes** with tests in `Packages/OsaurusCore/Tests/`
+4. **Check formatting and tests**: `swift-format lint --strict --recursive Packages App` and `make test`
+5. **Update the in-app guide** in `Packages/OsaurusCore/Resources/Guide/` if users or the Orchestrator need to know about the change
+6. **Submit a PR** with a clear description, linked issues (`Closes #123`), and screenshots for UI changes
 
 ### Commit Messages
 
@@ -174,9 +200,9 @@ osaurus tools dev com.example.myplugin
 Plugins use a C ABI for compatibility:
 
 ```swift
-@_cdecl("osaurus_plugin_entry")
-func osaurusPluginEntry() -> UnsafeMutableRawPointer {
-    // Return function table
+@_cdecl("osaurus_plugin_entry_v2")
+public func osaurus_plugin_entry_v2(_ host: UnsafePointer<osr_host_api>?) -> UnsafeRawPointer? {
+    // Keep the host API, return the plugin's function table
 }
 ```
 
@@ -203,13 +229,17 @@ This matters when AI agents execute dozens of tool calls per session.
 ### Unit Tests
 
 ```bash
-# Run all tests
-xcodebuild test -workspace osaurus.xcworkspace -scheme osaurus
+# Fast loop: OsaurusCore package tests
+make test
 
-# Run specific test
-xcodebuild test -workspace osaurus.xcworkspace -scheme osaurus \
-  -only-testing:OsaurusTests/MLXServiceTests
+# One suite
+swift test --package-path Packages/OsaurusCore --filter ChatEngineTests
+
+# Reproduce the CI test job exactly (needs xcbeautify)
+make ci-test
 ```
+
+The eval suites live in `Packages/OsaurusEvals`: `make evals-test` runs their token-free harness tests, and `make evals` runs a suite against a model.
 
 ### Integration Tests
 
@@ -232,8 +262,11 @@ def test_chat_completion():
 ### Performance Testing
 
 ```bash
-# Run benchmark suite
-./scripts/run_bench.sh
+# Local model throughput (osaurus bench)
+make bench-mlx BENCH_MLX_ARGS="--runs 5"
+
+# Memory recall benchmark (LOCOMO)
+make bench-setup && make bench
 
 # Profile with Instruments
 xcrun xctrace record --template "Time Profiler" --launch osaurus
@@ -317,7 +350,7 @@ Logger.shared.level = .trace
 
 ## Developer tools
 
-Osaurus has built-in dev tools — Insights for live request monitoring and the **Server → API Reference** tab for endpoint testing. Open **Settings…** (`⌘ ,`) and click **Insights** or **Server** (under Developer Tools).
+Osaurus has built-in dev tools — **Insights** for live request monitoring and **Server → API Reference** for endpoint testing. Open **Settings** (`⌘,`) and click **Insights** or **Server** under **Developer Tools**.
 
 [Full Developer Tools guide →](/developer-tools)
 
@@ -325,8 +358,8 @@ Osaurus has built-in dev tools — Insights for live request monitoring and the 
 
 ### Osaurus Documentation
 
-- [FEATURES.md](https://github.com/osaurus-ai/osaurus/blob/dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f/docs/FEATURES.md) — Complete feature inventory and architecture overview
-- [Contributing Guide](https://github.com/osaurus-ai/osaurus/blob/dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f/docs/CONTRIBUTING.md) — How to contribute to Osaurus
+- [FEATURES.md](https://github.com/osaurus-ai/osaurus/blob/main/docs/FEATURES.md) — Complete feature inventory and architecture overview
+- [Contributing Guide](https://github.com/osaurus-ai/osaurus/blob/main/docs/CONTRIBUTING.md) — How to contribute to Osaurus
 
 ### External Documentation
 
@@ -350,7 +383,7 @@ Osaurus has built-in dev tools — Insights for live request monitoring and the 
 
 ### Reporting Vulnerabilities
 
-See [`docs/SECURITY.md`](https://github.com/osaurus-ai/osaurus/blob/dd9de43f8191f9825fe5dfd2a9b7d9f889701a5f/docs/SECURITY.md) for reporting security issues.
+See [`docs/SECURITY.md`](https://github.com/osaurus-ai/osaurus/blob/main/docs/SECURITY.md) for reporting security issues.
 
 ### Best Practices
 

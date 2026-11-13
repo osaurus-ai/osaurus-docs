@@ -6,6 +6,8 @@ description: The canonical success/failure envelope every Osaurus tool returns. 
 
 # Tool Contract
 
+This page is for plugin authors and contributors writing a tool that Osaurus agents call.
+
 Every Osaurus tool — global built-in, folder tool, sandbox tool, plugin tool, MCP-aggregated tool — returns a JSON string in exactly one of two shapes. This page is the one-stop reference for tool authors.
 
 The type lives at `Packages/OsaurusCore/Tools/ToolEnvelope.swift` in the osaurus repo.
@@ -188,7 +190,7 @@ An explicit empty `new_string` (or `content`) survives schema coercion, so a `fi
 
 ## Loop tools
 
-Three special tools drive the inline UI for the [Tasks](/agent-loop) experience. The chat layer intercepts their results and renders the live to-do list, "Completed" banner, and clarifying-question prompt. They're available in every chat. A fourth intercept, [`prompt_working_folder`](#prompt_working_folder), shares the same run-ending mechanics.
+Three special tools drive the inline UI described in [Working in Chat](/agent-loop). The chat layer intercepts their results and renders the live to-do list, "Completed" banner, and clarifying-question prompt. They're on by default for custom agents and can be turned off per agent with **Task Checklist** and **Clarifying Questions** under **Abilities → Overview → Task Tools**. A fourth intercept, [`prompt_working_folder`](#prompt_working_folder), shares the same run-ending mechanics.
 
 ### `todo`
 

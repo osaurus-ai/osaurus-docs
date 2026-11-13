@@ -1,7 +1,7 @@
 ---
 title: Apple Intelligence
 sidebar_label: Apple Intelligence
-description: Use Apple's built-in AI model in Osaurus — nothing to download, nothing to set up, and everything stays on your Mac.
+description: Use Apple's built-in AI model in Osaurus — nothing to download, nothing to set up, and everything stays on your Mac. It also runs background jobs and the Starter workflows.
 slug: /models/apple-intelligence
 ---
 
@@ -44,10 +44,15 @@ Osaurus itself runs on macOS 15.5 and later, but Apple's model needs macOS 26 (T
 - **Hard problems.** It's a small model. For complex reasoning, coding, or research, a bigger model will do better.
 - **Choice.** There's one Apple model, with no sizes or versions to pick from, and fewer settings than other models.
 - **It depends on macOS.** It needs macOS 26, and it may be briefly unavailable while macOS updates or downloads the model.
+- **Building workflows.** The [Architect](/glossary#architect), which builds workflows with you, needs a model that can use tools, so Apple's model isn't offered for it. Pick a bigger local or cloud model there.
+
+## Workflows that use it
+
+The three Starter workflows (**Social Post Writer**, **Meeting Action Items**, and **Email Reply**) prefer Apple's model when it's available, so they run on your Mac with nothing to download. On a Mac without it, they use your default model. [Workflows →](/workflows)
 
 ## Osaurus's background helper
 
-Osaurus uses a small Core Model behind the scenes for housekeeping, like saving [memories](/glossary#memory) and naming chats. On macOS 26 and later, **Foundation** is the default Core Model, so these jobs stay on your Mac without any setup. You can change it in **Settings… → General → Core Model**.
+Osaurus uses a small Core Model behind the scenes for housekeeping, like saving [memories](/glossary#memory) and naming chats. On macOS 26 and later, **Foundation** is the default Core Model, so these jobs stay on your Mac without any setup. You can change it in **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Models → Model Defaults → Core Model**.
 
 If Apple Intelligence is turned off, its model is still downloading, or a request gets stuck, those background jobs automatically switch to the model you're chatting with. The Core Model picker and Memory's diagnostics show why.
 

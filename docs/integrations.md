@@ -1,10 +1,12 @@
 ---
 title: Integrations
 sidebar_label: Integrations
-description: Wire Osaurus into Cursor, Claude Desktop, Codex CLI, Claude Code, Continue.dev, LangChain, LlamaIndex, the iPhone app, native macOS apps, and any OpenAI/Anthropic SDK.
+description: Wire Osaurus into Cursor, Claude Desktop, Codex CLI, Claude Code, Continue.dev, LangChain, LlamaIndex, native macOS apps, web apps, and any OpenAI/Anthropic SDK — plus workflows, webhooks, and website sign-in.
 ---
 
 # Integrations
+
+This page is for developers connecting another app, editor, or framework to Osaurus — the copy-and-paste setup for each one.
 
 Osaurus offers these integration surfaces:
 
@@ -12,12 +14,14 @@ Osaurus offers these integration surfaces:
 - **Remote inference providers** — connect Osaurus *to* OpenAI, Anthropic, etc., so your scripts hit one endpoint
 - **Runtimes** — run an agent on Claude Code, Pi, or another agent program instead of Osaurus's own loop ([Runtimes](/harness-runtimes))
 - **Osaurus Bundles** — ship Osaurus with your own agents, skills, and MCP servers preinstalled ([Osaurus Bundles](/bundles))
-- **OpenAI/Anthropic/Ollama-compatible APIs** — drop-in for any SDK, including [Codex CLI](#codex-cli)
+- **OpenAI/Anthropic/Open Responses/Ollama-compatible APIs** — drop-in for any SDK, including [Codex CLI](#codex-cli)
+- **Workflows and webhooks** — start a saved [workflow](/workflows) from your own code with a webhook [automation](/automations), then follow the run and answer its forms over HTTP ([SDK Examples](/sdk-examples))
 - **Shared configuration** — for native macOS apps to discover the local Osaurus instance
-- **The Osaurus iPhone app** — pair your phone to chat with your Mac's agents from anywhere ([Mobile](/mobile))
+- **Your other devices** — your Macs and the Osaurus iPhone app chat with your agents end-to-end encrypted ([Devices & Sync](/devices))
 - **Messaging channels** — reach your agents from Telegram, Slack, WhatsApp, n8n, and more ([Agent Channels](/agent-channels))
+- **Log in with Osaurus** — let people sign in to a website with their Osaurus ID. This is for websites, not for SDKs talking to `:1337` ([Log in with Osaurus](/login-with-osaurus))
 
-For LAN, Relay, and any non-loopback caller, authenticate with an [`osk-v1` access key](/identity#access-keys) — the snippets below show the pattern.
+For network, Remote Access, and any non-loopback caller, authenticate with an [`osk-v1` access key](/identity) — the snippets below show the pattern.
 
 ## MCP Server
 
@@ -75,7 +79,9 @@ The `osaurus mcp` command:
 - Proxies MCP protocol over stdio to the running server
 - Auto-launches Osaurus if it isn't running
 - Exposes all installed tools to the connected client
-- Accepts `--access-key` (or `OSAURUS_MCP_ACCESS_KEY`) when the server has network exposure enabled — see [CLI](/cli#osaurus-mcp)
+- Accepts `--access-key` (or `OSAURUS_MCP_ACCESS_KEY`) when the server has network exposure enabled — see [CLI](/cli)
+
+[Workflow](/workflows) tools aren't exposed to MCP clients this way: calling them over MCP needs the token Osaurus gives an [agent runtime](/harness-runtimes) it launches. To run a workflow from outside, use a webhook automation ([SDK Examples](/sdk-examples)).
 
 ### HTTP MCP Endpoints
 
@@ -107,8 +113,8 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 
 ### Adding a Provider
 
-1. Open **Settings…** (`⌘ ,`)
-2. Navigate to **Providers**
+1. Open **Settings** (`⌘,`)
+2. Go to **Models → Providers**
 3. Click **Add Provider**
 4. Choose a preset or configure a custom endpoint
 
@@ -125,11 +131,11 @@ Connect Osaurus to cloud AI providers to use remote models alongside your local 
 
 See [Remote Providers](/remote-providers) for the full preset list, including OpenCode Zen / Go.
 
-LM Studio isn't a provider preset — instead, Osaurus [discovers models already downloaded by LM Studio](/models#reusing-models-you-already-have) and runs them directly with its own MLX engine.
+LM Studio isn't a provider preset — instead, Osaurus [discovers models already downloaded by LM Studio](/models) and runs them directly with its own MLX engine.
 
 ### Features
 
-- **Secure API Key Storage** — Keys are stored in macOS Keychain, never in plain text
+- **Secure API Key Storage** — Keys are saved in the [Vault](/vault) (**Settings → Vault → App Keys**), backed by the macOS Keychain, never in plain text
 - **Custom Headers** — Add authentication headers for custom endpoints
 - **Auto-Connect on Launch** — Automatically reconnect to providers when Osaurus starts
 - **Connection Health Monitoring** — Real-time status indicators show provider availability
@@ -142,7 +148,7 @@ When adding a custom provider:
 | ------------------ | ------------------------------------------------ |
 | **Name**           | Display name for the provider                    |
 | **Base URL**       | API endpoint (e.g., `https://api.openai.com/v1`) |
-| **API Key**        | Authentication key (stored securely in Keychain) |
+| **API Key**        | Authentication key (saved in the Vault)          |
 | **Custom Headers** | Additional headers for authentication            |
 | **Auto-Connect**   | Connect automatically on launch                  |
 
@@ -262,7 +268,7 @@ Settings.llm = OpenAI(
 
 ### Codex CLI
 
-OpenAI's [Codex CLI](https://github.com/openai/codex) can run against your local models. **Settings… → Server → Overview** has a **Use with Codex CLI** card: pick a model, then **Copy** the generated config or click **Add to ~/.codex** to write it.
+OpenAI's [Codex CLI](https://github.com/openai/codex) can run against your local models. **Settings → Server** has a **Use with Codex CLI** card: pick a model, then **Copy** the generated config or click **Add to ~/.codex** to write it.
 
 Osaurus adds a `[model_providers.osaurus]` table to `~/.codex/config.toml` (inside marked comments it maintains; the rest of the file is untouched) and writes an `osaurus` profile at `~/.codex/osaurus.config.toml` holding `model` and `model_provider`. `CODEX_HOME` is honored when set. Start Codex with:
 
@@ -270,16 +276,16 @@ Osaurus adds a `[model_providers.osaurus]` table to `~/.codex/config.toml` (insi
 codex --profile osaurus
 ```
 
-- Codex only speaks the Responses API (`wire_api = "responses"`), so requests land on [`POST /v1/responses`](/api#post-v1responses).
-- With network exposure off, Codex on the same Mac needs no key. With it on, the generated block adds `env_key = "OSAURUS_API_KEY"`; create an [access key](/identity#access-keys) and export that variable in the shell running Codex.
+- Codex only speaks the Responses API (`wire_api = "responses"`), so requests land on `POST /v1/responses` ([HTTP API](/api)).
+- With network exposure off, Codex on the same Mac needs no key. With it on, the generated block adds `env_key = "OSAURUS_API_KEY"`; create an [access key](/identity) and export that variable in the shell running Codex.
 - If `config.toml` already defines `model_providers.osaurus` by hand, the write is refused rather than duplicated; remove the manual table first.
-- The profile's `model_context_window` is the context the server actually keeps: the model's context length, capped by **KV Retention Override** under **Settings… → Server → Settings → Cache**. Codex compacts the thread against it.
+- The profile's `model_context_window` is the context the server actually keeps: the model's context length, capped by **KV Retention Override** under **Settings → Server → Server Settings → Cache**. Codex compacts the thread against it.
 - Each Codex thread is its own conversation for the on-disk prompt cache (its `prompt_cache_key` becomes the session id), so resuming a thread reuses its cached prefix.
 - To resume a non-interactive run, put the profile before the subcommand: `codex exec --profile osaurus resume --last "…"`. Placed after `resume`, the flag is rejected, and without it Codex uses OpenAI instead of Osaurus.
 
 ### Claude Code
 
-Osaurus can also *run agents on* Claude Code. It's registered as a [runtime](/harness-runtimes) under **Settings… → Agents → Runtimes**: click **Sign In** to use your own signed-in `claude` CLI, then pick **Claude Code** (Sonnet, Opus, or Haiku) in the chat's model picker. The agent's turns then run in Claude Code with its own tools, using your Claude subscription. Pi and Pi-based agent programs can be added the same way. See [Runtimes](/harness-runtimes).
+Osaurus can also *run agents on* Claude Code. It's registered as a [runtime](/harness-runtimes) under **Settings → Agent Runtimes**: click **Sign In** to use your own signed-in `claude` CLI, then pick **Claude Code** (Sonnet, Opus, or Haiku) in the chat's model picker. The agent's turns then run in Claude Code with its own tools, using your Claude subscription. Pi and Pi-based agent programs can be added the same way. See [Runtimes](/harness-runtimes).
 
 ### Continue.dev (VS Code / JetBrains)
 
@@ -322,7 +328,7 @@ let url = URL(string: "http://127.0.0.1:1337/v1/chat/completions")!
 var request = URLRequest(url: url)
 request.httpMethod = "POST"
 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-// For LAN/Relay, also set: Authorization: Bearer osk-v1.<your-access-key>
+// From another machine or Remote Access, also set: Authorization: Bearer osk-v1.<your-access-key>
 
 let body: [String: Any] = [
     "model": "gemma-4-e2b-it-4bit",
@@ -333,11 +339,11 @@ request.httpBody = try JSONSerialization.data(withJSONObject: body)
 let (data, _) = try await URLSession.shared.data(for: request)
 ```
 
-For non-loopback callers, mint an [`osk-v1` access key](/identity#access-keys) from **Settings… → Server → Overview → Access Keys** and pass it as a Bearer token. Local apps need one too for `/agents`, `/sessions`, `/mcp/*`, and `/admin/config/*` when [Require Access Key for Local Admin Routes](/security#local-access-key) is on.
+For non-loopback callers, create an [`osk-v1` access key](/identity) in **Settings → Server → Access Keys** and pass it as a Bearer token. Local apps need one too for `/agents`, `/sessions`, `/conversations/*`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*` when **Require Access Key for Local Admin Routes** is on ([Security](/security)).
 
 ### iPhone app
 
-The Osaurus iPhone app pairs with your Mac from **Settings… → Mobile → Generate Pairing Code** and talks to your agents end-to-end encrypted, on the same network or (with **Reach From Anywhere**) through the relay. See [Mobile](/mobile).
+The Osaurus iPhone app joins your Macs from **Settings → Sharing → Devices** (**Add a Device**, the same way as another Mac) and chats with your agents end-to-end encrypted. See [Devices & Sync](/devices).
 
 ### Electron
 
@@ -433,9 +439,9 @@ export async function POST(request) {
 
 ## Authentication with Access Keys
 
-Osaurus does not require authentication for local requests. If you expose your server to external clients — especially via [Public Links](/relay) — protect API endpoints with access keys.
+Osaurus does not require authentication for local requests. If you expose your server to external clients — especially via [Remote Access](/remote-access) — protect API endpoints with access keys.
 
-Access keys use the `osk-v1` format. Create a master key (any agent) under **Settings… → Server → Overview → Access Keys**, or an agent-scoped key from that agent's keys in [Identity](/identity). Pass them as a Bearer token:
+Access keys use the `osk-v1` format. Create a master key (any agent) under **Settings → Server → Access Keys**, or an agent-scoped key from that agent's row on the [Osaurus ID](/identity) page. Pass them as a Bearer token:
 
 ```bash
 curl http://127.0.0.1:1337/v1/chat/completions \
@@ -455,14 +461,14 @@ client = OpenAI(
 )
 ```
 
-Access keys can be scoped to a specific agent or to all agents (master). See [Identity — Access Keys](/identity#access-keys) for details on creating, scoping, and revoking keys.
+Access keys can be scoped to a specific agent or to all agents (master). See [Osaurus ID](/identity) for details on creating, scoping, and revoking keys.
 
 ## Integration Checklist
 
 - [ ] **Choose integration method** — MCP, OpenAI SDK, or direct API
 - [ ] **Configure base URL** — `http://127.0.0.1:1337` (or custom port)
 - [ ] **Set model name** — Use lowercase with hyphens
-- [ ] **Set up authentication** — Create an [access key](/identity#access-keys) if exposing endpoints externally
+- [ ] **Set up authentication** — Create an [access key](/identity) if exposing endpoints externally
 - [ ] **Handle streaming** — Enable for better UX
 - [ ] **Install tools** — If using MCP, install needed plugins
 - [ ] **Test error handling** — Handle connection and model errors
@@ -485,11 +491,11 @@ Access keys can be scoped to a specific agent or to all agents (master). See [Id
 
 - List available models: `curl http://127.0.0.1:1337/v1/models`
 - Use exact model name from list
-- Download model if needed from **Settings… → Local Models**
+- Download model if needed from **Settings → Local Models**
 
 ### CORS Errors (Browser)
 
-- CORS is enabled by default for all origins
+- Loopback origins are always allowed. A web app served from any other origin needs that origin in **Settings → Server → Server Settings → Connection → Allowed Origins (CORS)** (`*` allows any origin)
 - Verify request includes correct headers
 - Check browser console for specific error
 
@@ -501,4 +507,5 @@ Access keys can be scoped to a specific agent or to all agents (master). See [Id
 - [SDK Examples](/sdk-examples) — runnable snippets
 - [Remote Providers](/remote-providers) — connecting Osaurus to OpenAI/Anthropic/etc.
 - [Remote MCP Providers](/remote-mcp-providers) — connecting Osaurus to remote MCP servers
-- [Identity](/identity) — access keys and pairing
+- [Osaurus ID](/identity) — access keys and invites
+- [Log in with Osaurus](/login-with-osaurus) — website sign-in with an Osaurus ID

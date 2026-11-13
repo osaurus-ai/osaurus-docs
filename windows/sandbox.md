@@ -110,4 +110,4 @@ At the bottom of **Settings → Sandbox**:
 - Containment uses Windows's MXC container support. The Linux engine runs on WSL containers; its image is built on your PC from a pinned base image, never pulled ready-made.
 - In the Linux sandbox each agent is its own Linux user. Under **Only allowed domains**, traffic goes through a filtering proxy on the host that resolves every name itself and refuses local-network and loopback addresses.
 - Secrets reach commands through a temporary environment file, never the command line, and are scrubbed from output line by line.
-- An automation (a [schedule](/schedules), [watcher](/watchers), or self-booked wake-up) with no folder starts the sandbox before it runs, and is skipped with the reason if it can't.
+- An automation (a [schedule or watcher](/windows/automation), or self-booked wake-up) with no folder starts the sandbox before it runs, and is skipped with the reason if it can't.

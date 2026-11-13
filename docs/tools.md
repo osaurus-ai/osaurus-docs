@@ -1,10 +1,12 @@
 ---
 title: Tools & Plugins
 sidebar_label: Tools & Plugins
-description: Built-in tools, native Swift/Rust plugins, remote MCP providers, and an append-only v1–v6 host ABI.
+description: Built-in tools, the Orchestrator, Configurator, Architect, and workflow tools, native Swift/Rust plugins, remote MCP providers, and an append-only v1–v6 host ABI.
 ---
 
 # Tools & Plugins
+
+This page is for developers who want to know which tools Osaurus agents can call, how to add more, and how outside MCP clients reach them.
 
 Osaurus combines built-in tools, native plugins from its registry, and tools from remote MCP providers. Tools are exposed via the Model Context Protocol (MCP) so any MCP-compatible client can use them. Osaurus is both a full MCP **server** and **client**.
 
@@ -23,31 +25,41 @@ Osaurus's built-in and native-plugin tools are compiled **Swift and Rust** imple
 
 For agents that make dozens of tool calls per session, these differences compound.
 
-## Built-in Orchestrator tools
+## Built-in agent tools
 
-The built-in **Osaurus Orchestrator** has a read-only agent definition and a compact management surface:
+The built-in agents each get a small, fixed tool surface.
 
-- `osaurus_inspect` reads current state and describes agents, models, providers, MCP, native and Claude plugins, schedules, watchers, skills, knowledge, channels, memory, Sandbox, settings, and the declarative configuration schema.
-- `osaurus_config` validates and applies approval-gated configuration changes. It can create a specialist agent and activate that agent for delegation in the same chat turn.
+**Orchestrator** — it routes rather than doing the work, so it has no file tools and no `spawn_agent`:
+
+- `configurator_handoff` hands questions about Osaurus and settings changes to the Configurator, which runs behind the chat in the same turn.
+- `architect_handoff` hands building a workflow to the Architect.
+- `run_workflow` runs a saved workflow marked **Osaurus can run this for you**, a custom agent by name, or one of the built-in helpers (Research, Files, Browser, Code).
+
+**Configurator** — the management surface:
+
 - `osaurus_help` lists or reads the bundled `guide-*` topics, so product explanations are grounded in the guide shipped with the app rather than model memory.
+- `osaurus_inspect` reads current state (`status`, `list`, `describe`) for agents, models, providers, MCP, plugins, automations, skills, knowledge, commands, channels, search, workspaces, shared agents, memory, and the settings sections of the declarative document. The older scope names `events`, `schedules`, and `watchers` are accepted as aliases for `automations`.
+- `osaurus_config` validates and applies approval-gated configuration changes. Actions: `schema`, `export`, `plan`, `apply`, `templates`, `workflows` (installed workflows and whether the Orchestrator can run them), `history`, `diff`, and `revert`.
+- `osaurus_import` reads a shared skill, MCP server, agent, or command from a link or snippet and shows a review card before anything installs.
 
-The same desired-state model is available through [`osaurus config`](/configuration#declarative-configuration), loopback HTTP, and YAML or JSON files. Sensitive controls that are intentionally outside the declarative schema remain UI-only.
+**Architect** — workflow authoring, available only to the Architect: `workflow_draft`, `workflow_test`, `workflow_propose_save`, `workflow_discover`, and `workflow_runs`.
 
-Security-sensitive controls such as delegation budgets, autonomy ceilings, identity and pairing keys, privacy settings, and blanket tool approval remain UI-only.
+**Custom agents** — each [workflow](/workflows) turned on for an agent is a tool named `workflow_<slug>`. While it runs, the chat's tool card shows each step. Called over HTTP or MCP, a run that stops for a form returns `awaiting_user`, and the caller answers it through the [workflow run routes](/api).
+
+The same desired-state model is available through [`osaurus config`](/configuration), loopback HTTP, and YAML or JSON files. Security-sensitive controls such as autonomy ceilings, identity and pairing keys, privacy settings, and blanket tool approval remain UI-only.
 
 ## Native plugin catalog
 
-The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Settings… (⌘,) → Tools & MCP → Plugins**, or search it with `osaurus tools search`.
+The plugin registry changes independently of the app, so Osaurus does not rely on a fixed built-in inventory. Browse the current catalog and each plugin's tool list in **Settings → Tools & MCP → Plugins**, or search it with `osaurus tools search`.
 
-**Tools & MCP** has three tabs:
+**Settings → Tools & MCP** opens on **Services**: connected MCP services, **Add Service**, and a **Directory** of services you can add. Two buttons in its header open the rest:
 
-- **Services** — connected MCP services, **Add Service**, and a **Directory** of services you can add.
 - **All Tools** — every tool grouped by source, with its permission policy and **Auto-Allow All Tool Calls**.
 - **Plugins** — installed and available native plugins from the registry.
 
-There is no global **Disable Tools** switch. Tool availability is configured per agent under **Abilities → Overview** and **Abilities → Tools**.
+There is no global **Disable Tools** switch. Tool availability is configured per agent under **Settings → Agents →** the agent **→ Abilities → Overview** and **Abilities → Tools**.
 
-[Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), the calculator (`calculate`), [Computer Use](/computer-use), and the [Apple Apps](/apple-apps) tools (Calendar, Reminders, Contacts, Notes, Mail, Messages, Maps & Location, Music, Shortcuts) ship as built-in capabilities rather than registry plugins. Apple app tools are off by default and turned on per custom agent under **Agents → *agent* → Abilities → Tools**, one group per app.
+[Web search](/web-search), [browser automation](/browser-use), the clock (`get_current_time`), the calculator (`calculate`), [Computer Use](/computer-use), and the [Apple Apps](/apple-apps) tools (Calendar, Reminders, Contacts, Notes, Mail, Messages, Maps & Location, Music, Shortcuts) ship as built-in capabilities rather than registry plugins. Apple app tools are off by default and turned on per custom agent under **Settings → Agents →** the agent **→ Abilities → Tools**, one group per app.
 
 `calculate(expression, angle_unit?)` evaluates one plain-text expression exactly, so agents don't do arithmetic in their heads. It handles `+ - * / ^ **` (and the Unicode ×, ÷, − signs), implicit multiplication, postfix `%`, `!`, and degrees, phrases like `15% of 80` and `200 + 15%`, thousands separators, hex/binary/octal literals, `;`- or newline-separated statements with variables, and an equation with one unknown (solved for all real roots). Integer arithmetic stays exact in 64 bits; roots show 12 significant digits. Errors come back as `invalid_args` on `expression` with a corrective message. Like `get_current_time`, it's available to the Orchestrator, custom agents, and spawned workers.
 
@@ -89,7 +101,7 @@ Tools are installed to:
 Most other tools load every tool definition upfront — burning thousands of tokens before you even ask anything. Osaurus keeps the schema small and lets the agent expand it only when needed.
 :::
 
-Each agent has a tool mode, set with the **Auto-discover relevant tools** switch in **Settings… → Agents →** the agent **→ Abilities → Tools**:
+Each agent has a tool mode, set with the **Auto-discover relevant tools** switch in **Settings → Agents →** the agent **→ Abilities → Tools**:
 
 | Mode | Behavior |
 |---|---|
@@ -148,6 +160,8 @@ curl -X POST http://127.0.0.1:1337/mcp/call \
   }'
 ```
 
+Workflow tools aren't listed on `/mcp/tools` for ordinary callers: calling them over `/mcp/call` needs an agent runtime token (the one Osaurus gives an [agent runtime](/harness-runtimes) it launches). To start a workflow from your own code, use a webhook [automation](/automations) — see [SDK Examples](/sdk-examples).
+
 ### Via OpenAI Function Calling
 
 Tools can also be used through the standard OpenAI function calling interface:
@@ -185,7 +199,7 @@ Each tool can specify a permission policy:
 - **`auto`** — Executes automatically if requirements are met
 - **`deny`** — Blocks execution entirely
 
-Policies are set per tool under **Tools & MCP → All Tools**. A few built-in tools always ask regardless of policy — sending mail or messages and deleting calendar events or reminders show an approval card on every call.
+Policies are set per tool under **Settings → Tools & MCP → All Tools**. A few built-in tools always ask regardless of policy — sending mail or messages and deleting calendar events or reminders show an approval card on every call.
 
 Some tools require macOS system permissions:
 
@@ -230,8 +244,8 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 
 ### Adding a Remote MCP Provider
 
-1. Open **Settings…** (`⌘ ,`)
-2. Navigate to **Tools & MCP → Services**
+1. Open **Settings** (`⌘,`)
+2. Go to **Tools & MCP** (it opens on **Services**)
 3. Click **Add Service** and pick a service from the catalog (Linear, Notion, GitHub, and more) or **Custom Server** — or click **Add** on a row in the **Directory** below the list
 4. Sign in, enter an API key, or fill in the custom server details
 
@@ -241,7 +255,7 @@ Osaurus can connect to external MCP servers and aggregate their tools into your 
 | ----- | ----------- |
 | **Name** | Display name for the provider (also the tool-name prefix) |
 | **URL** / stdio command | MCP server URL, or a local command for stdio servers |
-| **Auth** | None, Bearer token, or OAuth — secrets are stored in the Keychain |
+| **Auth** | None, Bearer token, or OAuth — tokens and keys are saved in the [Vault](/vault) |
 | **Auto-connect** | Connect when Osaurus starts |
 | **Streaming** | Enable/disable streaming responses |
 | **Discovery Timeout** | How long tool discovery may take (default 20s) |
@@ -255,7 +269,7 @@ Use **Test** to check the connection before saving.
 - **Namespacing** — Remote tools are prefixed with the provider name (e.g., `provider_toolname`) to avoid conflicts. Each description notes the server's own name for the tool, and a call to the bare server name resolves to the prefixed tool of the server that publishes it.
 - **Typed arguments** — Integer arguments are sent as integers (a `0` or `1` is never coerced into a boolean).
 - **Unified Access** — All tools—local and remote—appear in the same tools list (**Tools & MCP → All Tools**)
-- **Secure Storage** — Authentication tokens are stored in macOS Keychain
+- **Secure Storage** — Authentication tokens are saved in the [Vault](/vault), backed by the macOS Keychain
 
 ### Using Remote Tools
 
@@ -308,7 +322,7 @@ Every new slot is optional: a plugin built against v6 checks `host->version` bef
 |---|---|---|
 | Tools | `capabilities.tools` | AI-callable functions |
 | Routes | `capabilities.routes` | HTTP endpoints (OAuth, webhooks, APIs) |
-| Config | `capabilities.config` | Native settings UI with validation |
+| Config | `capabilities.config` | Native settings UI with validation. Keys the manifest declares under `secrets` resolve through the [Vault](/vault): the calling agent's own value, then the shared one |
 | Web | `capabilities.web` | Static frontend serving with context injection |
 | Docs | `docs` | README, changelog, external links |
 
@@ -375,7 +389,7 @@ osaurus-tools/
 
 ### Tool execution fails
 
-1. Check Osaurus logs: Click the menu bar icon → View Logs
+1. Check the tool call in **Settings → Developer Tools → Insights**
 2. Verify the tool's requirements are met
 3. Try reinstalling: `osaurus tools uninstall <id> && osaurus tools install <id>`
 

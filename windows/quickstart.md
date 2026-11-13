@@ -15,7 +15,7 @@ Setup has three steps.
 1. **Welcome.** Click **Get started**. The **Share anonymous usage data to help improve Osaurus** box is checked; uncheck it if you'd rather not. It never includes your chats, prompts, files, or keys, and you can change it later in **Settings → Data & privacy**.
 2. **Your first Dino.** Pick what it should be great at: **Everyday helper**, **Research & writing**, or **Coding & development**. Give it a name and a look if you like, then click **Create your Dino**.
 3. **A brain for your Dino.** Choose the [model](/glossary#model) it runs on:
-   - **Osaurus Cloud**: hosted models billed to your Osaurus account, with nothing to download and no key. Click **Use Osaurus Cloud**. Osaurus creates an [account](/glossary#identity) for you if you don't have one yet.
+   - **Osaurus Cloud**: hosted models billed to your Osaurus account, with nothing to download and no key. Click **Use Osaurus Cloud**. Osaurus creates an [account](/glossary#osaurus-id) for you if you don't have one yet.
    - **Run on this PC**: a free, private model that works offline. Offered when your graphics card has about 12 GB of memory. Click **Use this PC**; you can start chatting while the rest of the model downloads.
    - **Your own provider**: sign in with ChatGPT or Grok, paste an API key for OpenAI, Anthropic, or Gemini, or use Claude Code if it's installed. Choose **More** for the full list.
 

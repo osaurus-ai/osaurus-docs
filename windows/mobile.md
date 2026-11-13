@@ -8,7 +8,7 @@ description: Pair the Osaurus iPhone app with your Windows PC with a 6-digit cod
 
 The Osaurus app for iPhone talks to the agents on your PC: chat with them, answer their approval cards, and pick up the conversation on either device. Your PC does the work; the phone is a window onto it. Settings are in **Settings → Mobile**.
 
-You need an [Osaurus account](/windows/account) on the PC, at least one agent of your own, and the iPhone on the same network as the PC while you pair. See [Mobile](/mobile) for the iPhone app itself.
+You need an [Osaurus account](/windows/account) on the PC, at least one agent of your own, and the iPhone on the same network as the PC while you pair. See [Devices & Sync](/devices) for the iPhone app itself.
 
 ## Pair your iPhone
 
@@ -21,7 +21,7 @@ The iPhone can then use every agent on this PC for 90 days, until you unpair it.
 
 ## Away from home
 
-Turn on **Reach From Anywhere** to use your agents when the iPhone isn't on your network. The connection goes through the Osaurus [relay](/relay), and stays end-to-end encrypted between the iPhone and your PC; the relay can't read it.
+Turn on **Reach From Anywhere** to use your agents when the iPhone isn't on your network. The connection goes through the Osaurus [relay](/remote-access), and stays end-to-end encrypted between the iPhone and your PC; the relay can't read it.
 
 Your PC has to be on and Osaurus running. **Keep PC Awake for Paired iPhone** stops the PC from going to sleep on its own while an iPhone is paired (choosing **Sleep** or closing a laptop lid still wins).
 
@@ -40,4 +40,4 @@ With **Continue Phone Chats on This PC** on, a chat you used on the iPhone opens
 
 ## Under the hood
 
-Pairing uses a password-authenticated key exchange (SPAKE2): the code never travels over the network, and every exchange uses up one of its 5 tries. The iPhone gets its own access key, sealed to the device, which works only inside the encrypted [Secure Channel](/secure-channel) when it connects from another machine. See [Mobile](/mobile) for the protocol.
+Pairing uses a password-authenticated key exchange (SPAKE2): the code never travels over the network, and every exchange uses up one of its 5 tries. The iPhone gets its own access key, sealed to the device, which works only inside the encrypted [Secure Channel](/secure-channel) when it connects from another machine. See [Devices & Sync](/devices) for the protocol.

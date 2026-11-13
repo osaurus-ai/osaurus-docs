@@ -1,18 +1,18 @@
 ---
 title: Skills
 sidebar_label: Skills
-description: Ready-made playbooks your AI pulls in when it needs them — like research, organizing your calendar, or building a spreadsheet. Nine come built in, and you can create or import your own.
+description: Ready-made playbooks your AI pulls in when it needs them — like research, organizing your calendar, or building a spreadsheet. Nine come built in, and you can create your own or import them from chat, GitHub, or a file.
 ---
 
 # Skills
 
 A [skill](/glossary#skill) is a ready-made playbook that teaches your AI how to do a kind of task well — like researching a topic, sorting your calendar, or building a spreadsheet. Your agents pick up the right skill on their own when a conversation calls for it.
 
-There's nothing to switch on. Osaurus comes with nine skills, and any skill you add is available to all your custom [agents](/glossary#agent) right away. The one exception is the [Orchestrator](/glossary#orchestrator), which sticks to helping you set up Osaurus and doesn't use skills.
+There's nothing to switch on. Osaurus comes with nine skills, and any skill you add is available to all your custom [agents](/glossary#agent) right away. The one exception is the [Orchestrator](/glossary#orchestrator): it hands work to your agents and helpers rather than doing it itself, so it doesn't use skills.
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Skills** to see what's available.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Skills** to see what's available.
 2. Start a chat with one of your agents and ask for something — the agent finds and uses the right skill by itself.
 3. To use a specific skill for one message, type `/` followed by its name in the message box (for example, `/web-researcher`).
 
@@ -42,24 +42,37 @@ A few things to know:
 
 ## Adding your own skills
 
+Every way of adding a skill starts from **Add Skill** at the top of the Skills screen, except importing from chat.
+
+### Importing from chat
+
+The quickest way to add a skill you found online is to paste it into a chat.
+
+1. In a chat with Osaurus, paste a link to a `SKILL.md` file, a GitHub link (a repository, a folder, or a file), or the skill's text itself.
+2. Ask Osaurus to set it up, for example *"Read this and set it up as a skill."*
+3. A review card lists what Osaurus found, with a checkbox for each item. Nothing installs until you approve it.
+4. Check what you want and confirm.
+
+Osaurus only reads public `https` links. It never copies passwords or keys from a page. If a skill needs one, its row says **Needs setup** and you add the key in the [Vault](/vault) afterwards.
+
 ### Importing from GitHub
 
 Many people share skills on GitHub. To import them:
 
-1. Open **Skills → Import → From GitHub**.
-2. Enter the project's address (`github.com/owner/repo` or just `owner/repo`).
+1. Click **Add Skill → Import Claude plugin from GitHub**.
+2. Enter the project's address (`github.com/owner/repo` or just `owner/repo`), and click **Continue**.
 3. Browse the skills it offers and select the ones you want.
-4. Click **Import Selected**.
+4. Click **Import** (the button shows how many you picked, like **Import 2 Skills**).
 
-Osaurus follows the open [Agent Skills](https://agentskills.io/) standard, so skills made for Claude work here too. Some GitHub projects also bring along schedules, slash commands, and [MCP](/glossary#mcp) connections — see [Claude Plugins](/claude-plugins).
+Osaurus follows the open [Agent Skills](https://agentskills.io/) standard, so skills made for Claude work here too. Some GitHub projects also bring along scheduled jobs (which become schedule [automations](/automations)), slash commands, and [MCP](/glossary#mcp) connections — see [Claude Plugins](/claude-plugins).
 
 ### Importing from a file
 
-Open **Skills → Import → From File** and pick a skill file (`.md`, `.json`, or `.zip`). Osaurus checks the file before saving it. If you already have a skill with the same name, it asks before replacing it.
+Click **Add Skill → Import Skill** and pick a skill file (`.md`, `.json`, or `.zip`). Osaurus checks the file before saving it. If you already have a skill with the same name, it asks before replacing it.
 
 ### Creating your own
 
-Open **Skills → Create Skill** and fill in:
+Click **Add Skill → Create Skill** and fill in:
 
 | Field | What it's for |
 |---|---|
@@ -108,17 +121,17 @@ The Skills screen has three tabs:
 | **Export** | Expand a skill → **Export** → JSON, Markdown, or ZIP |
 | **Delete** | Click **Delete** on a custom skill. Built-in skills can't be deleted; plugin skills are removed by uninstalling their plugin. |
 
-If you imported a full Claude plugin, manage it from **Skills → Claude Plugins**. Each entry shows how many skills, schedules, commands, and MCP connections it has, and lets you update, configure, view details, or uninstall it. See [Claude Plugins](/claude-plugins).
+If you imported a full Claude plugin, manage it from **Skills → Claude Plugins**. Each entry shows how many skills, scheduled jobs, commands, and MCP connections it has, and lets you update, configure, view details, or uninstall it. See [Claude Plugins](/claude-plugins).
 
 ## A note on Methods
 
-You may see "Methods" next to Skills in places like [Insights](/glossary#insights). A method is a **learned routine**: when an agent finishes a multi-step task successfully, it can save the steps so it can repeat them next time. Agents find methods the same way they find skills, so you don't need to manage them. For details, see [Methods](/methods).
+You may see "Methods" next to Skills in places like [Insights](/glossary#insights). A method is a **learned routine**: when an agent finishes a multi-step task successfully, it can save the steps so it can repeat them next time. Agents find methods the same way they find skills, so you don't need to manage them. A method isn't a [workflow](/workflows): workflows are step-by-step tasks you build with the Architect. For details, see [Methods](/methods).
 
 ## Troubleshooting
 
 ### My skill isn't being used
 
-- Check the skill is listed in **Settings… → Skills**.
+- Check the skill is listed in **Settings → Skills**.
 - Add **keywords** — they matter most when the agent searches for skills.
 - Make the description say clearly when to use the skill.
 - Start a new chat — skills added mid-chat are only listed in the next one.
@@ -179,7 +192,9 @@ Agent edits use the `update_skill` tool: a find-and-replace on the skill's instr
 | `.json` | Osaurus export format |
 | `.zip` | A complete package: `SKILL.md` + optional `references/` and `assets/` folders |
 
-Any GitHub repo with a `.claude-plugin/marketplace.json` manifest can be imported. Repos using the full directory-based Claude plugin layout can bring schedules, slash commands, and MCP providers along with their skills.
+Any GitHub repo with a `.claude-plugin/marketplace.json` manifest can be imported. Repos using the full directory-based Claude plugin layout can bring schedule automations, slash commands, and MCP providers along with their skills.
+
+Chat import hands the pasted link or text to the Configurator, which downloads it (https and public GitHub only), reads standard formats directly, and checks every value against the source before showing the review card. Install is all or nothing. Each import's source is recorded in `~/.osaurus/chat-imports.json`, so importing it again shows what's already installed or has an update.
 
 Imports are validated before saving: ZIP archives are bounded in size, file count, and path depth; entries can't escape the archive root; and importing over an existing skill asks for an explicit replace confirmation. In a `.zip` with several `SKILL.md` files, the shallowest wins and the rest are reported.
 
@@ -214,7 +229,7 @@ Skills are stored as directories at `~/.osaurus/skills/{skill-name}/SKILL.md`, w
 **Related:**
 
 - [Agents](/agents) — agent settings control tools; skills come from the shared library
-- [Claude Plugins](/claude-plugins) — import skills, schedules, commands, and MCP servers from GitHub
+- [Claude Plugins](/claude-plugins) — import skills, scheduled jobs, commands, and MCP servers from GitHub
 - [Tools & Plugins](/tools) — what tools exist and how they're built
 - [Methods](/methods) — the developer view of capability discovery and scoring
 - [Agent Skills Specification](https://agentskills.io/) — the open format Osaurus follows

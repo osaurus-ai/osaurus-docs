@@ -61,7 +61,7 @@ Closing the Osaurus window doesn't quit it: it keeps running in the tray. To qui
 
 Uninstalling **keeps your data**: chats, keys, settings, and downloaded models stay on your PC, so reinstalling picks up where you left off. To remove them too, do one of these:
 
-- **Before uninstalling**, open **Settings → Data & privacy → Reset Osaurus…**. It erases everything Osaurus keeps on this PC and quits. Leave **Keep my Osaurus account** checked if you want to keep your [account](/glossary#identity) and its credits.
+- **Before uninstalling**, open **Settings → Data & privacy → Reset Osaurus…**. It erases everything Osaurus keeps on this PC and quits. Leave **Keep my Osaurus account** checked if you want to keep your [account](/glossary#osaurus-id) and its credits.
 - **After uninstalling**, delete the folder `%LOCALAPPDATA%\osaurus`.
 
 :::warning

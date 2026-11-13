@@ -1,9 +1,9 @@
 {
   "repo": "osaurus-ai/osaurus",
-  "documented_commit": "7613bc220f35f87afecd69ce79821958b15e8af7",
-  "documented_release": "0.25.27",
-  "verified_date": "2026-10-27",
-  "reviewed_date": "2026-10-27",
-  "scope": "All public documentation in this repository.",
-  "notes": "Reconciled 0.25.17 -> 0.25.27 (main at 7613bc22, just past the 0.25.27 release), including harness runtimes (Claude Code moved from Providers to Runtimes, Pi RPC), agent templates, Osaurus Bundles and osaurus import, the opt-in local access key, native MTP Off/Adaptive, local JSON Schema output, D3 decision requests, new image models and local Wan 2.1 video, MCP directory/elicitation/progress/annotation approvals, and SPAKE2 phone pairing; advance only after a complete documentation review."
+  "documented_commit": "75d2c416624c725e43248a8cc8a840994b6365a8",
+  "documented_release": "1.0.2",
+  "verified_date": "2026-11-12",
+  "reviewed_date": "2026-11-12",
+  "scope": "All public Mac documentation in this repository (docs/). The Windows pages follow windows-baseline.json.",
+  "notes": "Reconciled 0.25.27 -> Osaurus 1.0 (main at 75d2c416, 12 commits past the 1.0.2 release, so Settings is documented inside the main window per #3406 and the first run per #3407). Added the Workflows section (Architect, running, Automations, store.osaurus.ai sharing with Unlisted/Public/Password/Workspace), Upgrading from Classic, Appearance (themes removed), Tasks, Vault, Devices & Sync (replacing Mobile and LAN pairing), Remote Access (formerly Public Links), Osaurus ID, and Log in with Osaurus; merged Schedules, Watchers and Watcher Internals into Automations; updated the starter team, the Orchestrator's routing role, the per-agent sandbox, and every renamed Settings path; advance only after a complete documentation review."
 }

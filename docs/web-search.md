@@ -10,18 +10,18 @@ Your [agents](/glossary#agent) can search the web and read pages to answer quest
 
 ## Get started
 
-Web search already works. Ask an agent something that needs the web, like *"What's the weather forecast for Paris this weekend?"* or *"Summarize the latest release notes for Safari."*
+Web search already works. Ask something that needs the web, like *"What's the weather forecast for Paris this weekend?"* or *"Summarize the latest release notes for Safari."* In a chat with the [Orchestrator](/orchestrator), it hands the question to its built-in **Research** [helper](/glossary#helpers), which searches the web and reads pages to answer with sources. The **Scout** teammate from the starter team is also set up for the web.
 
 For one of your own agents, check that web search is on:
 
-1. Open **Settings…** (`⌘ ,`) → **Agents** and pick the agent.
-2. Make sure the **Web Search** ability is turned on.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Agents**, pick the agent, and open **Abilities**.
+2. Make sure **Web Search** is turned on.
 
 ## How it searches
 
 Osaurus tries the best option you have first, and falls back automatically if it doesn't work:
 
-1. **Premium search.** If you're signed in to [Osaurus Router](/glossary#osaurus-router), searches can use Osaurus's hosted search, paid for with your [credits](/glossary#credits). If it can't answer, Osaurus moves on to the next option and notes why.
+1. **Premium search.** If you use [Osaurus Router](/glossary#osaurus-router) and **Use Premium Search** is on in **Settings → Web Search → Premium Search**, searches go through Osaurus's hosted search first. Your search credits cover them first. After that, they're paid from your [credits](/glossary#credits) balance only if **Use Osaurus Balance When Search Credits Run Out** is on in **Settings → Osaurus ID → Wallet & Credits**. When premium search can't answer or runs out, Osaurus quietly moves on to the next option.
 2. **A search service you add.** For higher-quality results, sign up with one of these and paste its key:
 
    | Service | Cost |
@@ -41,11 +41,12 @@ Each set of results notes which option provided it.
 
 ## Adding a search service
 
-1. Open **Settings… → Web Search**.
-2. Pick a service. Its card explains how to sign up and get a key.
+1. Open **Settings → Web Search**.
+2. Under **Search Providers**, pick a service. Its card explains how to sign up and get a key.
 3. Paste the key. Osaurus stores it encrypted.
+4. Use **Test Search** to run the same kind of search your agents get.
 
-You can also define your own custom search service; see Under the hood.
+You can also add your own search service under **Custom Providers**; see Under the hood.
 
 ## Searching vs. reading pages
 
@@ -60,10 +61,12 @@ To have an agent click around and use a website, rather than just read it, see [
 
 ## Troubleshooting
 
-**Nothing was found.** Osaurus tells you which services it tried, with a tip. Try a broader question, remove limits like a specific site or date range, or add a search service in **Settings… → Web Search**.
+**Nothing was found.** Osaurus tells you which services it tried, with a tip. Try a broader question, remove limits like a specific site or date range, or add a search service in **Settings → Web Search**.
+
+**Premium search stopped working.** Your search credits have run out, and Osaurus is using the free sources instead. Add credits in **Settings → Osaurus ID → Wallet & Credits**, or turn on **Use Osaurus Balance When Search Credits Run Out** there.
 
 :::info[Replaces the osaurus.search plugin]
-Web search replaces the old `osaurus.search` [plugin](/glossary#plugin). If you had it installed, its card stays in **Settings… → Tools & MCP → Plugins** with a "Built into Osaurus" banner, but it no longer does anything. Manage search services and keys in **Settings… → Web Search**.
+Web search replaces the old `osaurus.search` [plugin](/glossary#plugin). If you had it installed, its card stays in **Settings → Tools & MCP → Plugins** with a "Built into Osaurus" banner, but it no longer does anything. Manage search services and keys in **Settings → Web Search**.
 :::
 
 ---
@@ -77,7 +80,7 @@ Web search replaces the old `osaurus.search` [plugin](/glossary#plugin). If you 
 | `web_search` | Discover sources: ranked titles, URLs, and snippets from your configured providers with automatic fallback. It does not fetch page bodies. |
 | `search_and_extract` | Search **plus** content extraction. Fetches the top results and returns their readable text (or raw CSV/JSON data). Also accepts direct URLs. This is the fetch tool. |
 
-Both tools are in the agent's tool list whenever web search is enabled for it (the **Web Search** ability on custom agents), and both are removed when it's off. `search_and_extract` ships alongside `web_search` rather than behind a capabilities load, so a model that has found a source can read it right away.
+Both tools are in the agent's tool list whenever web search is enabled for it (the **Web Search** ability on custom agents), and both are removed when it's off. The Orchestrator has neither; it routes web questions to the Research helper. `search_and_extract` ships alongside `web_search` rather than behind a capabilities load, so a model that has found a source can read it right away.
 
 ### Providers
 

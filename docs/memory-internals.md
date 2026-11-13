@@ -6,6 +6,8 @@ description: How memory works under the hood — the write pipeline, the read ga
 
 # Memory Internals
 
+This page is for developers and contributors who want to know how memory is written, read, and stored.
+
 This is the developer-facing companion to [Memory](/memory). The user-facing page covers what memory is and how to manage it; this page covers how it's wired.
 
 ## How writes happen
@@ -99,7 +101,7 @@ Episodes carry a one-to-three-sentence summary, topics, entities, decisions, act
 
 ## Settings reference
 
-Open **Settings… → Memory** for the UI, or edit `~/.osaurus/config/memory.json` directly.
+Open **Settings → Memory** for the UI, or edit `~/.osaurus/config/memory.json` directly. The Core Model that distills sessions is chosen at **Settings → Models → Model Defaults → Core Model**.
 
 | Setting | Default | Range | Description |
 |---|---|---|---|

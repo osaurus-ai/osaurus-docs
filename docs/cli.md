@@ -1,12 +1,14 @@
 ---
 title: CLI
 sidebar_label: CLI
-description: Command-line control of the Osaurus server, models, declarative configuration, MCP, and plugins.
+description: Command-line control of the Osaurus server, models, declarative configuration, Osaurus Bundles and their onboarding flags, MCP, and plugins.
 ---
 
 # CLI
 
-The Osaurus CLI controls your local LLM server, desired-state configuration, MCP tools, and models from the terminal.
+This page is for people who prefer the Terminal, or who script Osaurus from installers and automation.
+
+The Osaurus CLI controls your local LLM server, desired-state configuration, bundles, MCP tools, and models from the terminal. [Workflows](/workflows) have no `osaurus` subcommand: run them from the app, an [automation](/automations), or the [HTTP API](/api).
 
 :::tip[On Windows?]
 The Windows app has its own `osaurus` command with the same command names and a few differences. See [CLI on Windows](/windows/cli).
@@ -34,7 +36,7 @@ osaurus run gemma-4-e2b-it-4bit
 
 ## Installation
 
-The CLI ships inside the Osaurus application bundle. The Homebrew cask links it automatically and owns that link. For a DMG install, open **Settings… (⌘,) → Server → Overview → Command Line Tool** and click **Install CLI**.
+The CLI ships inside the Osaurus application bundle. The Homebrew cask links it automatically and owns that link. For a DMG install, open **Settings → Server → Command Line Tool** (⌘, opens Settings) and click **Install CLI**.
 
 ### Manual Setup
 
@@ -314,7 +316,7 @@ osaurus config plan <file.yaml|file.json> [--prune]
 osaurus config apply <file.yaml|file.json> [--prune] [--yes|-y]
 ```
 
-Every subcommand takes `--access-key KEY` (or `OSAURUS_API_KEY`). It's only needed when **Require Access Key for Local Admin Routes** is on; a missing or rejected key then exits `1` with a hint. [Security →](/security#local-access-key)
+Every subcommand takes `--access-key KEY` (or `OSAURUS_API_KEY`). It's only needed when **Require Access Key for Local Admin Routes** is on; a missing or rejected key then exits `1` with a hint. [Security →](/security)
 
 Documents merge by default: absent keys remain untouched, explicit `null` clears an optional override, and named entities match case-insensitively. `--prune` additionally deletes unlisted entries in sections the document declares, so it is always treated as destructive. Browser/Computer Use grants, relay or channel exposure, new MCP endpoints, automatic tool approval, and similar high-risk changes are also refused until apply is repeated with `--yes`.
 
@@ -326,7 +328,7 @@ Configuration files are capped at 512 KiB. Apply exit codes are scriptable:
 | `1` | Validation, cancellation, or at least one failed change |
 | `3` | Applied, but an interactive step remains in the app (usually credential entry) |
 
-See [Declarative configuration](/configuration#declarative-configuration).
+See [Declarative configuration](/configuration).
 
 ### osaurus import
 
@@ -335,12 +337,21 @@ Install, update, and remove an [Osaurus Bundle](/bundles): a folder with an `osa
 ```bash
 osaurus import validate --from <bundle> [--json]
 osaurus import install  --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+                        [--skip-onboarding] [--exclude-teammates <names|all>]
 osaurus import update   --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+                        [--skip-onboarding] [--exclude-teammates <names|all>]
 osaurus import remove   --bundle <id> [agent|skill|mcp|runtime|setting] [<name> ...] [--json]
 osaurus import list     [--bundle <id>] [--json]
 ```
 
 `import` never launches Osaurus. If Osaurus is running, the bundle applies right away; otherwise it's queued and applies the next time Osaurus opens. High-risk items (every MCP server and runtime, agents with powerful capabilities, turning the local access key off, adding an allowed origin) need `--yes`. Every subcommand takes `--access-key KEY` (or `OSAURUS_API_KEY`); without an accepted key, the bundle stays queued.
+
+`--skip-onboarding` and `--exclude-teammates` shape Osaurus's first-run onboarding for your users, on top of the manifest's `onboarding` block. They apply only to `install` and `update`, aren't high risk, and don't need `--yes`:
+
+- `--skip-onboarding` opens onboarding straight on choosing a model, without the welcome step or the first-chat walkthrough.
+- `--exclude-teammates keeper,planner` leaves those starter teammates out (`planner`, `courier`, `keeper`, `scout`, `builder`), along with the default workflows that use them. `all` leaves out every one and can't be mixed with names.
+
+Flags and manifest are merged: skip from either, exclusions together, and `all` from either wins. They only take effect when onboarding runs; on a Mac that has already finished onboarding nothing is removed, and the result carries a warning instead. See [Osaurus Bundles](/bundles).
 
 | Exit | Meaning |
 |---|---|
@@ -551,11 +562,11 @@ osaurus serve
 ### Codex CLI
 
 ```bash
-# After "Add to ~/.codex" in Settings… → Server → Overview → Use with Codex CLI
+# After "Add to ~/.codex" in Settings → Server → Use with Codex CLI
 codex --profile osaurus
 ```
 
-See [Integrations → Codex CLI](/integrations#codex-cli).
+See [Integrations → Codex CLI](/integrations).
 
 ### Plugin Development
 

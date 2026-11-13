@@ -12,8 +12,8 @@ Memory is on by default and works in the background. It needs a [Core Model](/gl
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **General → Core Model** and check a model is picked. **Memory only works when a Core Model is set.**
-2. Open **Settings… → Memory** to confirm it's turned on (it is by default).
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Models → Model Defaults → Core Model** and check a model is picked. **Memory only works when a Core Model is set.**
+2. Open **Settings → Memory → Settings** to confirm **Enable Memory** is on (it is by default).
 3. Just chat. When a chat ends, Osaurus saves what's worth remembering in the background.
 
 No tagging. No "save this". No special prompts.
@@ -21,7 +21,7 @@ No tagging. No "save this". No special prompts.
 :::warning[Memory needs a Core Model]
 Osaurus saves memories using your **Core Model**, a small, fast model kept for background work. **Without one, nothing gets saved to memory.**
 
-On macOS 26 and later, the default is Apple's built-in **Foundation** model (see [Apple Intelligence](/models/apple-intelligence)) — nothing to set up. On older macOS, pick one in **Settings… → General → Core Model**. `gemma-4-e2b-it-4bit` is a great [local model](/glossary#local-model) choice; `anthropic/claude-haiku-4-5` works if you've connected a cloud [provider](/glossary#provider).
+On macOS 26 and later, the default is Apple's built-in **Foundation** model (see [Apple Intelligence](/models/apple-intelligence)) — nothing to set up. On older macOS, pick one in **Settings → Models → Model Defaults → Core Model**. `gemma-4-e2b-it-4bit` is a great [local model](/glossary#local-model) choice; `anthropic/claude-haiku-4-5` works if you've connected a cloud [provider](/glossary#provider).
 :::
 
 ## What your AI remembers
@@ -32,7 +32,7 @@ Memory has four layers, from the most stable to the most detailed:
 
 Lasting facts about you. Two kinds:
 
-- **Your overrides** — things you've told Osaurus directly: *"My name is Terence", "Always reply in English", "I prefer tabs over spaces"*. These are always included. Edit them in **Memory → Your Overrides**.
+- **Your overrides** — things you've told Osaurus directly: *"My name is Terence", "Always reply in English", "I prefer tabs over spaces"*. These are always included. Edit them in **Memory → Profile → Your Overrides**.
 - **A short automatic summary** — Osaurus writes this for itself from your conversations: *"User builds Swift apps for macOS, prefers Postgres, lives in PT timezone"*. It refreshes in the background.
 
 ### Pinned facts — takeaways worth keeping
@@ -61,16 +61,13 @@ Most messages get nothing extra. When something is added, it's short, along with
 
 ## Managing your memory
 
-Open **Settings… → Memory** to:
+Open **Settings → Memory**. The page shows a few counts, then one row per section:
 
-- See your **identity** (the automatic summary plus your overrides)
-- Browse **pinned facts**, with bars showing how relevant each one is and how often it's used
-- Browse **episodes** (chat summaries) for the active agent
-- See counts for each agent and processing stats
-- Click **Sync** to save any pending memory updates right away
-- Click **Run Now** under **Configuration** to tidy up memory in one go; **Last run** shows when it last finished
-- Edit your **identity overrides**
-- Use the **danger zone** to erase memory (this can't be undone)
+- **Profile** — your **identity** (the automatic summary plus your overrides). Click **Sync** to save any pending memory updates right away, and use **Your Overrides** to add facts.
+- **Memories** — browse and search **pinned facts**, with bars showing how relevant each one is and how often it's used, and **episodes** (chat summaries).
+- **Agents & Projects** — memory kept for each agent and each [project](/projects).
+- **Settings** — **Enable Memory**, the Core Model, how much memory goes into a message, how long summaries are kept, and **Consolidation Interval**. **Run Now** tidies memory in one go, and **Last run** shows when it last finished. **Clear All Memory** erases everything (this can't be undone).
+- **Diagnostics** — the processing queue, logs, and recovery tools.
 
 ### Tidying up
 
@@ -82,14 +79,21 @@ Osaurus remembers when it last tidied, even if you quit, update, or restart. If 
 
 Identity overrides are always included — use them for lasting facts the AI should never forget.
 
-1. Go to **Memory → Your Overrides → Add**.
+1. Go to **Memory → Profile → Your Overrides → Add**.
 2. Enter a fact (*"I prefer tabs over spaces", "Reply in English", "My company uses a monorepo"*).
 
 Done. Your next message in any chat with this agent includes it.
 
 ## Memory is per-agent
 
-Each [agent](/glossary#agent) has its own memory. Your Code Assistant doesn't carry over what your Therapy Buddy knows. Identity overrides are also per-agent unless you set them for everyone. For an agent that remembers nothing, turn on **Disable memory** for it — nothing is added to its chats, and nothing is saved. [Agents →](/agents)
+Each [agent](/glossary#agent) has its own memory. Your Code Assistant doesn't carry over what your Therapy Buddy knows. Identity overrides are also per-agent unless you set them for everyone.
+
+Two switches on each of your agents' **Abilities** page (**Settings → Agents →** the agent **→ Abilities**) control this:
+
+- **Memory** — turn it off for an agent that remembers nothing. Nothing is added to its chats, and nothing is saved.
+- **Memory Recall** — lets the agent search its own memory during a chat to pull up past details when it needs them. It's off until you turn it on, and it needs the agent's **Tools** switch on.
+
+The [Orchestrator](/glossary#orchestrator) follows **Enable Memory** in **Settings → Memory → Settings**. [Agents →](/agents)
 
 The exception is a **[project](/projects)**: chats inside a project share one memory across every agent used there. A fact from one chat is remembered in another right away — even by agents whose own memory is off. (They read and add to the project's memory without building any personal memory.)
 
@@ -113,6 +117,8 @@ Everything stays on your Mac:
 - **Fact scoring:** each pinned fact has a relevance score that decays over time and is boosted by use.
 - **Consolidation:** decaying stale facts, merging near-duplicates, and pruning old episodes. The last-run time persists across restarts; scheduled passes wait while a model is generating, and **Run Now** skips both the interval and that wait.
 - **Storage:** the memory database is SQLite, with opt-in SQLCipher encryption. See [Storage & Encryption](/storage).
+
+- **Memory Recall:** turning it on gives the agent a `search_memory` tool. It's separate from the per-turn injection above.
 
 For the full pipeline, the consolidation math, the HTTP [API](/glossary#api), and the search backend, see [Memory Internals](/memory-internals).
 

@@ -14,33 +14,33 @@ You can install from the catalog or from any GitHub address.
 
 **From the catalog:**
 
-1. Open **Settings…** (`⌘ ,`) → **Skills**, and choose the **Claude Plugins** tab. The same tab is also in **Settings… → Tools & MCP → Plugins**, next to **Installed** and **Browse**.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Skills**, and choose the **Claude Plugins** tab. The same tab is also in **Settings → Tools & MCP → Plugins**, next to **Installed** and **Browse**.
 2. Use the category chips to narrow the list, and click a plugin to see what's inside.
 3. Click **Install**.
 
 **From a GitHub address:**
 
-1. Open **Settings… → Skills** and click the link button in the header (its tooltip reads **Import Claude plugin from GitHub**).
+1. Open **Settings → Skills** and click **Add Skill → Import Claude plugin from GitHub**.
 2. Paste the repository address, such as `github.com/owner/repository` or just `owner/repository`, and click **Continue**.
 3. Tick the plugins you want. You can also untick parts of a plugin you don't need.
 4. Click **Install** (the button shows how many plugins you picked, like **Install 2 Plugins**).
 
-Some plugins need a few details before they can connect to a service, such as an account name or a password. If so, Osaurus shows a **Configure Plugin** sheet. Fill in the required fields and click **Save**. Passwords and other secrets go into your [Keychain](/glossary#keychain), macOS's secure password storage.
+Some plugins need a few details before they can connect to a service, such as an account name or a password. If so, Osaurus shows a **Configure Plugin** sheet. Fill in the required fields and click **Save**. Passwords and other secrets you enter here go into your [Keychain](/glossary#keychain), macOS's secure password storage. Tokens and keys for the plugin's service connections are saved in the [Vault](/vault) instead.
 
 When the install finishes, Osaurus shows a summary. It lists what was added and anything that still needs you:
 
-- **Scheduled jobs that need a time.** These arrive switched off. Click one to open it and pick when it should run.
-- **Service connections that need a sign-in or a password.** Finish these in **Settings… → Tools & MCP → Services**.
+- **Scheduled jobs that need a time.** Each one becomes a schedule [automation](/automations) in **Settings → Automations**, usually switched off until you pick when it should run. Click one to open it and set a time.
+- **Service connections that need a sign-in or a password.** Finish these in **Settings → Tools & MCP**, under **Services**.
 - **Anything that was skipped or failed.** One broken file never stops the rest of the plugin from installing.
 
 ## What a plugin adds
 
 | Part of the plugin | What you get | Where to find it |
 |---|---|---|
-| Skills | New playbooks your agents can use | **Settings… → Skills** |
-| Scheduled agents | Jobs that run on a timetable, switched off until you set a time | **Settings… → Schedules** |
+| Skills | New playbooks your agents can use | **Settings → Skills** |
+| Scheduled agents | Schedule automations that run on a timetable, switched off until you set a time | **Settings → Automations** |
 | Commands | New slash commands | The chat box (type `/`) |
-| Service connections | New tools that reach outside services | **Settings… → Tools & MCP → Services** |
+| Service connections | New tools that reach outside services | **Settings → Tools & MCP** (under **Services**) |
 | Shared notes and guides | Background reading for the plugin's skills | Attached to each skill |
 
 There's nothing else to set up. Your agents find and load the new skills, commands, and tools when they need them, just like built-in [skills](/skills).
@@ -49,14 +49,14 @@ Some plugins rely on skills from a sibling plugin in the same repository. Osauru
 
 ## Managing installed plugins
 
-Installed plugins appear in **Settings… → Tools & MCP → Plugins → Installed**, after Osaurus's own plugins. Each one has an **Imported** badge, a version number, and counts of the skills, schedules, commands, and connections it added.
+Installed plugins appear in **Settings → Tools & MCP → Plugins → Installed**, after Osaurus's own plugins. Each one has an **Imported** badge, a version number, and counts of the skills, scheduled jobs, commands, and connections it added.
 
 From the card, or from its detail page, you can:
 
 - **Update.** This button appears when a newer version is available. It replaces the plugin's parts in place, so you won't end up with duplicates.
 - **Configure Settings….** Reopen the settings sheet to change the details you entered. A **Configure** button also shows on the card when settings are still required.
 - **View Details.** See a full description, keywords, every part the plugin added, its change history, and a notice if anything still needs attention.
-- **Uninstall.** Remove everything the plugin added in one step, including any saved passwords and the plugin's own data.
+- **Uninstall.** Remove everything the plugin added in one step, including the settings you entered and the plugin's own data. Tokens and keys its service connections saved stay in the [Vault](/vault), because another connection or agent may use them. Delete them there if you no longer need them.
 
 ## What isn't supported yet
 
@@ -66,7 +66,7 @@ Plugins sometimes include small helper programs (scripts). Osaurus keeps them so
 
 ## Troubleshooting
 
-**"GitHub rate-limited this app."** GitHub only allows a limited number of anonymous requests per hour. The import sheet shows roughly when the limit resets, so wait and try again. To avoid this, add a free GitHub token: on the Plugins tabs, the **Stop plugin update errors** card has an **Add token** button. The token is saved in your Keychain.
+**"GitHub rate-limited this app."** GitHub only allows a limited number of anonymous requests per hour. The import sheet shows roughly when the limit resets, so wait and try again. To avoid this, add a free GitHub token: on the Plugins tabs, the **Stop plugin update errors** card has an **Add Token** button. The token is saved in your Keychain.
 
 **"This repository has no plugins."** The repository doesn't include a Claude plugin catalog file, so there's nothing for Osaurus to install. Check that you pasted the right address.
 
@@ -82,12 +82,12 @@ Everything a plugin installs is tagged with a stable plugin ID, so the bundle in
 
 | Plugin artifact | Becomes | Where it shows up |
 |---|---|---|
-| `skills/<name>/SKILL.md` | A skill | Settings… → Skills |
+| `skills/<name>/SKILL.md` | A skill | Settings → Skills |
 | `skills/<name>/scripts`, `references`, `assets`, `templates` | Skill references/assets | Attached to the owning skill |
-| `agents/<name>.md` | A schedule (disabled until a cadence is set) | Settings… → Schedules |
+| `agents/<name>.md` | A schedule automation (disabled until a cadence is set) | Settings → Automations |
 | `commands/<name>.md` | A slash command | The chat input |
-| `.mcp.json` (HTTP/SSE) | An [MCP](/glossary#mcp) provider | Settings… → Tools & MCP → Services |
-| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Settings… → Tools & MCP → Services |
+| `.mcp.json` (HTTP/SSE) | An [MCP](/glossary#mcp) provider | Settings → Tools & MCP |
+| `.mcp.json` (OAuth) | An OAuth MCP provider (needs sign-in) | Settings → Tools & MCP |
 | `CLAUDE.md`, `CONNECTORS.md`, `README.md` | Reference files | Attached to every imported skill |
 
 Imported skills, references, slash commands, and MCP tools load on demand through the same capability discovery used for built-in skills. `SKILL.md` bodies that point at `${CLAUDE_PLUGIN_ROOT}/…` paths or relative links are rewritten at import time to the local files Osaurus bundled.
@@ -96,7 +96,7 @@ Orchestrator-style plugins that delegate to sibling skills ("invoke the `comps-a
 
 ### Plugin settings (`userConfig`)
 
-If a plugin declares a `userConfig` block, the **Configure Plugin** sheet collects those values before its MCP servers start. Non-sensitive values are stored under `~/.osaurus/claude-plugins/`; sensitive ones go to the macOS Keychain.
+If a plugin declares a `userConfig` block, the **Configure Plugin** sheet collects those values before its MCP servers start. Non-sensitive values are stored at `~/.osaurus/claude-plugins/userconfig/<safe-id>.json`; sensitive ones go to the macOS Keychain. Imported MCP providers keep their env and token values in the Vault.
 
 ### Supported repository layouts
 
@@ -114,7 +114,7 @@ Unauthenticated GitHub requests share a limit of 60 per hour. A GitHub token (no
 
 ### Updates
 
-**Update** appears when the source's version (or commit) is newer than what's installed. It re-fetches and replaces the artifact set in place. Re-importing is idempotent. The detail view fetches the CHANGELOG lazily. Uninstall removes skills, schedules, slash commands, MCP providers, Keychain-stored tokens, and the plugin's data directory.
+**Update** appears when the source's version (or commit) is newer than what's installed. It re-fetches and replaces the artifact set in place. Re-importing is idempotent. The detail view fetches the CHANGELOG lazily. Uninstall removes skills, schedule automations, slash commands, MCP providers, the manifest snapshot, the userConfig file, the cache, and the `${CLAUDE_PLUGIN_DATA}` directory. MCP env and token values stay in the Vault until you delete them.
 
 ### Variable substitution
 
@@ -140,5 +140,5 @@ Skill-local scripts (Python helpers and similar) are attached so the model can r
 
 - [Skills](/skills): the skill format and how capability discovery works
 - [Remote MCP Providers](/remote-mcp-providers): manual MCP setup and transports
-- [Schedules](/schedules): recurring runs that imported agents map to
+- [Automations](/automations): the schedule automations that imported agents map to
 - [Agents](/agents): agents that use the imported skills and tools

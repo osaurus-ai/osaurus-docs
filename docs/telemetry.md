@@ -19,15 +19,15 @@ Usage data and crash reports **never** include your chats, [prompts](/glossary#p
 
 ## Get started: change your choices
 
-1. Open **Settings…** (`⌘ ,`) → **Privacy**.
-2. On the **Filter** tab, find the **Data Collection** section.
+1. Open Settings with the gear icon at the bottom of the left navigation rail, or press `⌘ ,`.
+2. Go to **Privacy & Security** and find the **Data Collection** section.
 3. Turn **Share Anonymous Usage Data** or **Send Crash Reports** on or off. Changes take effect right away.
 
 ## Anonymous usage data
 
 ### When it starts
 
-- **You choose on the first setup screen.** The welcome screen has a box, checked by default, that says **Share anonymous usage data to help improve Osaurus**. If you continue with it checked, usage data starts. If you uncheck it, nothing is ever sent.
+- **You choose on the first setup screen.** The welcome screen has a switch, on by default, labeled **Share anonymous usage data**. If you continue with it checked, usage data starts. If you uncheck it, nothing is ever sent.
 - **Nothing is sent before you decide.** The few events from launch up to your choice are kept in memory only, never saved to disk. They're sent only if you agree and dropped if you don't.
 - **Updating from an older version?** If you never made a choice, Osaurus asks you once.
 - **Turn it off anytime** in **Share Anonymous Usage Data** (see [Get started](#get-started-change-your-choices)). Sending stops immediately.
@@ -48,9 +48,9 @@ Usage data answers three questions:
 
 - **Are people using the main features?** For example, how many messages are sent and agents are run.
 - **Do people come back?** For example, how many days the app is opened.
-- **Which features get used?** For example, how many people download a model or add a provider.
+- **Which features get used?** For example, how many people download a model, run a workflow, or link an iPhone.
 
-Every event also includes your Mac's memory size, rounded to a standard tier (like 16 GB or 32 GB), so we can tell whether a feature struggles on smaller Macs. The full list is in [Under the hood](#under-the-hood).
+Every event also includes your Mac's memory size, rounded to a standard tier (like 16 GB or 32 GB), so we can tell whether a feature struggles on smaller Macs, and which kind of build you're running (the regular app, the beta, or a developer build). Events about sharing, keys, and devices only say that something happened, never which site, key, device, or person. The full list is in [Under the hood](#under-the-hood).
 
 ## Crash reports
 
@@ -77,7 +77,7 @@ This section is the detailed reference. The upstream [`TELEMETRY.md`](https://gi
 
 ### Analytics consent states
 
-The consent flag has three states: undecided, granted, and declined. While undecided, events are buffered in memory (capped at 64) and only sent if consent is granted. Continuing past the welcome step with the box checked records consent and flushes the buffer. Finishing onboarding with it unchecked records a decline, so the one-time upgrade prompt never re-asks. With no Aptabase key (the contributor default), the SDK never initializes and every event is a no-op.
+The consent flag has three states: undecided, granted, and declined. While undecided, events are buffered in memory (capped at 64) and only sent if consent is granted. Continuing past the welcome step with the switch on records consent and flushes the buffer. Finishing onboarding with it unchecked records a decline, so the one-time upgrade prompt never re-asks. With no Aptabase key (the contributor default), the SDK never initializes and every event is a no-op.
 
 ### Event catalog
 
@@ -85,22 +85,46 @@ The consent flag has three states: undecided, granted, and declined. While undec
 |---|---|---|
 | Engagement | Are people using the core product? | `message_sent`, `chat_session_started`, `agent_run` |
 | Retention | Do people come back and run the server? | `daily_active`, `app_launched`, `server_started` |
-| Feature adoption | Which features get used? | `model_downloaded`, `remote_provider_added`, `mcp_provider_added`, `agent_created` |
+| Feature adoption | Which features get used? | `model_downloaded`, `remote_provider_added`, `mcp_provider_added`, `agent_created`, `workflow_run_started`, `automation_created` |
 
-One coarse property is attached to every event: `total_memory_gb`, your Mac's physical RAM snapped to a fixed tier (`8`, `16`, `18`, `24`, `32`, `36`, `48`, `64`, `96`, `128+`). This lets a metric be segmented by machine class (for example, whether a large MoE model bounces more on lower-RAM Macs) without sending an exact, identifying memory size.
+Two coarse properties are attached to every event:
+
+| Property | Values |
+|---|---|
+| `total_memory_gb` | Your Mac's physical RAM snapped to a fixed tier: `8`, `16`, `18`, `24`, `32`, `36`, `48`, `64`, `96`, `128+`. Lets a metric be segmented by machine class without sending an exact, identifying memory size |
+| `build_channel` | `release` (the shipped app), `beta` (Osaurus Beta), `proof` (a re-bundled test app), `dev` (other bundle ids, or a Release build run from Xcode or SwiftPM), `debug` (Debug builds, which also report to the Debug bucket). Lets proof and dev builds be filtered out of production numbers |
 
 Highlights:
 
-- **`message_sent`** (the primary metric) fires once per top-level chat turn; internal tool-loop steps aren't counted. It carries the `source` (`chat_ui` / `http_api` / `plugin`), the `model_source` (`foundation` / `local` / `remote`), the `provider_type` enum, whether it streamed, and whether it came from an autonomous agent run. The exact model id is only sent for built-in Foundation/local models; remote model ids are never sent in plaintext.
+- **`message_sent`** (the primary metric) fires once per top-level chat turn; internal tool-loop steps aren't counted. It carries the `source`, the `model_source` (`foundation` / `local` / `remote`), the `provider_type` enum, whether it streamed, and whether it came from an autonomous agent run. The exact model id is only sent for built-in Foundation/local models; remote model ids are never sent in plaintext.
+  - `source` for direct requests is one of `chat_ui`, `http_api`, `plugin`, `p2p`, `channel`, `agent`, `evaluation`, `scheduled`, `schedule`, `watcher`, `webhook`, `email`, `automation`, `self_schedule`, `tool`, or `system`. Model calls made on behalf of something else take precedence, in this order: `workflow` (a workflow step), `subagent` (a delegated helper, Computer Use, or AppleScript), then `synced_device` (a run hosted for one of your other devices). Before 1.0 those reported as `chat_ui`, so `chat_ui` counts drop at the 1.0 boundary without any change in what people type.
+  - `brain_source` rides on `chat_ui` sends only: `local`, `hosted`, `provider_key`, `claude_code`, or the fallbacks `none`, `pre_choice`, `unknown`.
 - **`model_downloaded`** carries a coarse size, quantization, and whether the model is a VLM, using curated catalog ids only.
 - **`remote_provider_added`** / **`mcp_provider_added`** carry only the provider type or transport (`http` / `stdio`), never names, URLs, commands, or keys.
 - **`agent_created`** carries only `number_of_agents` (the total on the install after this one, built-ins included), with no name, prompt, or configuration. Built-in agents seeded by the app don't fire it.
-- **`settings_opened`** fires when Settings opens and on each tab switch, with a stable tab token and whether the install has sent its first chat message yet. Never setting names or values.
-- **`sandbox_boot`** carries the boot kind (`cold` / `warm` / `warmFallback` / `template`) and a coarse duration bucket. **`sandbox_provision_failure`** carries closed-list tokens (category, backend, phase, error class, trigger, cold start). The error message, paths, hosts, and agent identity stay on your Mac, mirrored in **Settings… → Sandbox → Diagnostics** so you can self-report.
+- **`settings_opened`** fires when Settings opens and on each page switch, with a stable tab token and whether the install has sent its first chat message yet. Never setting names or values.
+- **`sandbox_boot`** carries the boot kind (`cold` / `warm` / `warmFallback` / `template`) and a coarse duration bucket. **`sandbox_provision_failure`** carries closed-list tokens (category, backend, phase, error class, trigger, cold start). The error message, paths, hosts, and agent identity stay on your Mac, mirrored in the Sandbox diagnostics in **Settings → Sandbox** so you can self-report.
 - **`model_memory_sample`** is a silent diagnostic sampled while a local model is loading or resident: phase, swap-pressure severity, and bucketed swap / footprint / page-rate figures. It's capped at eight per model residency, with no model name, path, or timestamp, and never influences how models are loaded or unloaded.
 - **`computer_use_attempt`** / **`computer_use_refused`** / **`computer_use_run`** form a [Computer Use](/computer-use) funnel with coarse tokens only (refusal stage, outcome, bucketed step and confirmation counts). No goal text, app names, or agent ids.
 - **`announcement_shown`** / **`announcement_clicked`** are keyed by the announcement's slug.
-- **Onboarding funnel** events carry only a stable step name/index and a completion reason; `brain_source_selected` records whether you chose Osaurus Cloud, a local model, or a provider key.
+- **Onboarding funnel** events carry only a stable step name/index and a completion reason. The onboarding window has two steps, `welcome` and `configure_ai`; the rest of setup happens in the first-run chat. `brain_source_selected` records whether you chose Osaurus Cloud, a local model, a provider key, or Claude Code, and whether you chose it in the onboarding window or the **Choose a Brain** sheet over the first chat. `team_seeded` counts the starter agents and workflows created.
+
+### Newer events
+
+Every value below is a closed token, a count, or a bucket. None carries a name, site, key, device id, message text, or file.
+
+| Area | Events | What they carry |
+|---|---|---|
+| Workflows | `workflow_run_started`, `workflow_run_finished`, `workflow_draft_started`, `workflows_opened` | Who started the run (agent, Orchestrator, you, an Architect test, another workflow, or an automation), the outcome, and a duration bucket |
+| Automations | `automation_created`, `automation_run_finished` | The trigger type (schedule, folder, webhook, RSS, email, channel message, and so on) and the outcome |
+| Needs you | `attention_resolved`, `notification_delivered` | The kind of request (tool approval, question, workflow form…), how it ended, where it was answered (in the app, desktop, iPhone), and a wait bucket |
+| Credits | `balance_topup_initiated`, `balance_topup_succeeded` | Nothing; no amount |
+| History import | `import_history_prompt_shown`, `import_history_prompt_clicked`, `chat_history_imported` | Where the import started and counts of imported, duplicate, and unreadable files |
+| Phone and Sync | `phone_paired`, `phone_unpaired`, `sync_device_paired`, `sync_device_removed` | Whether the device is an iPhone, and whether removing it replaced the account's keys |
+| Sharing templates | `template_shared`, `template_imported` | Workflow or agent; who can see it (`public`, `hidden` for Unlisted, `password`, `workspace`); whether an install was new or an update |
+| Account and keys | `login_with_osaurus`, `access_key_created`, `access_key_revoked`, `credential_saved`, `credential_deleted` | The sign-in outcome; for Vault keys, whether the key is shared or agent-only and where it was added from |
+| Spaces and workspaces | `space_created`, `space_switched`, `space_deleted`, `workspace_created`, `workspace_joined`, `workspace_agent_shared`, `guest_access_revoked`, `shared_agent_added` | How a workspace was created (`direct`, `checkout`, `activation_code`); whether a revoked guest had connected |
+| First run and discovery | `onboarding_agent_*`, `discovery_card_shown`, `discovery_opened`, `discovery_taken`, `discovery_declined`, `discovery_completed`, `discovery_toggled`, `set_up_osaurus_opened` | Which first-run path you took and which discovery card (for example `store`, `phone`, `encryption`, `channels`) was shown, opened, taken, or dismissed |
 
 ### Install cohort and retention
 

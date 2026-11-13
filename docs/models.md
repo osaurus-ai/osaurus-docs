@@ -1,7 +1,7 @@
 ---
 title: Models
 sidebar_label: Models
-description: Choose the AI that answers you — download a model that runs on your Mac, use Apple's built-in one, or connect a cloud service. Your agents, memory, and tools work the same with all of them.
+description: Choose the AI that answers you — start with Raptor 0.7 on your Mac, use Apple's built-in model, or connect a cloud service. Your agents, memory, tools, and workflows work the same with all of them.
 ---
 
 # Models
@@ -14,21 +14,21 @@ All you need is a Mac with [Apple Silicon](/glossary#apple-silicon) (M1 or later
 
 The quickest way to start is to download a [local model](/glossary#local-model). It runs on your Mac, works offline, and nothing you type leaves your computer.
 
-1. Open **Settings…** (`⌘ ,`) → **Local Models**.
-2. Browse the list, or type a name in the search field.
-3. Click **Download** on a model. Progress shows in the download queue, and you can pause and resume.
+1. Open **Settings** (the gear icon at the bottom of the narrow strip on the left edge of the window, or press `⌘ ,`) → **Local Models**.
+2. Browse the list, or type a name in the search field. **All**, **On This Mac**, and **Available** narrow the list, and **Fits This Mac** tells you whether a model suits your Mac.
+3. Click **Download** on a model's row. You can pause and resume.
 4. In a chat, click the model pill in the message box and pick your new model.
 
-Not sure which to pick? Ask the [Orchestrator](/glossary#orchestrator) in chat to recommend one for your Mac and download it for you.
+Not sure which to pick? Start with **Raptor 0.7 4B**, or ask the [Orchestrator](/glossary#orchestrator) in chat to recommend one for your Mac and download it for you.
 
 ## What you can run
 
 | Kind | Where it runs | macOS | How to set it up |
 |---|---|---|---|
-| **Local models** | On your Mac | 15.5+ | Download once from **Settings… → Local Models** |
+| **Local models** | On your Mac | 15.5+ | Download once from **Settings → Local Models** |
 | **Apple Foundation** | On your Mac, using Apple's built-in model | 26+ | Nothing to download — pick **Foundation** in the model picker |
-| **Liquid Foundation** | On your Mac | 15.5+ | Download from **Settings… → Local Models** |
-| **Cloud providers** | On the provider's servers | 15.5+ | Add an [API key](/glossary#api-key) or sign in from **Settings… → Providers** |
+| **Liquid Foundation** | On your Mac | 15.5+ | Download from **Settings → Local Models** |
+| **Cloud providers** | On the provider's servers | 15.5+ | Add an [API key](/glossary#api-key) or sign in from **Settings → Providers** |
 
 ## Choosing a model in chat
 
@@ -46,7 +46,7 @@ The Osaurus Cloud list shows your favorites plus the model you're using now. Cli
 
 Some models have extra settings. When you select one, a third column appears. If the model has just one option, the column is named after it (for example **Reasoning Effort**); otherwise it's called **Model options**:
 
-- **Thinking** — **Default**, **On**, or **Off**. Thinking models work through a problem step by step before answering. Their reasoning shows in a separate Think panel in the chat.
+- **Thinking** — thinking models work through a problem step by step before answering. Their reasoning shows in a separate Think panel in the chat. The choices come from the model: often **Default**, **On**, or **Off**, but some models can't stop thinking, so they have no **Off** (Claude Opus 5.5 is one).
 - **Reasoning Effort** — how hard the model thinks, on models that support it. Depending on the model this is simply On and Off, or a ladder from Low to Extra High or Max.
 - **Speculative Decoding** — a speed-up some local models support: **Off (AR)** or **On (Adaptive)** (see [Under the hood](#speculative-decoding)).
 - Any other on/off switches the model offers.
@@ -59,43 +59,44 @@ Local models run on your Mac using [MLX](/glossary#mlx), Apple's technology for 
 
 ### Downloading
 
-1. Open **Settings…** (`⌘ ,`) → **Local Models**.
-2. Browse or search the catalog.
-3. Click **Download** on a model.
-4. Watch progress in the queue.
+1. Open **Settings → Local Models**. The page opens on **Language** models; the other kinds (**Image**, **Speech**, **Privacy Detection**, and **AppleScript**) are tabs at the top.
+2. Browse or search the list.
+3. Click **Download** on a model's row.
+4. Watch its progress in the row.
 
-Each entry shows the model's name, size in [parameters](/glossary#parameters) (like "4B" for 4 billion), how it was compressed ([quantization](/glossary#quantization), like 4-bit or 8-bit), and how much disk space it needs.
+Each row shows the model's name, whether it **Fits This Mac**, how much memory it needs while running, its download size, and when it came out. Click a row to see its details on the right, including its size in [parameters](/glossary#parameters) (like "4B" for 4 billion) and how it was compressed ([quantization](/glossary#quantization), like 4-bit or 8-bit).
 
-To bring in a model that isn't listed, paste its [Hugging Face](/glossary#hugging-face) web address (or its `org/repo` name) into the search field. Osaurus checks that it can run the model before offering the download. If you paste an image model, Osaurus offers it under [Image Models](/image-generation) instead.
+To bring in a model that isn't listed, click **Add Model**, or paste its [Hugging Face](/glossary#hugging-face) web address (or its `org/repo` name) into the search field. Osaurus checks that it can run the model before offering the download. If you add an image model, it goes under **Local Models → Image** instead (see [Image & Video](/image-generation)).
 
-The free-space figure on the Models page matches what Finder shows, including space macOS can free up on its own.
+The free-space figure on the Local Models page matches what Finder shows, including space macOS can free up on its own.
 
 ### Your first model
 
-On most Macs, setup suggests **Raptor 0.6** as your first model. It's a fast, capable model built for agents and tools, and it needs about 3.4 GB.
+Setup offers one local model, on every Mac: **Raptor 0.7 4B**. It's Osaurus's own model, built for agents, tools, and workflows, and it needs about 3.7 GB of disk space.
 
 Osaurus comes in two downloads:
 
-- The **standard** download is about 80 MB. Setup downloads Raptor 0.6 for you.
-- The **full** download is 3.6 GB and has Raptor 0.6 built in. The first launch installs it for you, so setup skips the download. Later app updates use the small download.
+- The **standard** download is about 70 MB. If you choose to keep things on your Mac during setup, it downloads Raptor 0.7 for you.
+- The **full** download is about 4 GB and has Raptor 0.7 built in. The first launch installs it for you, and setup skips the model step when Raptor fits comfortably on your Mac. Later app updates use the small download.
 
-If you delete Raptor 0.6 from **Local Models → On Device**, it's gone from that install. Download it again from the catalog if you want it back. The older Raptor v0.5 is no longer in the catalog, but copies you already have still work.
+If you delete Raptor 0.7 from **Local Models → On This Mac**, it's gone from that install. Download it again from the list if you want it back. The older Raptor 0.6 and Raptor v0.5 are no longer listed, but copies you already have still work.
 
 ### Which model should I pick?
 
-Osaurus keeps its own [collection of tuned models on Hugging Face](https://huggingface.co/OsaurusAI), and **Local Models** downloads from it by default. The in-app catalog is always the most current list; the picks below are a snapshot.
+Osaurus keeps its own [collection of tuned models on Hugging Face](https://huggingface.co/OsaurusAI), and **Local Models** downloads from it by default. The in-app list is always the most current; the picks below are a snapshot.
 
-**Top picks** (what setup recommends, matched to your Mac's memory):
+**Top Picks** are marked with a star in the list and a **Top Pick** label in the details:
 
 | Family | What it is |
 |---|---|
-| **Raptor 0.6 4B** (JANG_6M) | The default for Macs with 8 GB of memory or more. About 3.4 GB, fast at using tools, and can keep a very long conversation in mind. |
-| **Ornith 1.5 35B-A3B** (MXFP8) | Understands images too, and is tuned for coding tasks. For Macs with lots of memory. |
-| **Nanbeige 4.2 3B** (JANG_6M) | A compact model for Macs with less memory. |
-| **Gemma 4 E2B / E4B** (8-bit) | Small models that also understand images, for lower-memory Macs. |
-| **Gemma 4 12B MXFP8** | Google's Gemma, which takes images, video, and audio as well as text. |
+| **Raptor 0.7 4B** (JANG_6M) | Osaurus's local agent model, and the one setup offers. About 3.7 GB. Good with files, spreadsheets, handing work to other agents, and workflows, and keeps a very long conversation in mind. |
+| **LFM3-VL 2B** (JANG_6M) | Liquid AI's small model that also understands pictures and video. About 2 GB. |
+| **Diplodocus preview** (JANG_6M) | Reasons carefully and uses tools, aimed at documents, spreadsheets, and finance. About 7 GB. |
+| **Qwen3.8 27B** (JANG_4D) | A larger model that understands pictures and video, with thinking and tool use. About 27 GB. |
+| **MiniCPM-V 4.7 35B-A3B** (JANG_4M) | Understands pictures and video, with thinking. About 25 GB, but light on memory for its size. |
+| **Flint 40B-A2.5B** (JANG_4M or JANG_6M) | Built for coding work, with reasoning and tool use. About 23 GB or 33 GB. |
 
-**The wider catalog** includes LFM2.5 8B and 24B (Liquid AI), Ornith 1.5 9B and 122B, Allosaurus 0.2, Flint 40B, Qwen 3.6 models that understand images, MiniCPM-V 4.7, Nemotron 3.5 Super-VL and Bolt, reasoning models (Nemotron-3 Nano Omni, ZAYA1, DeepSeek V4 Flash and V4.1 Flash), coding models (Poolside Laguna-XS.2, MiniMax M2.7), Ling-2.6 Flash, Mistral Medium 3.5 and Pixtral, and some very large showcase models (Kimi K2.6, Hunyuan 3, Nemotron-3 Ultra 550B). Each card shows the size, what the model can do, and a **Versions** picker for its compressed variants.
+**The wider catalog** includes Gemma 4 (Google's models that take pictures, video, and audio), Ornith 1.5, Nanbeige 4.2, Qwen 3.6, LFM2.5 (Liquid AI), Nemotron-3, ZAYA1, Poolside Laguna, MiniMax, and more from the OsaurusAI collection. Each row shows the size and what the model can do, and families with several compressed versions have a **Versions** picker.
 
 **Rule of thumb:** a model's name hints at how it's compressed. Smaller versions use less memory; larger ones give better answers. Pick the `MXFP8` version when your Mac has room, `MXFP4` or `JANGTQ4` as a good middle ground, and the 2-bit `JANGTQ` or low-bit `JANG` versions when memory is tight. The full list of name endings is in [Under the hood](#about-the-quantizations).
 
@@ -109,7 +110,7 @@ On Apple Silicon, models share your Mac's regular memory (RAM). A rough guide:
 
 For example, `gemma-4-e2b-it-4bit` (2B, 4-bit) needs about 1.5 GB. Pick a size that leaves room for your other apps and for your [Core Model](/glossary#core-model) (the small helper model Osaurus uses in the background).
 
-Some large models, such as Qwen3.8 Flash-Next and Allosaurus, keep part of their download on your disk and read it only when needed. For those, the memory estimate is smaller than the download size, and the model's details say how much stays on disk.
+Some large models keep part of their download on your disk and read it only when needed. For those, the memory estimate is smaller than the download size, and the model's details say how much stays on disk. Memory figures are estimates, so a very long chat can still use more.
 
 ### Models that understand images and audio
 
@@ -117,13 +118,13 @@ Some local models can take pictures, and a few can take sound. Compatible Gemma 
 
 ### Updates, verification, and repair
 
-Open a model's details in **Local Models → On Device** to manage it:
+Open a model's details in **Local Models → On This Mac** to manage it:
 
 - **Check for Model Updates** checks whether the publisher has released a newer version. If the publisher doesn't list versions, Osaurus tells you.
 - **Verification needed** appears on older models that were installed before the publisher listed versions. Click **Verify Model** to check the files. Osaurus never assumes an unknown version is current.
 - **Repair** compares your files with Hugging Face and restores any that are missing or changed. Good files are kept. It has the same Pause, Resume, and Cancel controls as a download. Models managed by another app stay managed by that app.
 
-**Automatically Check Model Updates** (in **Settings… → Local Models**, on by default) checks official OsaurusAI models every six hours and lets you know when an update is out. Turn it off to stop the automatic checks and their notifications; the manual buttons above still work.
+**Automatically Check Model Updates** (in **Settings → Models → Model Defaults → Downloads & Updates**, on by default) checks official OsaurusAI models every six hours and lets you know when an update is out. Turn it off to stop the automatic checks and their notifications; the manual buttons above still work.
 
 These checks only compare version information. They never download or replace a model by themselves, and a matching version doesn't prove your files are untouched. This switch is separate from updating the Osaurus app.
 
@@ -148,13 +149,15 @@ Osaurus only appears for models tagged `mlx`. Models in other formats (such as G
 
 Osaurus saves models in a folder called **MLXModels** in your home folder. If your Mac's drive is filling up, you can keep them on an external drive instead (see [Under the hood](#model-storage)).
 
-To remove a model: **Local Models → On Device** → open the model → **Delete Model**.
+To change where new models are saved, open **Local Models → Sources** and set the **Models Folder**.
+
+To remove a model: **Local Models → On This Mac** → open the model → **Delete Model**.
 
 ### Reusing models you already have
 
-Osaurus finds models you've already downloaded with other tools, so you never download the same model twice:
+Osaurus finds models you've already downloaded with other tools, so you never download the same model twice. It uses those files where they are and never copies them:
 
-- **Hugging Face downloads** — Osaurus looks in the usual places automatically. If yours are somewhere else, set a custom location in **Settings… → Local Models** (type a path, pick a folder, or reset to the default).
+- **Hugging Face downloads** — Osaurus looks in the usual places automatically. If yours are somewhere else, open **Local Models → Sources** and add the folder under **Use Models Already on This Mac**.
 - **LM Studio** — models you downloaded in LM Studio show up too.
 
 The chat picker hides models Osaurus can't chat with. A model that looks compatible but isn't may still appear and show an error when it loads.
@@ -165,7 +168,7 @@ To hide models from other apps, the model pickers in Settings (such as an agent'
 
 On macOS 26 (Tahoe) or later, with [Apple Intelligence](/glossary#apple-intelligence) turned on, you can use Apple's built-in model with **nothing to download or set up**. Pick **Foundation** in the chat model picker.
 
-It's private and runs on your Mac. Osaurus also uses it as the default Core Model for background jobs like saving memories. It's small, so it's best for quick, simple tasks.
+It's private and runs on your Mac. Osaurus also uses it as the default [Core Model](/glossary#core-model) for background jobs like saving memories. It's small, so it's best for quick, simple tasks.
 
 [Apple Intelligence guide →](/models/apple-intelligence)
 
@@ -201,19 +204,41 @@ When you need more power, connect a [provider](/glossary#provider) — a company
 | **LM Studio** | LM Studio's built-in server (added as a Custom provider) |
 | **[Osaurus Router](/osaurus-router)** | Hosted models tied to your Osaurus account — no key to paste |
 
-To add one, open **Settings… → Providers → Add Provider**. Connect with an API key (stored safely in your Mac's [Keychain](/glossary#keychain)) or sign in through your browser where offered. [Remote Providers →](/remote-providers)
+To add one, open **Settings → Providers → Add Provider**. Connect with an API key (stored safely in your Mac's [Keychain](/glossary#keychain), and listed in the [Vault](/vault) under **App Keys**) or sign in through your browser where offered. [Remote Providers →](/remote-providers)
 
 Your agents' memory carries over when you switch. Moving from a local Gemma model to Claude or GPT-4o doesn't lose anything.
 
 ## Image models
 
-Osaurus can also run local **image models** (Z-Image Turbo, FLUX.1 Schnell, FLUX 3 Image Klein, Qwen-Image 2.1, Ideogram) to create and edit pictures fully offline, upscale them with SeedVR2, plus hosted image and video options from Venice and Osaurus Cloud. Download them from **Settings… → Images → Image Models** and set defaults under **Images → Defaults**. [Image & Video Generation →](/image-generation)
+Osaurus can also run local **image models** (Z-Image Turbo, FLUX.1 Schnell, FLUX 3 Image Klein, Qwen-Image 2.1, Ideogram) to create and edit pictures fully offline, upscale them with SeedVR2, plus hosted image and video options from Venice and Osaurus Cloud. Download them from **Settings → Local Models → Image** and set defaults under **Settings → Models → Model Defaults → Images & Video**. [Image & Video →](/image-generation)
+
+## Model Defaults
+
+Osaurus uses a few models behind the scenes. You pick each one in **Settings → Models → Model Defaults**:
+
+- **Core Model** — the small helper for background jobs like saving memories, naming chats, and tidying dictation. On macOS 26 and later it's Apple's **Foundation** model unless you change it.
+- **Compaction Model** — summarizes a long chat when it nears the model's limit. Leave it unset to use the chat's own model.
+- **Images & Video** — the default models for making and editing pictures and videos.
+- **Speech-to-Text Model** — the model for [Voice](/voice).
+- **Detection Model** and **AppleScript Model** — for the [Privacy Filter](/privacy-filter) and the [AppleScript helper](/computer-use).
+- **Downloads & Updates** — **Automatically Check Model Updates**, and a shortcut to **Local Models**.
+
+Each agent can use its own models instead.
+
+## Models for workflows
+
+[Workflows](/workflows) ask a bit more of a model:
+
+- **Building one.** The [Architect](/glossary#architect), the helper that builds workflows with you, needs a model that can use tools. Apple's Foundation model isn't offered for it.
+- **Running one.** A step that asks a model for an answer needs a model that can follow a fixed answer format ([structured output](/glossary#structured-output)). Cloud providers that support it, Apple's Foundation model, and most current local models can.
+
+When a model can't run a step, Osaurus greys it out in the step's model menu and says why. [Build with the Architect →](/workflows-build)
 
 ## Troubleshooting
 
 ### "Model not found"
 
-- Check that it's downloaded: **Settings… → Local Models → On Device**.
+- Check that it's downloaded: **Settings → Local Models → On This Mac**.
 - If another app is calling Osaurus, check it uses the exact model name (see [Model naming](#model-naming)).
 
 ### Slow answers
@@ -248,7 +273,7 @@ Models live at `~/MLXModels/` by default. To use another location, such as an ex
 export OSU_MODELS_DIR=/Volumes/External/MLXModels
 ```
 
-The full download (`Osaurus-<version>-full.dmg`) installs the bundled Raptor 0.6 (`OsaurusAI/Raptor-0.6-4B-JANG_6M`) into `~/MLXModels/OsaurusAI/Raptor-0.6-4B-JANG_6M` on first launch. When the app and the models folder are on the same volume, this is an instant APFS clone.
+The full download (`Osaurus-<version>-full.dmg`) installs the bundled Raptor 0.7 (`OsaurusAI/Raptor-0.7-4B-JANG_6M`) into `~/MLXModels/OsaurusAI/Raptor-0.7-4B-JANG_6M` on first launch. When the app and the models folder are on the same volume, this is an instant APFS clone. Onboarding skips model setup only when that copy is in place and fits comfortably in memory; a tight fit, an unfinished copy, or a deleted bundle still shows the model step.
 
 Osaurus scans these Hugging Face cache locations automatically: `HF_HUB_CACHE`, `HF_HOME/hub`, and `~/.cache/huggingface/hub`. The chat picker filters out local bundles that aren't MLX format and embedding-only models.
 
@@ -274,7 +299,7 @@ The **Use this model** button opens a link like `osaurus://open_from_hf?model=<o
 | `JANG` (e.g. `1bit`, `Ternary`) | Extreme low-bit affine JANG weights — the smallest footprints in the catalog |
 | `MTP` | Ships multi-token-prediction speculative decoding for faster generation |
 
-Catalog entries list quantizations such as MXFP8, MXFP4, JANGTQ, JANG, 4-bit, and 8-bit. Raptor 0.6 4B is a dense text model with a 1M-token [context window](/glossary#context-window). Ornith 1.5 35B-A3B is a vision-language mixture-of-experts (MoE) model; LFM2.5 8B is an MoE with about 1B active parameters.
+Catalog entries list quantizations such as MXFP8, MXFP4, JANGTQ, JANG, 4-bit, and 8-bit. Raptor 0.7 4B is a dense model (3.41 GiB) with a 1M-token [context window](/glossary#context-window). Raptor 0.6 and v0.5 are retired from the catalog; installed copies still load from the local scan. Ornith 1.5 35B-A3B is a vision-language mixture-of-experts (MoE) model; LFM2.5 8B is an MoE with about 1B active parameters.
 
 ### Speculative decoding {/* #speculative-decoding */}
 
@@ -282,7 +307,7 @@ Catalog entries list quantizations such as MXFP8, MXFP4, JANGTQ, JANG, 4-bit, an
 
 The model picker shows **Off (AR)** or **On (Adaptive)** before weights load. The runtime chooses the depth; there are no manual depth buttons, and legacy manual depths migrate to Adaptive. Explicit Off turns speculation off, including bundled and selected external drafters, and survives reload. **Reset to default** restores the bundle's policy.
 
-On is a request, not proof that a particular request uses speculation: unsupported media and schema-constrained requests run AR. **Settings… → Server → Settings → Speculative Decoding** shows the loaded model's actual resolution and the reason. Sampling stays bundle-driven unless you override it. Remote models don't expose this control.
+On is a request, not proof that a particular request uses speculation: unsupported media and schema-constrained requests run AR. **Settings → Server → Server Settings → Speculative Decoding** shows the loaded model's actual resolution and the reason. Sampling stays bundle-driven unless you override it. Remote models don't expose this control.
 
 ### Thinking (reasoning) models
 
@@ -315,7 +340,7 @@ The RAM verdict and "Estimated memory while running" count every production comp
 
 ### Loaded models and eviction
 
-Set how local models stay in memory in **Settings… → Server → Settings → Model Memory**. **Eviction Policy** decides how many models can be loaded at once:
+Set how local models stay in memory in **Settings → Server → Server Settings → Model Memory**. **Eviction Policy** decides how many models can be loaded at once:
 
 | Policy | Behavior |
 |---|---|

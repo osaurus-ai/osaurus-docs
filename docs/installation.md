@@ -28,6 +28,20 @@ Apple has checked and approved Osaurus (it's signed and "notarized"), so it open
 
 **Next:** [Quick Start →](/quickstart) walks you through first launch.
 
+### Or install with Homebrew
+
+If you use [Homebrew](https://brew.sh) (a tool for installing apps from the Terminal), one command does it all:
+
+```bash
+brew install --cask osaurus
+```
+
+This also sets up the `osaurus` command-line tool. Update with `brew upgrade --cask osaurus`. Don't know what Homebrew is? Use the download above; it's the same app.
+
+:::info[Coming from an earlier version?]
+If you used Osaurus before version 1.0, your chats, agents and settings carry over. See [Upgrading from Osaurus Classic](/upgrading) for what changes.
+:::
+
 ## System requirements
 
 - **macOS 15.5** or later
@@ -35,7 +49,7 @@ Apple has checked and approved Osaurus (it's signed and "notarized"), so it open
 - **2–20 GB** of free space for each [local model](/glossary#local-model) you download
 
 :::info[macOS 26 features]
-[Apple Intelligence](/models/apple-intelligence) models need macOS 26 (Tahoe) or later. The [Sandbox](/glossary#sandbox) (a sealed-off area where agents can run code) works on both macOS 15 and 26, with a fuller setup on macOS 26.
+[Apple Intelligence](/models/apple-intelligence) models need macOS 26 (Tahoe) or later. The [Sandbox](/glossary#sandbox) (a sealed-off area where agents and workflows can run code) works on both macOS 15 and 26, with a fuller setup on macOS 26.
 :::
 
 ## Pick a build
@@ -44,10 +58,12 @@ Each release comes in two downloads. They're the same app; the difference is whe
 
 | Download | Size | Who it's for |
 |---|---|---|
-| **Standard** | ~80 MB | Most people. During setup you download a model or start on [Osaurus Cloud](/glossary#osaurus-cloud). |
-| **Full** | ~3.6 GB | People who want to chat offline right away. It includes the **Raptor 0.6** model, so setup skips the download. |
+| **Standard** | ~70 MB | Most people. During setup you download a model or start on [Osaurus Cloud](/glossary#osaurus-cloud). |
+| **Full** | ~4 GB | People who want to chat offline right away. It includes the **Raptor 0.7** model, so setup can skip the download. |
 
-The full download is linked from each [release's notes](https://github.com/osaurus-ai/osaurus/releases/latest) and is also hosted on [Hugging Face](https://huggingface.co/datasets/OsaurusAI/osaurus-releases). After a full install, future updates are the small standard download.
+The full download is [always here](https://huggingface.co/datasets/OsaurusAI/osaurus-releases/resolve/main/Osaurus-full.dmg) and is linked from each [release's notes](https://github.com/osaurus-ai/osaurus/releases/latest). After a full install, future updates are the small standard download.
+
+With the full download, setup skips choosing an AI only when Raptor 0.7 has finished copying and fits comfortably in your Mac's memory. Otherwise you'll see the usual choice.
 
 ## Permissions
 
@@ -58,7 +74,8 @@ Osaurus only asks for a permission when you first use a feature that needs it. m
 | Microphone | Talking to Osaurus, starting a chat with a [wake word](/glossary#wake-word), and Transcription Mode |
 | Screen Recording | Capturing your Mac's sound for [transcription](/glossary#transcription) |
 | Accessibility | Transcription Mode (typing into other apps for you) |
-| Network | Cloud models, online tools, and [Public Links](/glossary#public-link) |
+| Network | Cloud models, online tools, [Remote Access](/glossary#remote-access), and syncing with your other devices |
+| Calendar, Reminders, Mail, Notes | Your [teammates](/glossary#teammate) Planner, Courier and Keeper, and the workflows that use them. Osaurus asks the first time each one is needed. |
 | Files | [Working Folders](/glossary#working-folder) (one folder at a time, and only the ones you pick) |
 
 ## Troubleshooting
@@ -73,7 +90,7 @@ This only matters if you use the Terminal. See [Install the command-line tool](#
 
 ### Some data won't open after upgrading or moving to a new Mac
 
-Osaurus never deletes your data when it can't open it. Go to **Settings… → General → Advanced → Data & Storage → Stores Needing Attention**, where each affected item has **Retry** and **Reset** buttons. Anything you reset is moved aside, not deleted. [Full guide →](/storage)
+Osaurus never deletes your data when it can't open it. Go to **Settings → Privacy & Security → Data & Storage**, where each item under **Stores needing attention** has **Retry** and **Reset** buttons. Anything you reset is moved aside, not deleted. [Full guide →](/storage)
 
 ## Uninstall
 
@@ -82,7 +99,7 @@ Osaurus never deletes your data when it can't open it. Go to **Settings… → G
 3. *(Optional)* To remove your chats, memory, and downloaded models too, see [Remove everything](#remove-everything) below.
 
 :::warning
-Removing your data can't be undone. To keep a copy of your chats and memory first, use **Settings… → General → Advanced → Data & Storage → Export plaintext backup…**.
+Removing your data can't be undone. To keep a copy of your chats and memory first, use **Settings → Privacy & Security → Data & Storage → Export Plaintext Backup**.
 :::
 
 ---
@@ -94,19 +111,13 @@ Removing your data can't be undone. To keep a copy of your chats and memory firs
 | Build | File name | Notes |
 |---|---|---|
 | Standard | `Osaurus-<version>.dmg` | Homebrew and in-app updates use this build. |
-| Full | `Osaurus-<version>-full.dmg` | First launch installs the bundled Raptor 0.6 into `~/MLXModels`, and onboarding skips the AI setup step. |
+| Full | `Osaurus-<version>-full.dmg` | Hosted on Hugging Face; the newest stable one is always `Osaurus-full.dmg`. First launch installs the bundled `OsaurusAI/Raptor-0.7-4B-JANG_6M` into `~/MLXModels`. Onboarding skips Configure AI only when that copy is complete and the model fits comfortably; a tight fit, a copy still in progress, or a deleted bundle still shows it. |
 
 Osaurus is Developer ID signed and notarized by Apple. Updates install automatically through Sparkle when you launch the app. File access for Working Folders uses macOS security-scoped bookmarks.
 
-### Install with Homebrew
+### Homebrew details
 
-If you'd rather use Homebrew:
-
-```bash
-brew install --cask osaurus
-```
-
-This installs the standard build, puts **Osaurus.app** in your Applications folder, and lets Homebrew manage the **`osaurus` CLI** link in its own prefix. Update with `brew upgrade --cask osaurus`; don't replace that managed link manually.
+`brew install --cask osaurus` installs the standard build, puts **Osaurus.app** in your Applications folder, and lets Homebrew manage the **`osaurus` CLI** link in its own prefix. Update with `brew upgrade --cask osaurus`; don't replace that managed link manually.
 
 ### Where Osaurus puts things
 
@@ -127,7 +138,7 @@ export OSU_MODELS_DIR=/Volumes/External/MLXModels
 
 ### Verify the CLI
 
-If you installed from the DMG, the easiest way to get the `osaurus` command-line tool on your PATH is **Settings… (`⌘ ,`) → Server → Overview → Command Line Tool → Install CLI**. Then check it from the terminal:
+If you installed from the DMG, the easiest way to get the `osaurus` command-line tool on your PATH is **Settings → Server → Command Line Tool → Install CLI**. Then check it from the terminal:
 
 ```bash
 osaurus --version

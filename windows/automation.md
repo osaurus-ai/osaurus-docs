@@ -6,7 +6,7 @@ description: Run an agent on its own in Osaurus for Windows — at times you cho
 
 # Schedules and Watchers on Windows
 
-An agent can work without you there: at times you choose ([Schedules](/schedules)), whenever a folder changes ([Watchers](/watchers)), or when it books its own next run (wake-ups). They work as the Mac pages describe, with the differences below. Schedules and watchers have their own pages under **Automation** in Settings (**Settings → Schedules**, **Settings → Watchers**); wake-ups are set on the agent's **Abilities** tab. Only agents you create can run them.
+An agent can work without you there: at times you choose (schedules), whenever a folder changes (watchers), or when it books its own next run (wake-ups). On the Mac, schedules and watchers are now part of [Automations](/automations); on Windows they work as described below. Schedules and watchers have their own pages under **Automation** in Settings (**Settings → Schedules**, **Settings → Watchers**); wake-ups are set on the agent's **Abilities** tab. Only agents you create can run them.
 
 ## When they run
 

@@ -1,24 +1,26 @@
 ---
 title: Remote Providers
 sidebar_label: Remote Providers
-description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, and any OpenAI-compatible endpoint — by API key or browser sign-in.
+description: Connect Osaurus to OpenAI, Anthropic, Gemini, xAI, Mistral, and any OpenAI-compatible endpoint — by API key or browser sign-in — with keys in the Vault and per-provider sampling rules.
 ---
 
 # Remote Providers
+
+This page is for developers and power users connecting cloud model providers to Osaurus and calling them through the Osaurus API.
 
 Remote Providers connect Osaurus to external inference APIs (OpenAI, Anthropic, Open Responses, and compatible endpoints), so cloud models sit alongside your local MLX models — all behind the same Osaurus URL.
 
 ## Why this matters
 
 - One client connection (your script's OpenAI SDK pointed at Osaurus) reaches **every** model — local and cloud — by name
-- API keys live in the macOS Keychain, never in plain-text config files
+- API keys live in the [Vault](/vault) (backed by the macOS Keychain), never in plain-text config files
 - Switch backends without touching client code; memory and agent context follow you across providers
 
 ## Adding a provider
 
 ### Via the UI
 
-1. Open **Settings…** (`⌘ ,`)
+1. Open **Settings** (`⌘,`)
 2. Click **Providers** in the sidebar (under **Models**)
 3. Click **Add Provider**
 4. Pick a sign-in provider or **Use an API key** (Anthropic, Google, Ollama, custom, and more)
@@ -77,7 +79,7 @@ Need something else? Use **Custom** for LM Studio, [OpenCode Zen / Go](#opencode
 | Setting | Description |
 |---|---|
 | **Auth type** | None or API Key |
-| **API key** | Stored in Keychain, never in plain text |
+| **API key** | Saved in the Vault, never in plain text |
 
 ### Advanced
 
@@ -97,7 +99,7 @@ X-Custom-Header: value
 Authorization: Bearer token
 ```
 
-Mark headers containing secrets as "secret" to store their values in the Keychain rather than in plain-text configuration.
+Mark headers containing secrets as "secret" to store their values in the Vault rather than in plain-text configuration.
 
 ## Using remote models
 
@@ -145,6 +147,20 @@ For vision-capable providers, image attachments are resized to provider-safe wir
 Osaurus also carries per-model profiles for well-known remote models (context window, reasoning controls, which sampler knobs to omit), so newer releases such as OpenAI's GPT-6 Astra and GPT-6.1 Sol are recognized with the right context window and reasoning contract, including when discovered through a ChatGPT / Codex sign-in. Requests through a ChatGPT / Codex sign-in are streamed, including one-shot helper requests, so context compaction works on those models.
 
 Claude models that reject a forced `tool_choice` (such as the Claude 5.5 family) get it downgraded automatically instead of failing with a `400`. When OpenRouter relays an upstream provider error, Osaurus shows that upstream message rather than a generic failure.
+
+### Sampling and JSON mode on remote routes
+
+Caller-supplied `seed` and `response_format: {type: "json_object"}` are forwarded rather than silently dropped. What happens depends on the provider's API format:
+
+| Route | `seed` and JSON mode | Other sampler fields |
+|---|---|---|
+| **OpenAI-compatible chat completions** (OpenAI, Azure, xAI, OpenRouter, Mistral, DeepSeek, custom, Osaurus Router, other Osaurus Macs) | Sent as standard OpenAI fields. Whether the upstream honors them is up to the provider; unsupported values come back as the upstream's own error. | — |
+| **Gemini** | `seed` maps to `generationConfig.seed`; JSON mode to `generationConfig.responseMimeType: "application/json"` | `repetition_penalty` is rejected with a typed client error |
+| **Compatible Responses endpoints** | Explicit `seed` is sent as an Osaurus extension | `repetition_penalty`, `top_k`, `min_p`, and `chat_template_kwargs` are also sent as Osaurus extensions; the upstream decides whether to accept them |
+| **Anthropic** | An explicit `seed` is rejected with a typed client error before any HTTP request. JSON mode is omitted (Anthropic only accepts a strict JSON schema), so the model may still fence its JSON | A multiplicative `repetition_penalty` is rejected the same way |
+| **Remote agent run** on another Osaurus Mac | The remote agent owns its generation settings | Explicit `seed` or `repetition_penalty` overrides are rejected |
+
+Audio and video content parts have no mapping on the Anthropic and Gemini wires and return a typed error instead of being dropped.
 
 ### Prompt caching
 
@@ -338,7 +354,7 @@ OpenCode Go rejects requests without an `x-opencode-session` header ("cannot be 
 
 ### Claude Code
 
-Claude Code is no longer a provider. It's a [runtime](/harness-runtimes): an agent's chats run on your own signed-in `claude` CLI, the sanctioned way to reach a Claude Pro/Max subscription. Osaurus never mints or stores an Anthropic token; the CLI owns the session. It's registered for you on first launch under **Settings… → Agents → Runtimes**, and appears as its own column (Sonnet, Opus, Haiku) in the chat model picker.
+Claude Code is no longer a provider. It's a [runtime](/harness-runtimes): an agent's chats run on your own signed-in `claude` CLI, the sanctioned way to reach a Claude Pro/Max subscription. Osaurus never mints or stores an Anthropic token; the CLI owns the session. It's registered for you on first launch under **Settings → Agent Runtimes**, and appears as its own column (Sonnet, Opus, Fable, Haiku) in the chat model picker.
 
 Agents that used the old `claude-code/sonnet`, `claude-code/opus`, or `claude-code/haiku` model IDs move to the Claude Code runtime automatically on upgrade, keeping the same Claude model. See [Runtimes](/harness-runtimes) for setup, options, and safety.
 
@@ -360,7 +376,7 @@ Make sure "Start Server" is enabled in LM Studio.
 
 ### API key storage
 
-API keys are stored in the macOS Keychain, **not** in plain-text configuration files:
+API keys are saved in the [Vault](/vault), **not** in plain-text configuration files. They're listed under **Settings → Vault → App Keys**, where you can also edit them. The values live in the macOS Keychain:
 
 - Encrypted at rest
 - Protected by your macOS login
@@ -368,7 +384,7 @@ API keys are stored in the macOS Keychain, **not** in plain-text configuration f
 
 ### Secret headers
 
-Custom headers marked as "secret" are also stored in the Keychain.
+Custom headers marked as "secret" are also saved in the Vault.
 
 ### Configuration files
 
@@ -385,7 +401,7 @@ This file contains connection settings but **not** API keys or secret headers.
 | Action | How |
 |---|---|
 | **Edit** | Click the pencil icon on the provider card → modify → **Save**. Connection re-establishes with new settings. |
-| **Delete** | Click the trash icon → confirm. Removes the provider and its credentials from the Keychain. |
+| **Delete** | Click the trash icon → confirm. Removes the provider and its credentials from the Vault. |
 | **Enable/disable** | Toggle the switch on the provider card |
 
 ---

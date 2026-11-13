@@ -20,21 +20,21 @@ Osaurus can talk back too. See [Text-to-Speech](/text-to-speech) to have replies
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Voice**. It opens on the **Setup** tab.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Voice**. Until setup is done, it opens on **Setup**.
 2. Next to **Microphone**, click **Grant** to let Osaurus use your mic.
-3. Next to **Parakeet model**, click **Download** to get the speech model.
+3. Next to **Speech Model**, click **Download** to get the speech model.
 4. When both show checkmarks, click the big mic button to test it.
 
-Voice settings are split into tabs:
+The **Voice** page has the **Voice Input in Chat** switch at the top, then these rows:
 
-| Tab | What's there |
+| Row | What's there |
 |---|---|
 | **Setup** | Permissions, model download, which microphone to use, how sensitive listening is, and the test mic |
-| **Chat Voice** | **Enable Voice Input** for the mic button in the chat box |
 | **Transcription** | Transcription Mode, its shortcut key, and the **Stop Behavior & Cleanup** settings (shared with chat voice input) |
-| **Text To Speech** | Having replies read aloud. See [Text-to-Speech](/text-to-speech). |
+| **Text to Speech** | Having replies read aloud. See [Text-to-Speech](/text-to-speech). |
 | **Wake Word** | Hands-free activation |
-| **Models** | Managing your speech models |
+| **Speech Models** | Downloading and managing speech models. Opens **Settings → Local Models → Speech**. |
+| **Default Speech Model** | Which speech model Osaurus uses. Opens **Settings → Models → Model Defaults**, where it's the **Speech-to-Text Model**. |
 
 ## Picking a model
 
@@ -43,7 +43,7 @@ Osaurus uses Parakeet speech models, which run on your Mac. There are two:
 - **Parakeet TDT v3** is the default. It understands 25 European languages, including English, German, Spanish, and French. Pick this one unless you have a reason not to.
 - **Parakeet TDT v2** understands English only, and is slightly more accurate for English. Pick it if you only ever speak English.
 
-Each is about 600 MB and downloads once.
+Each is about 600 MB and downloads once. To switch, download the other one in **Settings → Local Models → Speech**, then choose it as the **Speech-to-Text Model** in **Settings → Models → Model Defaults**.
 
 ## Voice input in chat
 
@@ -64,11 +64,12 @@ To send only when you click stop, switch **Stop Mode** to **Manual**, or set **P
 
 | Setting | Where | Default | What it does |
 |---|---|---|---|
-| **Enable Voice Input** | Voice → Chat Voice | On | Turns voice in chat on or off |
-| **Sensitivity** | Voice → Setup | Medium | How easily Osaurus picks up your voice |
+| **Voice Input in Chat** | Voice | On | Turns voice in chat on or off |
+| **Sensitivity Level** | Voice → Setup → Voice Sensitivity | Medium | How easily Osaurus picks up your voice, in every voice mode |
 | **Stop Mode** | Voice → Transcription → Stop Behavior & Cleanup | Automatic | **Automatic** sends after a short pause; **Manual** waits for you to click stop |
 | **Pause Detection** | Voice → Transcription → Stop Behavior & Cleanup | 1.5s | How long a silence counts as a pause (0 turns it off) |
 | **Confirmation Delay** | Voice → Transcription → Stop Behavior & Cleanup | 2.0s | How long the countdown lasts before sending |
+| **Silence Timeout** | Voice → Transcription → Stop Behavior & Cleanup | 30s | Stops listening after this long with no speech at all |
 | **Clean Up Transcription** | Voice → Transcription → Stop Behavior & Cleanup | On | Removes filler words like "uh" and "mm", using the [Core Model](/glossary#core-model) |
 
 The Stop Behavior & Cleanup settings apply to both chat voice input and Transcription Mode.
@@ -98,9 +99,10 @@ Wake Word lets you start a chat without touching your Mac. Say a [wake word](/gl
 
 ### Turn on Wake Word
 
-1. Open **Settings… → Voice → Wake Word** and turn on **Enable Wake Word**.
-2. Choose which agents should respond to their names.
-3. If you like, set a custom wake phrase, such as "Hey Osaurus".
+1. Open **Settings → Voice → Wake Word** and turn on **Enable Wake Word**.
+2. Under **Activated Agents**, choose which agents should respond to their names.
+3. If you like, set a phrase under **Custom Phrase**, such as "Hey Osaurus".
+4. Use **Test Wake Word Detection** to check that it hears you.
 
 ### How it works
 
@@ -111,10 +113,10 @@ Osaurus listens quietly in the background. When it hears an agent's name or your
 | Setting | Default | What it does |
 |---|---|---|
 | **Enable Wake Word** | Off | Turns Wake Word on or off |
-| Enabled agents | None | Which agents respond to their names |
-| Custom wake phrase | Empty | An optional phrase that opens a chat |
-| Wake-word sensitivity | Medium | How easily it picks up the wake word |
-| Auto-start voice input | On | Start listening for your message right after it wakes |
+| **Activated Agents** | None | Which agents respond to their names |
+| **Custom Wake Phrase (Optional)** | Empty | An optional phrase that opens a chat |
+| **Detection Sensitivity** | Medium | Uses the same **Sensitivity Level** as **Voice → Setup** |
+| **Auto-Start Voice Input** (under **Behavior**) | On | Start listening for your message right after it wakes |
 
 ### Status indicators
 
@@ -132,10 +134,10 @@ Transcription Mode lets you dictate into any text box on your Mac: an email, a d
 
 ### One-time setup
 
-1. Open **Settings… → Voice → Transcription**.
+1. Open **Settings → Voice → Transcription**.
 2. Give Osaurus the **Accessibility** permission (**System Settings → Privacy & Security → Accessibility**, then turn on Osaurus). You may need to restart Osaurus.
 3. Turn on **Enable Transcription Mode**.
-4. Click the shortcut field and press the key combination you want.
+4. Under **Activation Hotkey**, click the shortcut field and press the key combination you want.
 
 ### Using it
 
@@ -144,7 +146,7 @@ Transcription Mode lets you dictate into any text box on your Mac: an email, a d
 3. Speak. Your words are typed into the box as you talk.
 4. Press `Esc` or click **Done** to stop.
 
-While you dictate, a small bar floats at the top of the screen. It shows a "Listening" light, a moving waveform, a **Done** button, and a close button that cancels and throws away what you said. It stays on top of other windows, matches your theme, and respects the macOS reduce-motion setting.
+While you dictate, a small bar floats at the top of the screen. It shows a "Listening" light, a moving waveform, a **Done** button, and a close button that cancels and throws away what you said. It stays on top of other windows, follows your [Appearance](/appearance) setting (System, Light, or Dark), and respects the macOS reduce-motion setting.
 
 ### Tips for best results
 
@@ -184,7 +186,7 @@ Each dictation is still listed in [Insights](/glossary#insights) as a **Transcri
 
 ### Wake Word doesn't respond
 
-1. Make sure **Settings… → Voice → Wake Word → Enable Wake Word** is on.
+1. Make sure **Settings → Voice → Wake Word → Enable Wake Word** is on.
 2. Turn on at least one agent for Wake Word, or set a custom wake phrase.
 3. Say the agent's full name, and wait 2–3 seconds between tries.
 4. Check that the menu bar icon shows the blue pulsing dot.
@@ -237,4 +239,4 @@ Listening all the time uses some processing power. If that's a problem:
 
 - [Chat](/chat): voice input in the chat window
 - [Agents](/agents): agents that respond to wake words
-- [Themes](/themes): the dictation bar follows the active theme
+- [Appearance](/appearance): the dictation bar follows System, Light, or Dark

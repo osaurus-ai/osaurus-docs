@@ -1,17 +1,17 @@
 ---
 title: Osaurus Bundles
 sidebar_label: Osaurus Bundles
-description: Ship Osaurus with your own agents, skills, MCP servers, and runtimes already installed, using an installer script and osaurus import.
+description: Ship Osaurus with your own agents, skills, MCP servers, and runtimes already installed, and shape first-run onboarding, using an installer script and osaurus import.
 ---
 
 # Osaurus Bundles
 
 An [Osaurus Bundle](/glossary#osaurus-bundle) lets you ship a ready-made Osaurus setup with your own installer. Your script installs Osaurus, stores your secrets in the user's Keychain, and runs `osaurus import install`. The first time the user opens Osaurus, your agents, skills, and MCP servers are already there and working.
 
-This page is for IT teams, product vendors, and consultants who package Osaurus for their users. You need a Mac with Osaurus 0.25.26 or later to test on, and basic shell scripting. A complete working example lives upstream in [`docs/examples/osaurus-bundle-example/`](https://github.com/osaurus-ai/osaurus/tree/main/docs/examples/osaurus-bundle-example).
+This page is for IT teams, product vendors, and consultants who package Osaurus for their users. You need a Mac with Osaurus 1.0 or later to test on, and basic shell scripting. A complete working example lives upstream in [`docs/examples/osaurus-bundle-example/`](https://github.com/osaurus-ai/osaurus/tree/main/docs/examples/osaurus-bundle-example).
 
 :::note
-Osaurus Bundles aren't the same as the encrypted `.osaurus-agent` files from an agent's **Export Bundle** button ([Move an agent to another Mac](/agents#move-an-agent-to-another-mac)), or `.mcpb` MCP bundles loaded with `osaurus bundle load`. Osaurus Bundles are a provisioning format handled only by `osaurus import`.
+Osaurus Bundles aren't the same as the encrypted `.osaurus-agent` files from an agent's **Export Bundle** button ([Move an agent to another Mac](/agents)), or `.mcpb` MCP bundles loaded with `osaurus bundle load`. Osaurus Bundles are a provisioning format handled only by `osaurus import`.
 :::
 
 ## What a bundle can contain
@@ -23,6 +23,7 @@ A bundle is a folder with an `osaurus-bundle.json` manifest at its root. It can 
 - **MCP servers**: HTTP or stdio servers, with credentials given as Keychain references.
 - **Harness runtimes**: Claude Code, Pi, or your own Pi-based program.
 - **Settings**: a short allow-list of server settings.
+- **Onboarding**: skip the welcome step, and leave out some or all of the starter teammates ([Onboarding](#onboarding)).
 
 | Not in a bundle | Use instead |
 | --- | --- |
@@ -75,12 +76,13 @@ acme-bundle/
   "name": "Acme Support Starter",
   "version": "1.0.0",
   "publisher": { "name": "Acme Example", "url": "https://acme.example" },
-  "min_osaurus_version": "0.25.26",
+  "min_osaurus_version": "1.0.0",
   "skills": [{ "name": "triage-ticket", "path": "skills/triage-ticket" }],
   "mcp_servers": [{ "name": "Acme Tickets", "transport": "http", "url": "https://mcp.acme.example/mcp", "auth": "bearer", "token_ref": "keychain:com.example.acme-support/tickets-token" }],
   "harness_runtimes": [{ "name": "Acme Pi", "kind": "pi_rpc", "executable": "pi" }],
   "agents": [{ "path": "agents/support-desk.json" }, { "path": "agents/release-checker.json" }],
-  "settings": { "require_local_access_key": true }
+  "settings": { "require_local_access_key": true },
+  "onboarding": { "skip": false, "exclude_teammates": ["keeper"] }
 }
 ```
 
@@ -91,26 +93,48 @@ acme-bundle/
 | `name` | yes | Shown in the launch toast and `osaurus import list`. |
 | `version` | yes | Semantic version. Bump it every release; `update` skips items installed at a newer version, so a stale installer can't downgrade. |
 | `description`, `publisher` | no | For your records. `publisher.name` is required inside the object. |
-| `min_osaurus_version` | no | The CLI refuses an older app. |
+| `min_osaurus_version` | no | Oldest Osaurus that may install the bundle, like `1.0.0`. The CLI refuses an older app. |
 | `skills` | no | `{ "name", "path" }`, relative to the bundle root. |
 | `mcp_servers` | no | Inline MCP server entries. |
 | `harness_runtimes` | no | Inline runtime entries. |
 | `agents` | no | `{ "path" }` to a JSON agent file. |
 | `settings` | no | Server settings by key. |
+| `onboarding` | no | What first-run onboarding skips and which starter teammates it leaves out ([Onboarding](#onboarding)). |
 
-At least one of `skills`, `mcp_servers`, `harness_runtimes`, `agents`, or `settings` must list something. Unknown keys are rejected with a did-you-mean hint. Paths must be relative and stay inside the bundle (no absolute, `~`, `..`, or symlinked paths). Each JSON file is capped at 512 KB. Only the manifest and the files it lists are copied, so you can delete the folder once `osaurus import` returns.
+At least one of `skills`, `mcp_servers`, `harness_runtimes`, `agents`, `settings`, or `onboarding` must list something. Unknown keys are rejected with a did-you-mean hint. Paths must be relative and stay inside the bundle (no absolute, `~`, `..`, or symlinked paths). Each JSON file is capped at 512 KB. Only the manifest and the files it lists are copied, so you can delete the folder once `osaurus import` returns.
 
 ### Settings
 
 | Key | Value | The control in Osaurus |
 | --- | --- | --- |
-| `require_local_access_key` | `true` / `false` | **Settings → Server → Settings → Authentication → Require Access Key for Local Admin Routes** ([Security](/security#local-access-key)) |
-| `allowed_origins` | list like `["https://app.acme.example"]` | **Server → Settings → Connection → Allowed Origins (CORS)**. Only adds; never removes. Restarts the server. |
+| `require_local_access_key` | `true` / `false` | **Settings → Server → Server Settings → Authentication → Require Access Key for Local Admin Routes** ([Security](/security)). On, apps and scripts on this Mac need an access key for `/sessions`, `/agents`, `/conversations/*`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*`. |
+| `allowed_origins` | list like `["https://app.acme.example"]` | **Settings → Server → Server Settings → Connection → Allowed Origins (CORS)**. Only adds; never removes. Restarts the server. |
 
 - `require_local_access_key: false` and every origin in `allowed_origins` are high risk and need `--yes`.
-- Bundles can't create access keys. If the key requirement turns on while the user has none, the item reports `needs_user_action` until they create one in **Server → Overview**.
+- Bundles can't create access keys. If the key requirement turns on while the user has none, the item reports `needs_user_action` until they create one in **Settings → Server**.
 - Settings belong to the user. `install` always sets the value, `update` leaves a setting the user changed since, a conflicting bundle fails, and `remove` leaves settings as they are.
 - Once the key requirement is on, live imports need `--access-key KEY` (or `OSAURUS_API_KEY`). Without one the import is queued and applies at next launch.
+
+### Onboarding
+
+The first time someone opens Osaurus, onboarding welcomes them, has them choose a model, and creates a starter team of agents: **Planner**, **Courier**, **Keeper**, **Scout**, and on a Mac with developer tools, **Builder**. It also installs a few default [workflows](/workflows) that run as those teammates. The `onboarding` object trims that for your users:
+
+```json
+"onboarding": { "skip": true, "exclude_teammates": ["keeper", "planner"] }
+```
+
+| Key | Value | Effect on first launch |
+| --- | --- | --- |
+| `skip` | `true` / `false` (default) | Onboarding opens straight on choosing a model, without the welcome step, and the first chat has no walkthrough. Choosing a model still runs. |
+| `exclude_teammates` | a list of `planner`, `courier`, `keeper`, `scout`, `builder`, or `"all"` | Those starter teammates aren't created. Use it when your agents cover the same jobs. |
+
+- **`all`** leaves out every starter teammate, including any a later Osaurus adds. It can't be mixed with names.
+- **Default workflows go with their teammates.** Morning Brief, Meeting Prep, Mail Triage, New Download, End of Day, Research Brief, and Repo Digest each run as a teammate; a workflow is left out when a teammate it uses is. With `all`, none are installed.
+- **No team, no walkthrough.** The first-chat walkthrough introduces the team, so it doesn't run when no teammate is created, even without `skip`.
+- **First launch only.** On a Mac that already finished onboarding, nothing changes and nothing is deleted; the result carries a warning such as "Keeper already exists on this Mac; the bundle does not remove it."
+- **The CLI can add to it.** `osaurus import install|update` takes `--skip-onboarding` and `--exclude-teammates keeper,planner` (or `all`). They merge with the manifest: skip from either, the exclusions together, and `all` from either wins. They aren't high risk and don't need `--yes`.
+- **Several bundles.** Osaurus keeps each bundle's request. Onboarding skips if any bundle asks, and leaves out every teammate any bundle excludes. An `update` with no onboarding request keeps the earlier one; `remove --bundle <id>` drops it.
+- **Users stay in charge.** **Settings → Agents → Delegation → Create starter agents** still creates the whole team on purpose.
 
 ## Agent files
 
@@ -149,7 +173,7 @@ Each agent is one JSON file (not YAML), in one of three shapes:
 | `mcp_servers`, `plugins` | `enabled` gives the agent **every** tool of the named servers or plugins; `disabled` removes them. |
 | `sandbox` | `enabled`, `network_enabled`, `allowed_domains`, plus `max_commands_per_turn`, `background_process_enabled`, `plugin_create`. |
 | `subagents` | Whether this agent may delegate, and to which agents by name. |
-| `orchestrator_spawnable` | `false` keeps the agent out of the Orchestrator's **Allowed subagents** list when the bundle creates it. Only applies at creation. |
+| `orchestrator_spawnable` | `false` keeps the agent out of the Orchestrator's delegation list (**Settings → Agents → Delegation → Allowed subagents**) when the bundle creates it. Only applies at creation. |
 | `runtime` | `builtin` (default) or a runtime's name, from this bundle or already on the Mac (like `Claude Code`). |
 | `claude_code` | For a Claude Code agent: `model`, `mode` (`agent` / `text_only`), `allow_writes`, `allow_shell`, `allow_osaurus_tools`. |
 | `working_folder` | A path hint. The user is asked to pick the folder the first time (`needs_user_action`) unless Osaurus can attach it itself. |
@@ -193,7 +217,7 @@ A skill folder needs a `SKILL.md` whose `name` matches the manifest entry by slu
 
 ## Secrets
 
-Secrets never go in the bundle. Store each one in the user's **login Keychain** and refer to it as `keychain:SERVICE/ACCOUNT`. On apply, Osaurus reads the item once, copies the value into its own Keychain items, and keeps only the reference. `env:` references are refused in bundles.
+Secrets never go in the bundle. Store each one in the user's **login Keychain** and refer to it as `keychain:SERVICE/ACCOUNT`. On apply, Osaurus reads the item once, copies the value into its [Vault](/vault) (where the user sees and can change it under **Settings → Vault**), and keeps only the reference. `env:` references are refused in bundles.
 
 Run this **as the user**, **after** Osaurus is in `/Applications`:
 
@@ -249,7 +273,7 @@ Ship a higher `version` and run `osaurus import update --from <bundle> --yes`:
 
 ## What the user sees
 
-Onboarding still runs on first open, and your agents are there when it finishes. A toast says "Agents ready — … · From Acme Support Starter", or names what needs setup. An agent with a pending secret, sign-in, model, or folder shows **Needs setup** and offers **Set Up Now** the first time it's opened ([Agent Templates](/agent-templates#finish-setting-up-an-agent)). Users can edit, rename, or delete anything you installed.
+Onboarding still runs on first open (trimmed by your [onboarding](#onboarding) request), and your agents are there when it finishes, next to any starter teammates you didn't leave out. A toast says "Agents ready — … · From Acme Support Starter", or names what needs setup. An agent with a pending secret, sign-in, model, or folder shows **Needs setup** and offers **Set Up Now** the first time it's opened ([Agent Templates](/agent-templates)). Users can edit, rename, or delete anything you installed.
 
 ## Troubleshooting
 
@@ -285,12 +309,14 @@ Check state with `osaurus import list --json` and `~/.osaurus/import/results/<re
 ```text
 osaurus import validate --from <bundle> [--json]
 osaurus import install  --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+                        [--skip-onboarding] [--exclude-teammates <names|all>]
 osaurus import update   --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+                        [--skip-onboarding] [--exclude-teammates <names|all>]
 osaurus import remove   --bundle <id> [agent|skill|mcp|runtime|setting] [<name> ...] [--json]
 osaurus import list     [--bundle <id>] [--json]
 ```
 
-Every command also takes `--access-key KEY` (or `OSAURUS_API_KEY`). Naming an agent also installs the skills, servers, and runtime it uses from the same bundle. When a name matches more than one kind, say which (`skill triage`).
+Every command also takes `--access-key KEY` (or `OSAURUS_API_KEY`). `--skip-onboarding` and `--exclude-teammates` (comma separated) add to the manifest's `onboarding` and apply only to `install` and `update`. Naming an agent also installs the skills, servers, and runtime it uses from the same bundle. When a name matches more than one kind, say which (`skill triage`).
 
 ### Exit codes
 
@@ -309,6 +335,7 @@ Every command also takes `--access-key KEY` (or `OSAURUS_API_KEY`). Naming an ag
 | `items[].action` | `install`, `update`, `remove` |
 | `items[].status` | `done`, `unchanged`, `needs_user_action`, `failed`, `skipped`, `queued`, `valid` |
 | `risks`, `warnings`, `issues`, `pending_secrets` | Lists of strings |
+| `onboarding` | (`install`, `update`) What the import asks of first-run onboarding: `skip`, and `exclude_teammates` as a list or `"all"`. Omitted when it asks nothing. |
 | `installed`, `queued` | (`list`) receipts and pending imports |
 | `cancelled_requests` | (`remove`) dropped queued imports |
 
@@ -321,4 +348,5 @@ Fields with no value are omitted, and new fields may be added.
 | `~/.osaurus/import/pending/<request-id>/` | A queued import; removed once applied |
 | `~/.osaurus/import/results/<request-id>.json` | Result of an applied import |
 | `~/.osaurus/import/installed.json` | Osaurus's receipts. Don't edit it. |
+| `~/.osaurus/import/onboarding.json` | What each bundle asked of first-run onboarding. Don't edit it. |
 | `~/.osaurus/skills/<slug>/` | Installed skills |

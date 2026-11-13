@@ -23,7 +23,7 @@ const osaurusPrismTheme: PrismTheme = {
 
 const config: Config = {
   title: "Osaurus Docs",
-  tagline: "Own your AI — a local-first agent harness for Apple Silicon",
+  tagline: "Own your AI — local agents, memory, and shareable workflows on Apple Silicon",
   favicon: "img/osaurus-favicon-64.png",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -130,6 +130,12 @@ const config: Config = {
           { from: "/keyboard-shortcuts", to: "/chat" },
           { from: "/shared-configuration", to: "/integrations" },
           { from: "/benchmarks", to: "/inference-runtime" },
+          { from: "/themes", to: "/appearance" },
+          { from: "/mobile", to: "/devices" },
+          { from: "/relay", to: "/remote-access" },
+          { from: "/schedules", to: "/automations" },
+          { from: "/watchers", to: "/automations" },
+          { from: "/watcher-internals", to: "/automations" },
         ],
       },
     ],
@@ -184,7 +190,7 @@ const config: Config = {
       attributes: {
         name: "twitter:description",
         content:
-          "Own your AI: local-first agents with memory, tools, and identity on Apple Silicon. Offline, open source, and API-compatible with OpenAI, Anthropic, and Ollama.",
+          "Own your AI: local-first agents with memory, tools, and workflows you can run on a schedule and share with a link. On Apple Silicon, open source, and API-compatible with OpenAI, Anthropic, and Ollama.",
       },
     },
     {
@@ -199,7 +205,7 @@ const config: Config = {
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS",
         description:
-          "Open-source, local-first AI harness for Apple Silicon. Run AI agents with persistent memory, tools, and a cryptographic identity entirely on your Mac — offline. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
+          "Open-source, local-first AI harness for Apple Silicon. Run AI agents with persistent memory, tools, and a cryptographic identity on your Mac, and turn repeat tasks into workflows you can schedule and share with a link. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
         url: "https://osaurus.ai",
         author: {
           "@type": "Organization",
@@ -222,12 +228,12 @@ const config: Config = {
       {
         name: "description",
         content:
-          "Osaurus is an open-source, local-first AI harness for Apple Silicon — run AI agents with persistent memory, tools, and a cryptographic identity on your Mac, fully offline. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
+          "Osaurus is an open-source, local-first AI harness for Apple Silicon — run AI agents with persistent memory and tools on your Mac, and turn repeat tasks into workflows you can schedule and share with a link. Compatible with the OpenAI, Anthropic, Ollama, and MCP APIs.",
       },
       {
         name: "keywords",
         content:
-          "Osaurus, local AI, AI agents, AI harness, agent memory, Apple Silicon, MLX, OpenAI API, Anthropic API, Ollama, MCP, identity, private AI, offline AI, macOS, Swift",
+          "Osaurus, local AI, AI agents, AI workflows, AI automation, AI harness, agent memory, Apple Silicon, MLX, OpenAI API, Anthropic API, Ollama, MCP, identity, private AI, offline AI, macOS, Swift",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -253,6 +259,11 @@ const config: Config = {
           docsPluginId: "windows",
           position: "left",
           label: "Windows",
+        },
+        {
+          to: "/workflows",
+          label: "Workflows",
+          position: "left",
         },
         {
           to: "/installation",
@@ -314,6 +325,14 @@ const config: Config = {
             { label: "Quick Start", to: "/quickstart" },
             { label: "Osaurus for Windows", to: "/windows" },
             { label: "Security & Privacy", to: "/security" },
+          ],
+        },
+        {
+          title: "Workflows",
+          items: [
+            { label: "Workflows", to: "/workflows" },
+            { label: "Automations", to: "/automations" },
+            { label: "Share a Workflow", to: "/workflows-share" },
           ],
         },
         {

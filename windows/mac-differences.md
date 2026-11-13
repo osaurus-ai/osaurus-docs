@@ -6,14 +6,14 @@ description: What Osaurus for Windows shares with Osaurus for Mac, what works di
 
 # Windows and Mac
 
-Osaurus for Windows is its own app, written for Windows, so it isn't identical to the Mac app. It shares the ideas, your [account](/glossary#identity), and the local server other apps talk to. Most of the Mac pages on this site describe features Windows has too, but menu names, file paths, and how models run differ. This page lists the differences, for version 0.1.9.
+Osaurus for Windows is its own app, written for Windows, so it isn't identical to the Mac app. It shares the ideas, your [account](/glossary#osaurus-id), and the local server other apps talk to. Most of the Mac pages on this site describe features Windows has too, but menu names, file paths, and how models run differ. This page lists the differences, for version 0.1.9.
 
 ## Works the same way
 
 These work as the Mac pages describe; only the menu path differs (the Mac's **Settings…** is **Settings** at the bottom of the agent sidebar on Windows):
 
 - [Chat](/chat)
-- [iPhone pairing](/windows/mobile), [Public Links](/relay), and the [Secure Channel](/secure-channel)
+- [iPhone pairing](/windows/mobile), [Public Links](/remote-access), and the [Secure Channel](/secure-channel)
 - The [Osaurus Router](/osaurus-router) and Osaurus Cloud
 - The [HTTP API](/api) on `http://127.0.0.1:1337`, with the same OpenAI, Anthropic, Ollama, and MCP endpoints
 - [Osaurus Bundles](/bundles) and declarative [Configuration](/configuration), through the [`osaurus` command](/windows/cli)

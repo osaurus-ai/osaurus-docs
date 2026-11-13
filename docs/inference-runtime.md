@@ -6,6 +6,8 @@ description: BatchEngine concurrency, library-managed KV cache, model leases, ev
 
 # Inference Runtime
 
+This page is for contributors and performance-minded developers who want to know how local models are scheduled, cached, and unloaded.
+
 Osaurus's MLX inference path is a thin shell around vmlx-swift-lm's `BatchEngine`. Tool-call parsing, reasoning extraction, KV-cache management, and per-model scheduling all live inside the library. This page describes the small slice Osaurus owns.
 
 ## End-to-end shape
@@ -32,7 +34,7 @@ ChatEngine (route resolution, attribution, logging)
 
 ## Continuous batching
 
-Same-model concurrent requests share a single forward pass via `BatchEngine`. **Server → Settings → Concurrency & Batching → Concurrent Sessions** is the canonical ceiling for both request concurrency and subagent batching; the Orchestrator's and every agent's **Max local subagents at once** setting share that value. Left empty (Automatic), it resolves to a memory-safe value for your Mac, which may differ from the subagent default of 3.
+Same-model concurrent requests share a single forward pass via `BatchEngine`. **Settings → Server → Server Settings → Concurrency & Batching → Concurrent Sessions** is the canonical ceiling for both request concurrency and subagent batching; the Orchestrator's and every agent's **Max local subagents at once** setting share that value. Left empty (Automatic), it resolves to a memory-safe value for your Mac, which may differ from the subagent default of 3.
 
 Leave Concurrent Sessions empty for an automatic Memory Safety value, or set 1–32 explicitly. RAM admission, current engine occupancy, and model residency can still run a smaller subagent wave. With **Continuous Batching** off, the effective local per-model limit is `1` regardless of the configured ceiling. Turning it on allows same-model requests to decode together; `1` retains the compiled-decode fast path, while higher values favor aggregate throughput at the cost of more wired memory and per-request latency.
 
@@ -46,7 +48,7 @@ The value is clamped to `[1, 32]`. The batch size is hot-resizable: a changed va
 
 ## Cache management
 
-vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server → Settings → Cache**. Each local model captures the saved cache policy when it loads; changing the KV-retention policy unloads resident models so the next load cannot retain the old cap.
+vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Settings → Server → Server Settings → Cache**. Each local model captures the saved cache policy when it loads; changing the KV-retention policy unloads resident models so the next load cannot retain the old cap.
 
 | Control | Behavior |
 |---|---|
@@ -60,7 +62,7 @@ vmlx's `CacheCoordinator` owns KV-cache geometry. Configure it under **Server �
 
 Before enabling SSD reuse, Osaurus performs a real write probe. A read-only directory or ownership problem disables the disk tier rather than writing elsewhere. The diagnostics log the path, owner/mode, and underlying error; check that detail if every tool round appears to prefill the full conversation again.
 
-The cap is root-wide, not per model. Low free space is advisory: Settings shows a warning rather than switching caching off. SSD seeds survive model reloads, and an edited chat never resumes from a checkpoint of its pre-edit history. Eviction is conversation-aware — the chat's session id is the engine's cache chain, so other chats' snapshots are evicted before the chat in progress, and normal trimming is silent (there is no chat popup about cache capacity). The Context Budget popover's disk-cache row shows used space and the resolved cap, and warns past 75% that older checkpoints may be evicted; **Server → Settings → Live Activity** shows disk-cache hits, stores, usage, and evictions. Saved percentages and legacy GB sizes survive migration.
+The cap is root-wide, not per model. Low free space is advisory: Settings shows a warning rather than switching caching off. SSD seeds survive model reloads, and an edited chat never resumes from a checkpoint of its pre-edit history. Eviction is conversation-aware — the chat's session id is the engine's cache chain, so other chats' snapshots are evicted before the chat in progress, and normal trimming is silent (there is no chat popup about cache capacity). The Context Budget popover's disk-cache row shows used space and the resolved cap, and warns past 75% that older checkpoints may be evicted; **Settings → Server → Server Settings → Live Activity** shows disk-cache hits, stores, usage, and evictions. Saved percentages and legacy GB sizes survive migration.
 
 ### Multi-turn KV cache reuse
 
@@ -72,7 +74,7 @@ For visibility, every response carries a `prefix_hash` field — a stable hash o
 
 LLM context compaction replaces older outbound turns with a persisted summary while leaving the visible transcript unchanged. That changes the prompt prefix once, so Osaurus invalidates the old warm-up identity and rewarms the summary-aware prefix before the next send. Later turns reuse the stable summary prefix normally.
 
-The deterministic last-resort trimmer also keeps its decisions sticky within a run: once an old message is summarized or dropped, later tool-loop iterations do not rewrite the middle of the already-rendered prefix. [Chat compaction →](/chat#context-compaction)
+The deterministic last-resort trimmer also keeps its decisions sticky within a run: once an old message is summarized or dropped, later tool-loop iterations do not rewrite the middle of the already-rendered prefix. [Chat compaction →](/chat)
 
 ### DeepSeek V4 cache caveats
 
@@ -85,23 +87,23 @@ Osaurus also rejects inconsistent SSD checkpoints before storing them. If DSV4 r
 Effective local generation settings resolve in this order:
 
 1. values supplied by the request or agent;
-2. your **Server → Settings → Sampling Defaults**;
+2. your **Settings → Server → Server Settings → Sampling Defaults**;
 3. the model bundle's `generation_config.json`; and
 4. vmlx engine defaults.
 
 Leaving a user default blank is what lets the model value win. An explicit `temperature: 0` selects greedy decoding and makes top-p, top-k, and min-p inert. Presence and frequency penalties resolve from a per-request value and then the model bundle; they do not have user-default fields.
 
-**Server → Settings → Live Activity → Sampler last used** shows the exact temperature, top-p, top-k, min-p, maximum output, and repetition penalty that ran for each model. Warm-up prefills are excluded so the row describes a real request.
+**Settings → Server → Server Settings → Live Activity → Sampler last used** shows the exact temperature, top-p, top-k, min-p, maximum output, and repetition penalty that ran for each model. Warm-up prefills are excluded so the row describes a real request.
 
-**Server → Settings → Speculative Decoding** has three modes: **Off (AR)**, **Default**, and **On (Adaptive)**. Default is the bundle's family policy: adaptive native MTP for Qwen3.8 Flash-Next, and a Qwen 27B bundle's own `dflash2/` drafter (found from the bundle directory with no folder pick). DeepSeek V4.1 and MiniCPM-V 4.7 bundles can also use a dSpark drafter. The chat picker (and the paired phone) show the per-bundle effective state as **Off (AR)** or **On (Adaptive)** before weights load. The runtime chooses depth; legacy manual depths migrate to Adaptive. Explicit Off disables bundled and external drafters. Drafter requests (DFlash 2 and dSpark) take a solo lease under continuous batching so a second request doesn't silently run without speculation. Schema-constrained and unsupported-media requests run AR for that request only. The settings row shows the loaded model's actual resolution and reason. Changing these controls may reload the model so the next launch plan uses the new path.
+**Settings → Server → Server Settings → Speculative Decoding** has three modes: **Off (AR)**, **Default**, and **On (Adaptive)**. Default is the bundle's family policy: adaptive native MTP for Qwen3.8 Flash-Next, and a Qwen 27B bundle's own `dflash2/` drafter (found from the bundle directory with no folder pick). DeepSeek V4.1 and MiniCPM-V 4.7 bundles can also use a dSpark drafter. The chat picker (and the paired phone) show the per-bundle effective state as **Off (AR)** or **On (Adaptive)** before weights load. The runtime chooses depth; legacy manual depths migrate to Adaptive. Explicit Off disables bundled and external drafters. Drafter requests (DFlash 2 and dSpark) take a solo lease under continuous batching so a second request doesn't silently run without speculation. Schema-constrained and unsupported-media requests run AR for that request only. The settings row shows the loaded model's actual resolution and reason. Changing these controls may reload the model so the next launch plan uses the new path.
 
 ### Constrained JSON output
 
-`json_schema` requests (`response_format` on Chat Completions, `text.format` on Responses) pass the schema to a genuine next-token grammar mask in the local runtime. The bundle or request sampler chooses among grammar-allowed tokens; nothing is added to the prompt. Each request gets its own matcher, including cache hits. Success requires natural completion on a grammar-authorized stop token; length exhaustion, cancellation, or incomplete output is a terminal error, never partial JSON. Reasoning envelopes, tool calls, and remote providers are rejected with schemas. See [HTTP API → Structured output](/api#structured-output) for the supported subset.
+`json_schema` requests (`response_format` on Chat Completions, `text.format` on Responses) pass the schema to a genuine next-token grammar mask in the local runtime. The bundle or request sampler chooses among grammar-allowed tokens; nothing is added to the prompt. Each request gets its own matcher, including cache hits. Success requires natural completion on a grammar-authorized stop token; length exhaustion, cancellation, or incomplete output is a terminal error, never partial JSON. Reasoning envelopes, tool calls, and remote providers are rejected with schemas. See [HTTP API → Structured output](/api) for the supported subset.
 
 ### Decision models (D3)
 
-D3, D3 Flash, and D3 Turbo bundles are decision backbones, not text generators. They carry a D3 badge, are excluded from chat, agent, and worker pickers, and answer `POST /v1/systemone` ([HTTP API](/api#decision-requests)). Each request loads its own weights under the existing compatibility, shard, memory-safety, and exclusive GPU checks, answers its questions with a cache-free forward pass, then unloads. No KV cache, SSD checkpoint, sampler, reasoning effort, or speculative setting applies.
+D3, D3 Flash, and D3 Turbo bundles are decision backbones, not text generators. They carry a D3 badge, are excluded from chat, agent, and worker pickers, and answer `POST /v1/systemone` ([HTTP API](/api)). Each request loads its own weights under the existing compatibility, shard, memory-safety, and exclusive GPU checks, answers its questions with a cache-free forward pass, then unloads. No KV cache, SSD checkpoint, sampler, reasoning effort, or speculative setting applies.
 
 ## Concurrency
 
@@ -116,7 +118,7 @@ D3, D3 Flash, and D3 Turbo bundles are decision backbones, not text generators. 
 
 ### Live diagnostics
 
-Open **Server → Settings → Live Activity** for a read-only BatchEngine snapshot that refreshes every two seconds. It reports active and queued slots, per-model configured capacity, high-water marks, engine status, loaded/cache-enabled models, prefix hits and misses, SSD L2 hits/misses/stores, paged evictions, TurboQuant compressions, and hybrid SSM re-derivations. No model loaded means there is no engine snapshot yet.
+Open **Settings → Server → Server Settings → Live Activity** for a read-only BatchEngine snapshot that refreshes every two seconds. It reports active and queued slots, per-model configured capacity, high-water marks, engine status, loaded/cache-enabled models, prefix hits and misses, SSD L2 hits/misses/stores, paged evictions, TurboQuant compressions, and hybrid SSM re-derivations. No model loaded means there is no engine snapshot yet.
 
 macOS manages swap: Osaurus no longer shows swap warnings or asks for a "Use Anyway" confirmation. **Memory Safety** load budgets still refuse a load that won't fit, and actual model-load failures appear normally. Local memory warnings are hidden when the selected model is a cloud model.
 
@@ -128,7 +130,7 @@ When a user switches to a remote model or closes a window, a GC pass checks all 
 
 ### Eviction policy
 
-Configurable in **Settings… → Server → Settings → Model Memory → Eviction Policy:**
+Configurable in **Settings → Server → Server Settings → Model Memory → Eviction Policy:**
 
 | Policy | Behavior |
 |---|---|
@@ -137,7 +139,7 @@ Configurable in **Settings… → Server → Settings → Model Memory → Evict
 
 ### Idle residency
 
-**Settings… → Server → Settings → Model Memory → Model Residency** controls how long weights stay resident after the last stream releases its lease:
+**Settings → Server → Server Settings → Model Memory → Model Residency** controls how long weights stay resident after the last stream releases its lease:
 
 | Control | Behavior |
 |---|---|

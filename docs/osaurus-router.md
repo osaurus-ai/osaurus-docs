@@ -8,7 +8,7 @@ description: Use powerful cloud AI models without signing up with each AI compan
 
 Osaurus Router is Osaurus's own service for [cloud models](/glossary#cloud-model). It lets you use capable hosted models — from DeepSeek, Anthropic, OpenAI, and others — without creating an account or pasting an [API key](/glossary#api-key) for each company. Its models appear in the model picker as **Osaurus Cloud**, and you pay with prepaid [credits](/glossary#credits).
 
-There's nothing to set up: it's on by default and connects automatically using your Osaurus [identity](/glossary#identity), which Osaurus creates for you.
+There's nothing to set up: it's on by default and connects automatically using your [Osaurus ID](/glossary#osaurus-id), which Osaurus creates for you. Its controls live in **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Osaurus ID → Wallet & Credits**.
 
 It's one of three ways to get a model. Your agents, memory, and tools work the same with all of them:
 
@@ -20,7 +20,7 @@ It's one of three ways to get a model. Your agents, memory, and tools work the s
 
 1. In a chat, click the model pill in the message box.
 2. Under **Osaurus Cloud**, pick a model. (If it shows **Explore**, click it to open the Cloud model browser.)
-3. Add credits if you need to: click the **Credits** button in the message box, then **Add credits**.
+3. Add credits if you need to: click the credits button in the message box (it shows your balance), then **Add Credits**.
 4. Start chatting.
 
 You can also pick an Osaurus Cloud model as an agent's default model.
@@ -43,15 +43,17 @@ If you have no favorites yet, Osaurus adds a few starter models once (DeepSeek V
 
 You pay for Osaurus Cloud with credits. **$1 buys 10,000 credits.** Credits also pay for premium web search and hosted image and video generation. Where it helps, prices and usage also show the dollar amount.
 
+Premium web search has its own switch: **Use Premium Search** in **Settings → Web Search → Premium Search**. Wallet & Credits shows your search credits and has **Use Osaurus Balance When Search Credits Run Out**. See [Web Search](/web-search).
+
 ### Checking your balance in chat
 
-Hover over the **Credits** button in the chat message box to see your balance; click it to keep the card open. The card shows:
+Hover over the credits button in the chat message box to see your balance; click it to keep the card open. The card shows:
 
 - Your balance
 - What this chat has spent so far
 - Recent activity
 
-**Add credits** opens the top-up window. **View all** opens **Settings… → Credits**.
+**Add Credits** opens the top-up window. **View all** opens **Settings → Osaurus ID → Wallet & Credits**.
 
 When a chat bills a [workspace](/glossary#workspace) pool instead of your own balance, the button shows the pool instead (workspace name · pool · balance).
 
@@ -59,11 +61,11 @@ When a chat bills a [workspace](/glossary#workspace) pool instead of your own ba
 
 Got a promotion or referral code?
 
-1. Open **Settings… → Credits**.
-2. Under **Have a code?**, type your code in the **Enter your code** field.
+1. Open **Settings → Osaurus ID → Wallet & Credits**.
+2. Under **Have a Code?**, type your code in the **Enter your code** field.
 3. Click **Redeem**.
 
-Osaurus Router and your Osaurus identity both need to be on. When it works, you see the campaign's message, your balance updates, and you can click **Redeem another code**. If you've already used the code, it says so. Some referral rewards stay pending until your first paid top-up.
+**Use Osaurus Router** needs to be on, and you need an Osaurus ID. When it works, you see the campaign's message, your balance updates, and you can click **Redeem another code**. If you've already used the code, it says so. Some referral rewards stay pending until your first paid top-up.
 
 If it doesn't work, the message tells you what to do:
 
@@ -83,7 +85,7 @@ Dollars only appear where real money changes hands: adding credits, the Workspac
 
 ## Turning it off
 
-Osaurus Router is on by default. To turn it off, switch off **Osaurus Router** in **Settings… → Credits**, or disable the Router provider in **Settings… → Providers**. With it off, Osaurus Cloud models and shared workspace agents can't be reached.
+Osaurus Router is on by default. To turn it off, switch off **Use Osaurus Router** in **Settings → Osaurus ID → Wallet & Credits** and confirm, or disable the Router provider in **Settings → Providers**. With it off, Osaurus Cloud models and shared workspace agents can't be reached, and any chat using an Osaurus Cloud model switches to a local one. You can turn it back on anytime.
 
 ## Announcements
 
@@ -100,8 +102,8 @@ Osaurus also keeps background requests to a minimum. It only contacts the Router
 
 ## Troubleshooting
 
-- **No Osaurus Cloud models in the picker?** Check that **Osaurus Router** is on in **Settings… → Credits** and that you're online. Osaurus reconnects on its own after sleep or a dropped connection.
-- **A request is refused for lack of credits?** Add credits from the **Credits** button or **Settings… → Credits**. A workspace chat draws from the workspace pool, so that pool may need topping up instead.
+- **No Osaurus Cloud models in the picker?** Check that **Use Osaurus Router** is on in **Settings → Osaurus ID → Wallet & Credits** and that you're online. Osaurus reconnects on its own after sleep or a dropped connection.
+- **A request is refused for lack of credits?** Add credits from the credits button in the message box or with **Add Credits** in **Settings → Osaurus ID → Wallet & Credits**. A workspace chat draws from the workspace pool, so that pool may need topping up instead.
 - **An empty answer?** If a model finishes without writing anything, Osaurus shows a notice instead of an empty bubble. Try again or pick another model.
 
 ---
@@ -133,11 +135,11 @@ Hosted image and video generation uses the same balance. Video jobs are quoted b
 
 ### Reading the balance from local tools
 
-Scripts and status-bar tools on your Mac can read the balance with [`GET /credits/balance`](/api#get-creditsbalance) on the local [API](/glossary#api). It needs a master [access key](/glossary#access-key), or **Allow local API access without a key** in **Settings… → Credits** for keyless [loopback](/glossary#loopback) requests (browser requests always need a key). Osaurus signs the hosted request itself, so the caller never touches your wallet key.
+Scripts and status-bar tools on your Mac can read the balance with [`GET /credits/balance`](/api#get-creditsbalance) on the local [API](/glossary#api). It needs a master [access key](/glossary#access-key), or **Allow local API access without a key** in **Settings → Server** for keyless [loopback](/glossary#loopback) requests (browser requests always need a key). Osaurus signs the hosted request itself, so the caller never touches your wallet key.
 
 ### Background request policy
 
-Signed Router account calls appear as rows in **Settings… → Insights**, so Osaurus asks the Router only when you act or open a surface, not on a timer. Switching back to the app doesn't refresh anything except a pending Stripe top-up or workspace confirmation; the composer's credits chip reuses a balance up to five minutes old; and workspace sync stays off until your account belongs to a workspace.
+Signed Router account calls appear as rows in **Settings → Insights**, so Osaurus asks the Router only when you act or open a surface, not on a timer. Switching back to the app doesn't refresh anything except a pending Stripe top-up or workspace confirmation; the composer's credits chip reuses a balance up to five minutes old; and workspace sync stays off until your account belongs to a workspace.
 
 The announcements check is unauthenticated, sends no account data, and isn't logged to Insights.
 
@@ -152,5 +154,5 @@ Router charges are also recorded at `~/.osaurus/billing/ledger.sqlite` (encrypte
 - [Remote Providers](/remote-providers) — connect your own OpenAI, Anthropic, Gemini, and other provider keys
 - [Workspaces](/workspaces) — shared agents and the workspace credit pool
 - [Models](/models) — how local, Apple Foundation, and cloud models share one picker
-- [Identity](/identity) — the identity Router depends on
+- [Osaurus ID](/identity) — the identity Router depends on, and where Wallet & Credits lives
 - [HTTP API](/api) — the OpenAI-compatible interface Router uses

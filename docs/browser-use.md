@@ -10,18 +10,20 @@ Browser Use gives an [agent](/glossary#agent) its own web browser. The agent can
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Agents**, pick one of your own agents, and open **Abilities → Subagents**.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Agents**, pick one of your own agents, and open **Abilities → Subagents**.
 2. Turn on **Browser Use**. Like every ability on this tab, it starts off.
 3. Ask for something that needs a browser, like *"Check the pricing page on example.com and summarize the tiers."*
 
 The agent's steps show live in the chat, and you get a short summary at the end. You can stop the run at any time.
 
-:::note[The Orchestrator doesn't browse]
-Only your own agents can use Browser Use. The [Orchestrator](/orchestrator) never gets browser access.
+:::note[Browsing from the Orchestrator chat]
+The [Orchestrator](/orchestrator) doesn't browse itself, but you don't need an agent of your own for everyday browsing. When you ask it to use a website, it hands the job to its built-in **Browser** [helper](/glossary#helpers), which opens sites, clicks, types, and reads pages, including sites you're signed in to. It asks before anything sensitive.
+
+To hand browsing to one of your own Browser Use agents instead, add that agent in **Settings → Agents → Delegation → Allowed subagents**.
 :::
 
 :::info[Replaces the osaurus.browser plugin]
-Browser Use replaces the old `osaurus.browser` plugin. If you had it installed, its card stays in **Settings… → Tools & MCP → Plugins** with a "Built into Osaurus" banner, but it no longer does anything. Each agent's sign-ins carry over automatically. See [Migrating from the osaurus.browser plugin](#migrating-from-the-osaurusbrowser-plugin).
+Browser Use replaces the old `osaurus.browser` plugin. If you had it installed, its card stays in **Settings → Tools & MCP → Plugins** with a "Built into Osaurus" banner, but it no longer does anything. Each agent's sign-ins carry over automatically. See [Migrating from the osaurus.browser plugin](#migrating-from-the-osaurusbrowser-plugin).
 :::
 
 ## Signing in to sites
@@ -36,11 +38,11 @@ The sign-in is saved in that agent's browser, so you won't need to do it again n
 
 ## Managing browser sessions
 
-**Settings… → Browser Use** lists each agent's browser session. For each one you can see whether it's **Active** or **Saved**, the last page it was on, and badges for the sites it's signed in to.
+**Settings → Computer & Browser Use → Browser Use** lists each agent's browser session under **Sessions**. For each one you can see whether it's **Active** or **Saved**, the last page it was on, and badges for the sites it's signed in to.
 
 - **Open** shows the live browser window.
 - **Close** closes the live window but keeps its sign-ins and data.
-- The trash button resets the session. This deletes that agent's browsing data, including sign-ins, after you confirm. **Reset All Sessions** does the same for every agent.
+- The trash button resets the session. This deletes that agent's browsing data, including sign-ins, after you confirm with **Reset Session**. **Reset All Sessions** does the same for every agent.
 
 Sessions also tidy up on their own:
 
@@ -49,7 +51,7 @@ Sessions also tidy up on their own:
 
 ## Staying in control
 
-Browser Use uses the same safety settings as [Computer Use](/computer-use). Choose your setting in **Settings… → Computer Use → Autonomy**, and each agent can be held to a stricter limit in its **Subagents** tab.
+Browser Use uses the same safety settings as [Computer Use](/computer-use). Choose your setting in **Settings → Computer & Browser Use → Autonomy**, and each agent can be held to a stricter limit in its **Subagents** tab.
 
 With the default **Balanced** setting:
 
@@ -114,7 +116,7 @@ Hardening details:
 Browser Use is the native replacement for the retired `osaurus.browser` [plugin](/glossary#plugin). The migration is automatic:
 
 - At launch, each agent's exact WebKit profile is copied from the plugin's records into the native session catalog, so **existing sign-ins carry over**.
-- The plugin's tools and skill no longer load. The installed card stays under **Settings… → Tools & MCP → Plugins** with a "Built into Osaurus" banner, and uninstall works normally.
+- The plugin's tools and skill no longer load. The installed card stays under **Settings → Tools & MCP → Plugins** with a "Built into Osaurus" banner, and uninstall works normally.
 - One behavior deliberately didn't carry over: the plugin sometimes shared the Orchestrator's signed-in session with other agents. Native sessions are strictly per agent.
 
 ---

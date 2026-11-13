@@ -1,10 +1,12 @@
 ---
 title: Remote MCP Providers
 sidebar_label: Remote MCP Providers
-description: Connect Osaurus to external MCP servers and aggregate their tools alongside locally installed plugins.
+description: Connect Osaurus to external MCP servers and aggregate their tools alongside locally installed plugins, with tokens kept in the Vault.
 ---
 
 # Remote MCP Providers
+
+This page is for developers and power users connecting outside MCP servers so Osaurus agents and workflows can use their tools.
 
 Remote MCP Providers let Osaurus connect to external MCP (Model Context Protocol) servers, aggregating their **tools** into your Osaurus instance.
 
@@ -21,8 +23,8 @@ Where [Remote Providers](/remote-providers) provide *inference* (cloud models), 
 
 ## Adding an MCP provider
 
-1. Open **Settings…** (`⌘ ,`)
-2. Click **Tools & MCP** in the sidebar (under **Capabilities**), then open the **Services** tab
+1. Open **Settings** (`⌘,`)
+2. Click **Tools & MCP** in the sidebar (under **Capabilities**); it opens on **Services**
 3. Click **Add Service** — or click **Add** on a row in the **Directory** below the Services list
 4. Pick a service from the directory, or choose **Custom Server** to enter your own URL or stdio command
 5. Configure authentication if required (OAuth sign-in, API key / Bearer token, or none)
@@ -47,7 +49,11 @@ Enterprise data products show a **Requires subscription** note; they only work w
 
 The **Services** header shows a one-line summary (connected · needs attention · tools) and a ⋯ menu with **Show** (filter), **Reconnect All**, **Test Connections**, and **Copy Diagnostics**.
 
-In chat, you can also ask the [Orchestrator](/glossary#orchestrator) to add an MCP server; it applies an `mcp_servers:` entry through `osaurus_config` after a one-tap approval. OAuth sign-in and tokens still go through the secure native UI.
+In chat, you can also ask the [Orchestrator](/glossary#orchestrator) to add an MCP server; it hands the request to the [Configurator](/glossary#configurator), which applies an `mcp_servers:` entry through `osaurus_config` after a one-tap approval. OAuth sign-in and tokens still go through the secure native UI.
+
+### Servers named by workflows and templates
+
+Workflow and agent template files name the MCP servers they need and may carry `mcp_server_hints`: a `directory_id`, the endpoint or command, and the names (never the values) of headers and environment variables. Setting up a workflow matches each named server to one you already have by name, endpoint, or command. Otherwise it offers **Add** for that service from the directory, or **Set Up** from the hint.
 
 :::note
 Use **Tools & MCP**, not **Providers**. Providers manages *inference* endpoints (Ollama, OpenAI-compatible, etc.); MCP tool servers live under **Tools & MCP → Services**.
@@ -67,7 +73,7 @@ Use **Tools & MCP**, not **Providers**. Providers manages *inference* endpoints 
 
 | Setting | Description |
 |---|---|
-| **Token** | Bearer token (stored in Keychain) |
+| **Token** | Bearer token (saved in the Vault) |
 | **Custom headers** | Additional HTTP headers |
 
 ### Advanced
@@ -87,7 +93,7 @@ Some services need an answer from you in the middle of a tool call. Osaurus show
 - **"*Service* needs more information"** — a short form (text, number, yes/no, or a choice). Required fields are marked. Choose **Submit**, **Decline**, or **Cancel**. Never type passwords, API keys, or card numbers into these forms.
 - **"*Service* wants you to finish in your browser"** — shows the destination host and full link. It opens only when you click **Open**, and closes when the service reports it's done or you click **Done**.
 
-These cards only appear while you're chatting. Background runs, schedules, and outside apps decline the request automatically. The tool's timeout is paused while a card waits for you.
+These cards only appear while you're chatting. Background runs, automations, and outside apps decline the request automatically. The tool's timeout is paused while a card waits for you.
 
 ## Approvals
 
@@ -267,7 +273,7 @@ Raise **Max Duration with Progress** for that service. The cap only applies whil
 
 Use **Insights** to monitor MCP activity:
 
-1. Open **Settings…** (`⌘ ,`)
+1. Open **Settings** (`⌘,`)
 2. Click **Insights** (under **Developer Tools**)
 3. Filter by source or search for the provider name
 
@@ -289,11 +295,11 @@ Not in the directory: services with no usable client registration (Everlaw), no 
 
 ### Token storage
 
-Authentication tokens are stored in the macOS Keychain — encrypted at rest, never exposed in config files.
+Bearer tokens, secret environment variables, and custom headers marked **secret** are saved in the [Vault](/vault) (**Settings → Vault**), backed by the macOS Keychain — encrypted at rest, never exposed in config files. Each is shared by all agents unless an agent has its own value for the same key; that agent then uses its own value when it calls the server.
 
 ### Secret headers
 
-Custom headers marked as "secret" are also stored in the Keychain.
+Custom headers marked as "secret" are saved in the Vault too; the config file only lists which ones the server needs.
 
 ### Configuration files
 

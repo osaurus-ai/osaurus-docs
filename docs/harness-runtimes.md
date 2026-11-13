@@ -1,32 +1,32 @@
 ---
 title: Runtimes
 sidebar_label: Runtimes
-description: Run an agent's chats on Claude Code, Pi, or another outside agent program instead of Osaurus's own loop, and switch back anytime.
+description: Run an agent's chats, or the Architect, on Claude Code, Pi, or another outside agent program instead of Osaurus's own loop, and switch back anytime.
 ---
 
 # Runtimes
 
 A [runtime](/glossary#runtime) decides who runs an agent's chats. Normally that's Osaurus itself. You can also hand an agent to an outside agent program, such as **Claude Code** or **Pi**. The outside program brings its own model, tools, and conversation history. Osaurus starts it, passes along your messages, shows its replies in the chat, and stops it when you're done.
 
-Use a runtime when you already like another agent program and want it inside Osaurus's chat window, or when you want to use your Claude Pro or Max subscription through your own signed-in Claude Code. You need the program installed on your Mac. Claude Code also needs to be signed in.
+Use a runtime when you already like another agent program and want it inside Osaurus's chat window, or when you want to use your Claude Pro or Max subscription through your own signed-in Claude Code. For example, you could point a "Code Reviewer" agent at Claude Code and chat with it about a project folder, right next to your other agents. You need the program installed on your Mac. Claude Code also needs to be signed in.
 
 ## Get started with Claude Code
 
 Claude Code is set up as a runtime for you the first time Osaurus opens. To use it:
 
 1. Install [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and sign in once.
-2. Open **Settings… (`⌘ ,`) → Agents → Runtimes**. Click **Test** on the Claude Code row to check that Osaurus can reach it. If it says you aren't signed in, click **Sign In**. That opens Claude Code's own sign-in in your browser. Osaurus never sees your password.
-3. In a chat with the agent, open the model picker. Each runtime has its own column next to the model providers. Under **Claude Code**, choose **Sonnet**, **Opus**, or **Haiku**.
+2. Open **Settings → Agent Runtimes** (in the **Capabilities** group; searching Settings for "Runtimes" finds it too). Click **Test** on the Claude Code row to check that Osaurus can reach it. If it says you aren't signed in, click **Sign In**. That opens Claude Code's own sign-in in your browser. Osaurus never sees your password.
+3. In a chat with the agent, open the model picker. Each runtime has its own column next to the model providers. Under **Claude Code**, choose **Sonnet**, **Opus**, **Fable**, or **Haiku**.
 
 That agent's chats now run on Claude Code, including its later chats. To switch back, pick any ordinary model in the picker.
 
-You can also choose the runtime in the agent's settings: **Settings… → Agents →** the agent **→ Configure → Runtime → Runs on**. The picker and this setting change the same thing.
+You can also choose the runtime on the agent's page: **Settings → Agents →** the agent **→ Runtime → Runs on**. The picker and this setting change the same thing.
 
 ## Add Pi or another runtime
 
 Pi, and agent programs built on Pi, talk to Osaurus through Pi's RPC mode.
 
-1. Open **Settings… → Agents → Runtimes** and click **Add Runtime**.
+1. Open **Settings → Agent Runtimes** and click **Add Runtime**.
 2. Fill in the form:
    - **Protocol**: **Pi (RPC)** (or **Claude Code** for a second Claude Code entry).
    - **Name**: what you'll see in the picker and agent settings.
@@ -34,22 +34,31 @@ Pi, and agent programs built on Pi, talk to Osaurus through Pi's RPC mode.
    - **Arguments**: one per line. For Pi, include `--mode` and `rpc`. Add `--session-id` and `{chat_id}` so a chat can pick up where it left off after a restart.
    - **Environment**: optional `NAME=value` lines. These are saved without encryption, so don't put passwords or keys here.
 3. Click **Test**. Osaurus starts the program once to make sure it answers.
-4. Pick the runtime for an agent in the chat's model picker or under **Configure → Runtime → Runs on**.
+4. Pick the runtime for an agent in the chat's model picker or under **Runtime → Runs on** on the agent's page.
 
 ## Claude Code options
 
-When an agent runs on Claude Code, **Claude Code Options** appear in its **Configure** tab:
+When an agent runs on Claude Code, **Claude Code Options** appear on the agent's page, under **Runtime**:
 
 | Option | What it does |
 |---|---|
-| **Claude model** | Sonnet, Opus, or Haiku. These follow whatever Claude Code currently means by each name. |
+| **Claude model** | Sonnet, Opus, Fable, or Haiku. These follow whatever Claude Code currently means by each name. |
+| **Claude effort** | How hard Claude thinks before it answers: **Low**, **Medium**, **High**, **Extra High**, or **Max**. **Default** leaves it to Claude Code. |
 | **Execution mode** | **Agent** lets Claude Code read and search files in the chat's folder. **Text only** turns off every tool, so it only writes replies. |
 | **Allow file changes** | Lets Claude Code edit files, but only inside the chat's folder. |
 | **Allow shell commands** | Lets Claude Code run commands. Osaurus can't limit what those commands touch. |
-| **Allow Osaurus read tools** | Lets Claude Code use Osaurus tools the agent is allowed to use. |
+| **Allow Osaurus read tools** | Lets Claude Code look up how Osaurus is set up and read its help. Needs the Osaurus server running. |
 | **Allow Osaurus configuration changes** | Lets Claude Code change Osaurus settings. Only on the [Orchestrator](/glossary#orchestrator). |
 
 Requests use your Claude subscription's limits, shared with your Claude Code sessions in Terminal.
+
+## Run the Architect on Claude Code or Pi
+
+The [Architect](/glossary#architect), which builds [workflows](/workflows) with you, can run on Claude Code or Pi too. In an Architect chat, open the model picker and choose a model in the runtime's column.
+
+It works the same way as on Osaurus's own loop: the draft fills in beside the chat, test runs ask their questions in the chat, and when it's ready to save you see the usual Save card. Nothing is saved until you click Save. It only gets its workflow-building tools, never the program's own file, shell, or web tools, and the Claude Code options above don't apply to it.
+
+The Osaurus server must be running. If it isn't, the Architect tells you it can't build until it is. See [Build with the Architect](/workflows-build).
 
 ## What changes when an agent uses a runtime
 
@@ -63,11 +72,13 @@ Some things don't work with runtime agents yet. Other agents can't [delegate](/g
 
 ## Safety
 
-A runtime is a program on your Mac running with your account's access. Osaurus limits Claude Code's file changes to the chat's folder. It can't limit shell commands or a Pi program's tools. Only add runtimes you trust, and keep **Allow shell commands** off unless you need it. When the Orchestrator sets up a runtime for you, adding it always needs your [approval](/glossary#approval).
+A runtime is a program on your Mac running with your account's access. Osaurus limits Claude Code's file changes to the chat's folder. It can't limit shell commands or a Pi program's tools. Only add runtimes you trust, and keep **Allow shell commands** off unless you need it. When you ask Osaurus in a chat to set up a runtime, adding it always needs your [approval](/glossary#approval).
+
+With Claude Code, your messages and the files Claude reads go to Anthropic under your own Claude account, not through Osaurus. A Pi program sends them wherever it's set up to.
 
 ## Troubleshooting
 
-- **"Not signed in" on Claude Code.** Click **Sign In** on the Runtimes page, or run `claude` in Terminal and sign in. Then click **Test** again.
+- **"Not signed in" on Claude Code.** Click **Sign In** in **Settings → Agent Runtimes**, or run `claude` in Terminal and sign in. Then click **Test** again.
 - **The program isn't found.** Use the full path in **Executable**. Osaurus searches the same places your Terminal does, including tools installed with Homebrew, mise, nvm, or asdf.
 - **A Pi chat forgets earlier messages after a restart.** Add `--session-id` and `{chat_id}` to the runtime's arguments.
 - **The runtime switch is grayed out.** You can't switch while a reply is running. Wait for it to finish or click Stop.
@@ -79,7 +90,7 @@ A runtime is a program on your Mac running with your account's access. Osaurus l
 
 ### Configuration
 
-Runtimes live in `~/.osaurus/config/harness-runtimes.json`. The [declarative configuration](/configuration#declarative-configuration) registers them under `harness_runtimes` and moves agents onto them with `runtime`:
+Runtimes live in `~/.osaurus/config/harness-runtimes.json`. The [declarative configuration](/configuration) registers them under `harness_runtimes` and moves agents onto them with `runtime`:
 
 ```yaml
 harness_runtimes:
@@ -97,7 +108,7 @@ default_agent:
   claude_code: { model: opus, allow_writes: true }
 ```
 
-Runtimes apply before agents, so one document can add a runtime and move an agent onto it. A `runtime` that names no registered runtime fails validation and never falls back to `builtin`. Adding a runtime, changing its command line or environment, moving an agent onto a runtime, and turning on `allow_shell` or `allow_osaurus_config_writes` are high-risk plan lines. An [Osaurus Bundle](/bundles#harness-runtimes) can also ship a runtime.
+Runtimes apply before agents, so one document can add a runtime and move an agent onto it. A `runtime` that names no registered runtime fails validation and never falls back to `builtin`. Adding a runtime, changing its command line or environment, moving an agent onto a runtime, and turning on `allow_shell` or `allow_osaurus_config_writes` are high-risk plan lines. An [Osaurus Bundle](/bundles) can also ship a runtime.
 
 Earlier releases ran Claude Code as `claude-code/<alias>` models under Providers. On launch, any agent that used one of those IDs moves to the Claude Code runtime with that alias as its Claude model. An agent that already has an explicit runtime keeps it.
 
@@ -159,8 +170,26 @@ Osaurus speaks Pi's `--mode rpc` protocol (tested against Pi 0.83). It sends one
 ```
 claude --print --input-format stream-json --output-format stream-json --verbose
        --include-partial-messages --strict-mcp-config --model <alias>
+       [--effort <level>] --thinking-display summarized [--system-prompt-snapshot off]
        (--session-id | --resume) <chat id> <permission flags>
        [--mcp-config <file>] [--append-system-prompt-file <file>] <runtime arguments>
 ```
 
 **Agent** mode runs with `--permission-mode dontAsk` and an allow list: `Read`, `Grep`, `Glob`; `Edit(//<real folder path>/**)` with **Allow file changes**; `Bash` with **Allow shell commands**; and the Osaurus MCP tools (through `osaurus mcp`) with **Allow Osaurus read tools**. **Text only** disables every tool. The system prompt goes through a 0600 file, never argv.
+
+- `--tools` is an allow list of the built-ins the model sees: `Read`, `Grep`, `Glob` (and `TodoWrite` where the CLI has it), plus `Edit`, `Write`, `NotebookEdit` with file changes and `Bash`, `Monitor` with shell commands. WebFetch, WebSearch, sub-agents and agent-team tools are never offered.
+- `--effort` is passed only when **Claude effort** isn't Default. `--thinking-display summarized` makes Claude Code stream thinking summaries.
+- A call `dontAsk` refuses shows a tool card naming the setting to change. Permission prompts routed to the host are denied at once, so a turn never waits on a question nobody can answer.
+- Osaurus tools appear in tool cards without the `mcp__osaurus__` prefix. `MCP_TOOL_TIMEOUT` is set to 15 minutes unless the runtime's environment sets it.
+
+### The Architect on a runtime
+
+The Architect's surface is fixed, whatever the runtime or its Claude Code options say:
+
+- **Instructions:** its own built-in instructions, plus your extra instructions, plus a harness section: the draft is its only output, there's no `clarify` (it asks in a plain reply), and it stops after `workflow_propose_save`.
+- **Tools:** `workflow_draft`, `workflow_test`, `workflow_runs`, `workflow_discover`, `workflow_propose_save`, and a narrowed `osaurus_inspect`. Its token grants exactly these and never `osaurus_config`. Claude Code runs with `--tools ""` and Pi with `--no-builtin-tools`.
+- **Pi bridge:** Pi has no MCP client, so for the Architect Osaurus loads a bundled extension that registers the token's tools from `GET /mcp/tools` and runs them through `POST /mcp/call`.
+- **Server:** if the Osaurus server isn't reachable at launch, the Architect is told its tools aren't connected; the process relaunches with them once the server is back.
+- **Save card:** a successful `workflow_propose_save` raises the same Save card as on Osaurus's own loop. Only the card's Save writes.
+
+A tool call can run as long as its tool does (`workflow_test` runs a whole workflow). `osaurus mcp` waits 15 minutes by default; set `OSAURUS_MCP_CALL_TIMEOUT` (seconds) to change that.

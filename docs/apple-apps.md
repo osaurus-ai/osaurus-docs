@@ -8,17 +8,33 @@ description: Let your agents use Calendar, Reminders, Contacts, Notes, Mail, Mes
 
 Your [agents](/glossary#agent) can work with the Apple apps you already use: **Calendar, Reminders, Contacts, Notes, Mail, Messages, Maps & Location, Music, and Shortcuts**. For example, an agent can add a meeting to your calendar, find a contact, or draft an email. They're built in, so there's nothing extra to install. Each app is off until you turn it on for a specific agent, and Osaurus always asks before an agent sends a message or deletes something.
 
-## Get started
+## Already set up for you
 
-1. Open **Settings…** (`⌘ ,`) → **Agents**, pick one of your own agents, and go to **Abilities → Tools**.
+A fresh install comes with a starter team of [teammates](/glossary#teammate), and three of them already have Apple apps turned on:
+
+| Teammate | Apple apps |
+|---|---|
+| **Planner** | Calendar, Reminders |
+| **Courier** | Mail (it never sends without asking) |
+| **Keeper** | Notes (plus read-only access to your Downloads folder) |
+
+So you can just ask in a chat, *"What's on my calendar tomorrow?"* or *"Add a note with these ideas"*, and the [Orchestrator](/orchestrator) hands it to the right teammate. macOS still asks for each app's permission the first time it's used.
+
+The built-in [workflows](/workflows) use these apps too. **Morning Brief** reads today's calendar, what's due, and your unread mail. **Meeting Prep** finds your next meeting, related notes, and recent mail with the people in it. **Mail Triage** sorts your unread mail, and **End of Day** wraps up today's calendar and reminders.
+
+## Turning apps on for an agent
+
+To give an app to another agent, or to one you made yourself:
+
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Agents**, pick the agent, and go to **Abilities → Tools**.
 2. Find the Apple app in the list. Each app is a group, listed above plugins and other tools.
 3. Tick the app's group (or any of its rows, marked **Per app**). This turns on everything that app can do. You can't turn on only part of an app.
 4. When macOS asks for permission, click **Allow**.
 
-When you create a new agent, the **Customize…** picker in the Create Agent sheet offers the same choices.
+When you create a new agent, **Customize** in the **Tools** section of the new agent's card offers the same choices.
 
 :::note[The Orchestrator doesn't call these itself]
-The [Orchestrator](/orchestrator) doesn't use Apple apps directly. Instead, it can set them up on your agents for you. Ask *"give my Mail agent access to Calendar too"* or *"make a Personal Organizer agent with Calendar and Reminders"*. It changes the agent after you approve the plan, then hands the task to it.
+The Orchestrator never uses Apple apps directly. It hands the work to a teammate that has the app, and it can set apps up on your agents for you. Ask *"give Planner access to Contacts too"* or *"make a Personal Organizer agent with Calendar and Reminders"*. It changes the agent after you approve the plan, then hands the task to it.
 :::
 
 ## macOS permissions
@@ -37,7 +53,7 @@ Turning an app on asks macOS for the matching permission straight away:
 | Music | Automation → Music | |
 | Shortcuts | None | Individual shortcuts may ask for their own permissions |
 
-If you said no to a permission, the app stays on but shows a **Permission needed** badge. Click the badge. Osaurus asks again if macOS allows it, or opens the right page in System Settings so you can turn it on there. You can also review these permissions in **Settings… → Permissions**.
+If you said no to a permission, the app stays on but shows a **Permission needed** badge. Click the badge. Osaurus asks again if macOS allows it, or opens the right page in System Settings so you can turn it on there. You can also review these permissions in **Settings → Privacy & Security → Permissions**.
 
 ## Osaurus asks before sending or deleting
 
@@ -57,6 +73,7 @@ When the Orchestrator turns on Mail, Messages, or Shortcuts for an agent, its pl
 - **Messages.** Osaurus checks whether a message was delivered before falling back to SMS, and never sends twice if it isn't sure.
 - **Shortcuts.** A shortcut that pops up a question ("Ask Each Time") or a result window ("Show Result") will wait for you. Stopping the chat stops the shortcut.
 - **Location.** When macOS asks whether Osaurus can use your location, the agent waits for your answer (up to 2 minutes).
+- **Messages joins Courier.** If you connect Messages later from a suggestion card in a new chat, it's added to Courier. Suggestions for other apps, like Contacts or Maps, make a new teammate instead.
 - **Off means off.** If an app is off for an agent, that agent can't reach it in any way.
 - **Outside apps can't use these.** Apps that connect to Osaurus from outside can't use your Apple apps.
 

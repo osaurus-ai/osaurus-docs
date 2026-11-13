@@ -10,7 +10,7 @@ Osaurus can read replies out loud, so you can listen instead of reading. Click t
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Voice** → **Text To Speech**.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Voice** → **Text to Speech**.
 2. Turn on **Enable Text-to-Speech**.
 3. On the **PocketTTS Model** card, click **Download** (about 700 MB, once).
 4. In the **Voice** section, pick a voice and adjust **Temperature** (how varied the delivery sounds). The default voice is **alba**.
@@ -18,9 +18,11 @@ Osaurus can read replies out loud, so you can listen instead of reading. Click t
 
 Now click the speaker button on any reply to hear it.
 
+The voice model loads the first time Osaurus speaks, so the very first reply can take a moment to start. To load it ahead of time, click **Load Now** on the **PocketTTS Model** card; it shows **Ready** when it's loaded. If your Mac runs low on memory, Osaurus may unload a voice model that isn't being used, and it loads again the next time it's needed.
+
 ## Choosing where the voice comes from
 
-Osaurus has two speech engines. Switch between them under **Advanced → Engine** on the Text To Speech tab.
+Osaurus has two speech engines. Switch between them under **Advanced → Engine** on the Text to Speech page.
 
 | Engine | Best for | What you need |
 |---|---|---|
@@ -33,18 +35,19 @@ Osaurus has two speech engines. Switch between them under **Advanced → Engine*
 
 If you want more voices or other languages, you can connect Osaurus to a separate speech program. Popular free ones include [openai-edge-tts](https://github.com/travisvn/openai-edge-tts), [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), and LocalAI. OpenAI's own speech service works too, but then the text being read leaves your Mac.
 
-1. On the Text To Speech tab, open **Advanced** and set **Engine** to **OpenAI-Compatible Server**.
-2. Fill in the **Server** card:
+1. On the Text to Speech page, open **Advanced** and set **Engine** to **OpenAI-Compatible Server**.
+2. Fill in the server fields that appear below it:
    - **Endpoint:** the server's address, such as `http://localhost:5050`.
    - **Model** and **Voice:** names your server understands. Its documentation lists them.
-   - **API Key:** only if your server needs one. It's stored in your [Keychain](/glossary#keychain).
+   - **API Key:** only if your server needs one. It's stored in your [Keychain](/glossary#keychain), and while this engine is in use it's listed in the [Vault](/vault) as **Text-to-Speech Server**.
    - **Speed:** from 0.25× to 4×.
 3. Click **Test Connection**. Osaurus reads a short sample through the server. A green **Connected** means playback will work. If something's wrong, the exact error appears right there.
 
 ## Troubleshooting
 
 - **The speaker button opens settings instead of speaking.** The on-device voice model isn't downloaded yet. Download it on the **PocketTTS Model** card.
-- **The speaker icon flips back with no sound.** Playback failed. The error appears in **Settings… → Voice → Text To Speech**.
+- **The first reply takes a while to start speaking.** The voice model is loading. Click **Load Now** on the **PocketTTS Model** card to load it before you need it.
+- **The speaker icon flips back with no sound.** Playback failed. The error appears in **Settings → Voice → Text to Speech**.
 - **"Server sent WAV audio in an unsupported format".** Your speech server is sending audio Osaurus can't play. See Under the hood.
 - **Voices sound too fast, too slow, or robotic.** Check the **Speed** slider first, then click **Test Connection**.
 

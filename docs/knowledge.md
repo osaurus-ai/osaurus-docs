@@ -12,9 +12,9 @@ You pick a folder, Osaurus makes it searchable, and you choose which agents can 
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Knowledge**.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Knowledge**.
 2. Click **Add Collection**, give it a name, and pick a folder of documents.
-3. A window asks which agents should be able to use it. Check the ones you want. (You can change this later in each agent's **Abilities → Overview**.)
+3. A window asks which agents should be able to use it. Check the ones you want. (You can change this later in each agent's **Abilities → Knowledge**.)
 4. Wait for Osaurus to finish reading the folder. It's quick, and it updates automatically when files change.
 5. Ask the agent something the folder answers. It searches the collection and tells you what it found.
 
@@ -56,7 +56,9 @@ If you've already sorted your documents into subfolders — like "Medical Record
 Each agent only sees the collections you give it. There are two places to manage this:
 
 - **In Knowledge** — right after you create a collection, a window lets you pick agents. Each collection card shows the agents that can use it as small stacked pictures. Click a card to see its folder, categories, and a **Delete** button.
-- **In the agent** — open the agent's **Abilities → Overview** and turn on **Knowledge**. Your collections appear as a checklist right below the switch.
+- **In the agent** — open **Settings → Agents →** the agent **→ Abilities**, and turn on **Knowledge**. Your collections appear as a checklist right below the switch.
+
+The [Orchestrator](/glossary#orchestrator) doesn't search collections itself. Ask one of your own agents instead.
 
 Agents can only ever search and read collections you've given them. Deleting a collection removes Osaurus's search index and the agents' access, but **never touches the folder or your files**.
 
@@ -74,6 +76,10 @@ An agent with access can also suggest edits to your Markdown notes — fixing an
 4. **Allow** applies the change right away. **Deny** leaves your folder untouched.
 
 Agents can also flag a document that looks out of date, so you can review it later.
+
+### Keeping a collection up to date on a schedule
+
+To have an agent check a collection regularly, for example every Monday morning, set up a schedule [automation](/automations) that runs that agent with a request like *"Review the flagged documents in my Team Guides collection."* It works in the background, and any change it wants to make still needs your approval.
 
 ### Undoing changes
 
@@ -95,7 +101,7 @@ When an agent mentions one of your documents in its reply, the file name becomes
 
 ## Troubleshooting
 
-- **The agent doesn't use the collection.** Check that the agent's **Tools** switch is on, **Knowledge** is on in its **Abilities → Overview**, and the collection is checked.
+- **The agent doesn't use the collection.** Check that the agent's **Tools** switch is on, **Knowledge** is on in its **Abilities**, and the collection is checked.
 - **A file isn't found.** Check it isn't in the skipped list above, and that the collection hasn't hit the 5,000-file limit.
 - **The agent can't edit a document.** Agents can only change Markdown notes, and only in an in-app chat where you can approve the change.
 
@@ -167,6 +173,8 @@ Knowledge writes use the same consent model as other consequential tools. The wr
 Changes target Markdown documents only. `write_knowledge` and `delete_knowledge` accept batches of up to 200 unique paths; a write batch is best-effort per document, not atomic across the collection. `edit_knowledge` applies up to 50 ordered substitutions to one document after validating every match. Targeted edits preserve frontmatter the model didn't need to round-trip.
 
 Every approved write is recorded in `write_log.sqlite`, separately from the rebuildable search index. Revert refuses to overwrite a document that changed after the agent wrote it.
+
+Runs started by an automation get no exception: no knowledge write tool is auto-approvable for unattended runs, so a scheduled agent can search, read, and flag documents, but every write still needs your approval.
 
 ---
 

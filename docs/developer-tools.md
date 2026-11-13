@@ -1,23 +1,25 @@
 ---
 title: Developer Tools
 sidebar_label: Developer Tools
-description: A tamper-evident activity log of every local and cloud interaction (Insights) and an interactive endpoint catalog (Server → API Reference) — built into the Osaurus app.
+description: A tamper-evident activity log of every local and cloud interaction, including workflow runs (Insights), and an interactive endpoint catalog (Server → API Reference) — built into the Osaurus app.
 ---
 
 # Developer Tools
 
-Osaurus includes built-in developer tools for debugging, monitoring, auditing, and testing your integration. Open **Settings…** (`⌘ ,`) and click **Insights** or **Server** under **Developer Tools**.
+This page is for developers debugging an integration, and for anyone auditing what Osaurus did and what left the Mac.
+
+Osaurus includes built-in developer tools for debugging, monitoring, auditing, and testing your integration. Open **Settings** (`⌘,`) and look under **Developer Tools**: **Server**, [Sandbox](/sandbox), **Insights**, and [Tasks](/tasks) (the background task queue and its history).
 
 ## Insights
 
-**Insights** is the activity log: one row for every interaction Osaurus performs — local model requests, cloud provider calls, web searches, URL fetches, MCP tool calls, channel deliveries, Osaurus Router calls, inbound API requests, plugin host calls, embeddings, transcriptions, speech synthesis, media generation — plus chain-of-custody events about the log itself.
+**Insights** is the activity log: one row for every interaction Osaurus performs — local model requests, cloud provider calls, web searches, URL fetches, MCP tool calls, workflow runs and steps, channel deliveries, Osaurus Router calls, inbound API requests, plugin host calls, embeddings, transcriptions, speech synthesis, media generation — plus chain-of-custody events about the log itself.
 
 Each row is marked **Local** (data stayed on this Mac) or **Cloud** (data left this Mac), persisted to `~/.osaurus/activity/activity.sqlite`, and chained with SHA-256 so edits and deletions are detectable.
 
 You can open Insights three ways:
 
-- **Settings… → Insights**
-- **Settings… → Privacy → Filter → Activity Log → Review Activity in Insights**
+- **Settings → Developer Tools → Insights**
+- **Settings → Privacy & Security → Activity Log → Review Activity in Insights**
 - The **Inspect response** action on any assistant message in chat, which focuses that turn's row
 
 Or deep-link: `open "osaurus://settings?tab=insights"`.
@@ -26,11 +28,12 @@ Or deep-link: `open "osaurus://settings?tab=insights"`.
 
 | Category | What's recorded |
 |---|---|
-| **Inference** | Every model request from chat, agents, schedules, watchers, channels and plugins — local or cloud. Model, tokens, speed, finish reason, tool calls, prompt, request/response payloads, and whether the Privacy Filter redacted anything. Hidden one-shots (chat titles, follow-ups, memory distillation, transcription cleanup) appear with an `/internal/…` path. |
+| **Inference** | Every model request from chat, agents, workflows, automations, channels and plugins — local or cloud. Model, tokens, speed, finish reason, tool calls, prompt, request/response payloads, and whether the Privacy Filter redacted anything. Hidden one-shots (chat titles, follow-ups, memory distillation, transcription cleanup) appear with an `/internal/…` path. |
 | **Compaction** | Hidden conversation-summary generations |
 | **Web search** | Query, providers tried, which one answered, result count, destination host |
 | **URL fetch** | Pages fetched directly from this Mac or through the Osaurus Router |
 | **MCP tool** | Tool calls forwarded to an MCP server. Local stdio servers are **Local**; HTTP servers are **Cloud**. |
+| **Workflow run / Workflow step** | Each [workflow](/workflows) run and every step in it, with secret values replaced by `[REDACTED:KEY]` |
 | **Channel** | Messages delivered to Slack, Discord, Telegram, WhatsApp, iMessage, n8n or a custom webhook. Metadata only — message text isn't copied into the log. |
 | **Router** | Osaurus Router control-plane calls (workspaces, credits, media, pairing, account) |
 | **API** | Inbound requests to the local HTTP server from API clients and paired peers |
@@ -47,7 +50,7 @@ Delegated subagents and Computer Use / AppleScript helper steps show source **Ag
 |---|---|
 | **Time** | When the interaction finished. Rows are grouped by day with a pinned day header. A red dot marks a failed row (orange for a 4xx that wasn't an error). |
 | **Event** | Category glyph and plain-language title (model + tokens, query, destination, media size…) over a secondary line: category · plugin · agent · destination (Cloud rows) · tools sent. A hand glyph marks rows the Privacy Filter rewrote. |
-| **Source** | Chat UI, Agent, HTTP API, Plugin, P2P, Channel, Schedule, Watcher, Self-scheduled, Tool, System |
+| **Source** | Chat UI, Agent, HTTP API, Plugin, P2P, Channel, Schedule, Watcher, Webhook, Automation, Self-scheduled, Tool, System. Automation runs show their trigger: **Schedule** (a clock), **Watcher** (a folder), **Webhook**, or **Automation** (feeds, failed runs, app events) |
 | **Duration** | Wall time. Token counts and bytes live in the detail. |
 
 Status is deliberately not a column — only failed rows are tinted.
@@ -71,7 +74,8 @@ Beneath it, a local/cloud bar and a **destinations** disclosure list every host 
 |---|---|---|
 | **Search** | Search field | Path, model, title, destination, agent |
 | **Time range** | Toolbar | Today, 7 days, 30 days, All time |
-| **Scope** | Scope tabs | **All**, **Models** (inference, compaction, embedding), **Web** (search, URL fetch), **Tools** (MCP, plugin calls and logs), **Channels**, **API** (inbound API, Router), **Audio & Media** (transcription, speech, media), **System** |
+| **Scope** | Scope tabs | **All**, **Models** (inference, compaction, embedding), **Web** (search, URL fetch), **Tools** (MCP, plugin calls and logs), **Workflows** (workflow runs and steps), **Channels**, **API** (inbound API, Router), **Audio & Media** (transcription, speech, media), **System** |
+| **One workflow run** | **All Events for This Run** on a workflow run row | Every row from that run, shown as a "One workflow run" token |
 | **Local / Cloud** | **Filter** popover or **Left this Mac** tile | |
 | **Status** | **Filter** popover or **Failed** tile | Any, Succeeded, Failed |
 | **Source** | **Filter** popover | Multi-select |
@@ -112,11 +116,11 @@ Each record's hash is `SHA-256(prevHash + "\n" + canonical JSON of the record)`.
 
 ### Not captured
 
-The log records interactions, not every byte on the wire. These don't produce rows: provider model-list and **Test connection** probes, OAuth sign-in flows, MCP capability probes, pages the managed browser loads during [Browser Use](/browser-use), channel polling and incoming-message receipt, workspace handshake and keep-alives, the unauthenticated Router announcements feed and health probe, theme fetches, skill / plugin / sandbox downloads, and local tool side effects (file edits, shell commands, clicks). Telemetry, crash reports, app updates, and model downloads are separate consent switches under **Privacy → Filter → Data Collection**.
+The log records interactions, not every byte on the wire. These don't produce rows: provider model-list and **Test connection** probes, OAuth sign-in flows, MCP capability probes, pages the managed browser loads during [Browser Use](/browser-use), channel polling and incoming-message receipt, workspace handshake and keep-alives, the unauthenticated Router announcements feed and health probe, skill / plugin / sandbox downloads, and local tool side effects (file edits, shell commands, clicks). Telemetry and crash reports are separate consent switches under **Settings → Privacy & Security → Data Collection**.
 
 ### Settings
 
-Retention and content policy live in the **Activity Log** section of **Settings… → Privacy → Filter**:
+Retention and content policy live in the **Activity Log** section of **Settings → Privacy & Security**:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -127,7 +131,7 @@ Changing either writes a `settings_changed` System row.
 
 ### Response metrics in chat
 
-Per-response metrics (total time, time to first token, tokens/sec, token count, model load, cached input tokens) no longer occupy a footer row under each reply. Open the assistant message's overflow menu and hover **Inspect response** to see them; the submenu ends with **Open request and response log**, which jumps to that turn's row in Insights. Only the "thinking didn't close" warning still appears inline.
+Per-response metrics (total time, time to first token, tokens/sec, token count, model load, cached input tokens) live behind each reply rather than under it. Open the assistant message's overflow menu and hover **Inspect response** to see them; the submenu ends with **Open request and response log**, which jumps to that turn's row in Insights. Only the "thinking didn't close" warning still appears inline.
 
 ### Use cases
 
@@ -135,12 +139,13 @@ Per-response metrics (total time, time to first token, tokens/sec, token count, 
 - **Debugging API integration** — Filter by source **HTTP API** (or the **API** scope), open the row, and compare Request / Response under **Raw**
 - **Verifying the Privacy Filter** — Open a Cloud inference row → **Raw** → Request → **Server**; placeholders should appear where PII was
 - **Tracing a delegated run** — The parent turn and every subagent / helper step share one turn id; search by agent name
-- **Auditing schedules / watchers** — Filter by source to see what fired
+- **Auditing automations** — Filter by source (Schedule, Watcher, Webhook, Automation) to see what fired
+- **Following a workflow run** — Pick the **Workflows** scope, open the run row, and choose **All Events for This Run** to see every step, model call, and tool call it made
 - **Hidden model work** — Rows with `/internal/...` paths are one-shots (chat titles, follow-ups, memory distillation, compaction, transcription cleanup, embeddings)
 
 ## API Reference
 
-**Settings… → Server** has four tabs: **Overview**, **Models**, **Settings**, and **API Reference**. The server status card is on **Overview**; **API Reference** is an interactive endpoint catalog and testing interface.
+**Settings → Server** shows the server status, access keys, and command-line setup on the page itself, with rows that open **Server Settings**, **Exposed Models**, and **API Reference**. **API Reference** is an interactive endpoint catalog and testing interface.
 
 ### Server status
 
@@ -251,7 +256,7 @@ Test any endpoint directly:
 
 ### Let retention do the clearing
 
-The activity log is pruned automatically by **Privacy → Filter → Activity Log → Keep Activity History** (30 days by default). **Clear Activity Log…** is an audited action — it writes a chain-of-custody row — so prefer a filter (time range, source) when you just want a quieter view while debugging.
+The activity log is pruned automatically by **Settings → Privacy & Security → Activity Log → Keep Activity History** (30 days by default). **Clear Activity Log…** is an audited action — it writes a chain-of-custody row — so prefer a filter (time range, source) when you just want a quieter view while debugging.
 
 ### Use source filters
 
@@ -260,7 +265,7 @@ Filter by source to distinguish between:
 - **Chat UI** — Requests from the built-in chat
 - **Agent** — Delegated subagents and helper loops (Computer Use, AppleScript)
 - **HTTP API** — Requests from external applications
-- **Schedule / Watcher / Self-scheduled / Channel** — Headless runs
+- **Schedule / Watcher / Webhook / Automation / Self-scheduled / Channel** — Headless runs
 - **Tool** — Egress performed by a tool (search, URL fetch, MCP, channel delivery)
 
 ### Copy responses

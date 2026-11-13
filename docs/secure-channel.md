@@ -1,12 +1,12 @@
 ---
 title: Secure Channel
 sidebar_label: Secure Channel
-description: The private, encrypted connection Osaurus sets up on its own between your Mac and your iPhone, a teammate's Mac, or another Osaurus. There's nothing to turn on.
+description: The private, encrypted connection Osaurus sets up on its own when a teammate, a guest, or another Osaurus talks to one of your agents. There's nothing to turn on.
 ---
 
 # Secure Channel
 
-When your iPhone, a teammate, or another copy of Osaurus talks to an agent on your Mac, the conversation travels over the **Secure Channel**: a private, scrambled connection that only the two ends can read. Nobody in between can read it or change it. That includes your Wi-Fi, your internet provider, and even Osaurus's own [relay](/glossary#relay) servers.
+When a teammate, a guest, or another copy of Osaurus talks to an agent on your Mac, the conversation travels over the **Secure Channel**: a private, scrambled connection that only the two ends can read. Nobody in between can read it or change it. That includes your Wi-Fi, your internet provider, and even Osaurus's own [relay](/glossary#relay) servers.
 
 **There's nothing to set up.** Osaurus uses the Secure Channel on its own whenever it's needed.
 
@@ -14,11 +14,15 @@ When your iPhone, a teammate, or another copy of Osaurus talks to an agent on yo
 
 You don't turn the Secure Channel on. It just covers these connections:
 
-- **Your iPhone.** Every message from the Osaurus iPhone app is scrambled on the phone and unscrambled only on your Mac. That's true at home and when you're away. See [Mobile](./mobile.md).
-- **A teammate's Mac, or your other Mac.** When someone in a [workspace](/glossary#workspace) chats with one of your shared agents, or you use an agent on your other Mac, the conversation is protected the same way. See [Workspaces](/workspaces).
-- **n8n workflows.** When an [n8n](/agent-channels#n8n) workflow talks to one of your agents from another machine, the Osaurus n8n add-on uses the Secure Channel too.
+- **A teammate's Osaurus.** When someone in a [workspace](/glossary#workspace) chats with one of your shared agents, the conversation is scrambled on their Mac and unscrambled only on yours. See [Workspaces](/workspaces).
+- **A guest.** Someone you invited with a guest link reaches your agent the same way. See [Remote Access](/remote-access).
+- **n8n workflows.** When an [n8n](/agent-channels) workflow talks to one of your agents from another machine, the Osaurus n8n add-on uses the Secure Channel too.
 
 Apps on your own Mac, like the command line or Shortcuts, talk to Osaurus directly. Their messages never leave your computer, so they don't need it.
+
+:::note[Your own devices use Sync]
+Your own Macs and iPhone don't use the Secure Channel to reach each other. They're linked through [Devices & Sync](/devices), which has its own end-to-end encryption between your devices. It's a separate connection with its own keys, and it never carries a teammate's or guest's traffic.
+:::
 
 ## What it protects
 
@@ -26,7 +30,7 @@ Think of it as a sealed envelope that only your Mac and the other device can ope
 
 - **Nobody in between can read it.** Your messages, the agent's replies, and the [access key](/glossary#access-key) that proves who's asking all travel scrambled. The relay passes the envelope along but can't open it.
 - **Old conversations stay safe.** Each session uses fresh, throwaway keys. Even if a device's keys were stolen later, someone who recorded earlier traffic still couldn't read it.
-- **Impostors can't pretend to be your Mac.** When you pair a device, it remembers your agent's unique address. From then on, it checks that it's really talking to that agent before sending anything.
+- **Impostors can't pretend to be your Mac.** When someone joins your workspace or accepts your guest link, their Osaurus learns your agent's unique address. From then on, it checks that it's really talking to that agent before sending anything.
 - **Messages can't be replayed or cut short.** Someone can't capture a request and send it again to run it twice. If a reply gets cut off partway, Osaurus notices instead of treating it as complete.
 - **No way to switch it off from outside.** If another computer tries to run one of your agents without the Secure Channel, Osaurus refuses. An attacker can't trick it into an unprotected mode.
 
@@ -41,7 +45,7 @@ Like any encrypted connection, it can't hide *when* messages are sent or roughly
 | Who can read your messages on the way | The company running it | The tunnel operator | **Only the two ends** |
 | Who can see your access key | The company running it | The tunnel operator | **Only the two ends** |
 | Past messages safe if keys leak later | Usually not | Usually not | **Yes** |
-| The other side's identity is checked | Through an account | Rarely | **Yes, from the moment you pair** |
+| The other side's identity is checked | Through an account | Rarely | **Yes, from the first connection** |
 | A captured request can be re-run | Often | Often | **Never** |
 | A cut-off reply is noticed | No | No | **Yes** |
 | Can be forced into unprotected mode | — | Often, silently | **No** |
@@ -49,7 +53,7 @@ Like any encrypted connection, it can't hide *when* messages are sent or roughly
 ## Compatibility
 
 - **Current versions of Osaurus** use it automatically with each other.
-- **The Osaurus iPhone app** always uses it to reach your Mac.
+- **The Osaurus iPhone app** reaches your Mac through [Devices & Sync](/devices). An older iPhone app still on the 6-digit pairing uses the Secure Channel until it switches to Sync.
 - **Older versions of Osaurus** can't run agents on an updated Mac until they update too. This is on purpose, so there's no weaker fallback. Both sides show a clear message asking you to update.
 - **Other apps that use Osaurus like OpenAI's service** (through the [API](/glossary#api)) aren't affected. They can still list models and read basic information. The Secure Channel requirement only covers one Osaurus running another Osaurus's agents.
 - **Apps on your own Mac** aren't affected.
@@ -70,9 +74,9 @@ The Secure Channel is a dedicated cryptographic channel, not just HTTPS. It foll
 
 1. **End-to-end encrypted.** Every request and response, including streamed tokens, is sealed with ChaCha20-Poly1305 using keys that exist only on the two endpoints.
 2. **Forward secrecy.** Session keys come from a fresh ephemeral X25519 exchange every session. Even if a device's long-term identity key is compromised later, recorded past traffic can't be decrypted.
-3. **Mutual authentication.** The server signs the handshake with its secp256k1 agent key, and the client verifies it against the address pinned when you paired, so an impostor or man-in-the-middle can't complete a handshake. Your `osk-v1` access key travels *inside* the ciphertext, so after pairing, credentials never cross the network in plaintext again.
+3. **Mutual authentication.** The server signs the handshake with its secp256k1 agent key, and the client verifies it against the agent address it pinned (from the workspace roster, a guest link, or an n8n pairing code), so an impostor or man-in-the-middle can't complete a handshake. Your `osk-v1` access key travels *inside* the ciphertext, so credentials never cross the network in plaintext.
 4. **Tamper, replay, and truncation proof.** Requests are sequence-numbered, so a captured request can never re-execute. Response streams end with an authenticated finish frame, so a connection cut mid-stream is detected.
-5. **No downgrade.** Remote plaintext requests to agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) are refused with `426 Upgrade Required`, and so is every owner route, reads included, when a remote caller presents an owner (master-scoped) key: agents, sessions, run streams, review and approval queues, secret prompts, artifacts, tasks, MCP tool calls, memory ingest, credit balance, and unpairing. (For one release, plain `GET /agents` stays readable so phones up to 1.0(5) can learn their pin.) Relay traffic counts as remote even though it reaches the server over [loopback](/glossary#loopback). Local callers (CLI, App Intents, same-machine scripts) stay plaintext. A paired phone never sends its key outside the channel.
+5. **No downgrade.** Remote plaintext requests to agent-execution routes (`/agents/{id}/run`, `/agents/{id}/dispatch`) are refused with `426 Upgrade Required`, and so is every owner route, reads included, when a remote caller presents an owner (master-scoped) key: agents, sessions, run streams, review and approval queues, secret prompts, artifacts, tasks, MCP tool calls, memory ingest, credit balance, and unpairing. (For one release, plain `GET /agents` stays readable so phones up to 1.0(5) can learn their pin.) Relay traffic counts as remote even though it reaches the server over [loopback](/glossary#loopback). Local callers (CLI, App Intents, same-machine scripts) stay plaintext. A legacy 6-digit-paired phone never sends its key outside the channel.
 
 ### Handshake and calls
 
@@ -85,7 +89,7 @@ sequenceDiagram
     Note over C,S: Handshake (once per session, ~1h lifetime)
     C->>S: POST /secure/session (ephemeral key, nonce, target agent)
     S->>C: ephemeral key + session id + agent-key signature over the transcript
-    Note over C: signer address must match the address pinned at pairing
+    Note over C: signer address must match the pinned agent address
     Note over C,S: Encrypted calls (every request)
     C->>S: POST /secure/call (session id, sequence, ciphertext)
     Note over S: decrypts to the full inner HTTP request
@@ -94,9 +98,9 @@ sequenceDiagram
 
 Every encrypted call is a `POST /secure/call` whose ciphertext decrypts to the complete inner HTTP request: method, path, authorization, and body. On the server, the inner request goes through the normal auth gate, agent-scope check, and routing unchanged. An inner request that normalizes to `/secure/*` is refused. Because the channel sits above HTTP, the relay carries opaque frames it can't read.
 
-For a paired phone whose Mac has no custom agents, the handshake is signed by the Mac's **connect identity** instead of an agent key (see [Identity internals](/identity-internals)). Handshakes have their own rate limit, separate from pairing. Secure Channel request and response bodies are kept out of the Insights log. If a response can't be sealed, the connection is closed rather than passing it through in plaintext.
+For a legacy 6-digit-paired phone whose Mac has no custom agents, the handshake is signed by the Mac's **connect identity** instead of an agent key (see [Identity internals](/identity-internals)). Handshakes have their own rate limit, separate from pairing. Secure Channel request and response bodies are kept out of the Insights log. If a response can't be sealed, the connection is closed rather than passing it through in plaintext.
 
-For n8n, when the [n8n channel](/agent-channels#n8n) is bound to a local agent, the Osaurus n8n community node pins that agent's address in the handshake and wraps every channel request in `/secure/call`. That lets a remote n8n work through the relay without enabling plaintext HTTP.
+For n8n, when the [n8n channel](/agent-channels) is bound to a local agent, the Osaurus n8n community node pins that agent's address in the handshake and wraps every channel request in `/secure/call`. That lets a remote n8n work through the relay without enabling plaintext HTTP.
 
 ### Error reference
 
@@ -122,7 +126,9 @@ These codes arrive outside the encryption (the handshake's answer, or `/secure/c
 
 The Secure Channel works alongside the other layers; it doesn't replace them:
 
-- **Pairing** establishes *who* a peer is (for the phone, a SPAKE2 exchange keyed by the pairing code; between Macs, a sealed key delivery with challenge-response and a server signature) and pins the agent address the channel verifies on every handshake. See [Identity](/identity) and [Mobile](/mobile).
+- **Invites** establish *who* a peer is and pin the agent address the channel verifies on every handshake. A workspace share or a guest link delivers an agent-scoped key HPKE-sealed through `/pair-invite`, with a server signature; Macs on builds from before sync can still redeem owner-device access the same way. See [Osaurus ID](/identity) and [Remote Access](/remote-access).
+- **Sync is a separate channel.** Your own Macs and iPhone pair with a Sync code and number check, and their chats travel as osaurus-sync's own end-to-end encrypted event logs, with keys held only by your devices. That channel doesn't use `/secure/*` and never carries teammate or guest traffic. See [Devices & Sync](/devices).
+- **Legacy phone pairing.** For one release, an older iPhone app can still pair with a SPAKE2 exchange keyed by a 6-digit code (`/pair/code`) and then uses this channel. Once an iPhone joins Sync, those routes answer `410 update_required`.
 - **`osk-v1` access keys** still authenticate every call, now inside the ciphertext, with the same scoping and instant revocation.
 - **Storage** protects data at rest; the Secure Channel protects it in motion between agents. See [Storage & Encryption](/storage).
 
@@ -130,7 +136,8 @@ The Secure Channel works alongside the other layers; it doesn't replace them:
 
 **Related:**
 
-- [Identity](/identity) — access keys and the chain of trust
+- [Osaurus ID](/identity) — access keys and the chain of trust
 - [Identity Cryptography](/identity-internals) — the key material behind the signatures
-- [Public Links](/relay) — the relay the channel rides through
+- [Remote Access](/remote-access) — the relay the channel rides through
+- [Devices & Sync](/devices) — the separate encrypted channel between your own devices
 - [Security & Privacy](/security) — the overall trust story

@@ -1,12 +1,14 @@
 ---
 title: HTTP API
 sidebar_label: HTTP API
-description: OpenAI, Anthropic, Open Responses, Ollama, MCP, Memory, media, credits, and loopback configuration endpoints at the same port.
+description: OpenAI, Anthropic, Open Responses, Ollama, MCP, Memory, media, workflow-run, credits, and loopback configuration endpoints at the same port.
 ---
 
 # HTTP API
 
-Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP, Memory, media, agent-loop, credit-balance, and loopback configuration endpoints. Use whichever your SDK already speaks.
+This page is for developers who want their own apps, scripts, or tools to talk to Osaurus over HTTP.
+
+Osaurus serves four chat APIs at the same port — OpenAI, Anthropic, Open Responses, and Ollama — plus MCP, Memory, media, agent-loop, [workflow](/workflows) run, credit-balance, and loopback configuration endpoints. Use whichever your SDK already speaks.
 
 ## Compatible APIs
 
@@ -87,8 +89,8 @@ These routes are intentionally loopback-only:
 
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
-| `/admin/config/export?format=yaml|json` | GET | Export current desired state without secrets |
-| `/admin/config/schema?format=yaml|json` | GET | Get the annotated YAML reference or JSON Schema |
+| `/admin/config/export?format=yaml\|json` | GET | Export current desired state without secrets |
+| `/admin/config/schema?format=yaml\|json` | GET | Get the annotated YAML reference or JSON Schema |
 | `/admin/config/plan` | POST | Validate and preview a YAML/JSON document |
 | `/admin/config/apply` | POST | Apply a planned desired state |
 | `/admin/import/*` | POST | Back end for [`osaurus import`](/bundles) (Osaurus Bundles). Not a public contract; use the CLI. |
@@ -110,6 +112,24 @@ These routes are intentionally loopback-only:
 | `/tasks/{task_id}` | DELETE | Cancel a detached task |
 | `/tasks/{task_id}/clarify` | POST | Answer a clarifying question a detached task is waiting on |
 
+### Workflow runs
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/workflows/runs/{run_id}` | GET | Owner only. A workflow run's status, output, or error, plus the form it is waiting on |
+| `/workflows/pending-dialogs` | GET | Owner only. Every workflow form waiting on an answer |
+| `/workflows/runs/{run_id}/dialogs/{node_id}` | POST | Owner only. Answer or dismiss a run's waiting form |
+| `/agents/{id}/workflows/{workflow_id}/run` | POST | A teammate or guest starts a workflow a shared agent offers |
+| `/agents/{id}/workflows/runs/{run_id}` | GET | A teammate or guest follows their hosted run |
+| `/agents/{id}/workflows/runs/{run_id}/cancel` | POST | A teammate or guest cancels their hosted run |
+
+### Automation webhooks
+
+| Endpoint | Method | Description |
+| -------- | ------ | ----------- |
+| `/events/{token}` | POST | Fire a Webhook [automation](/automations). Authenticated by the automation's own secret or signature, not an access key |
+| `/events/{token}/runs/{run_id}` | GET | Follow that automation run, including the `workflow_run_id` it started |
+
 ### MCP Endpoints
 
 | Endpoint | Method | Description |
@@ -124,15 +144,16 @@ These routes are intentionally loopback-only:
 | -------- | ------ | ----------- |
 | `/credits/balance` | GET | Read-only [Osaurus Router](/osaurus-router) credit balance (also at `/v1/credits/balance`) |
 
-### Identity / pairing / secure channel
+### Invites and secure channel
 
 | Endpoint | Method | Description |
 | -------- | ------ | ----------- |
-| `/pair/challenge` | GET | Fetch a pairing challenge nonce |
-| `/pair` | POST | Bonjour pairing handshake (mints an `osk-v1` access key after user approval) |
-| `/pair-invite` | POST | Redeem an out-of-band pairing invite |
+| `/pair-invite` | POST | Redeem a signed agent invite (mints an agent-scoped `osk-v1` access key) |
 | `/secure/session` | POST | Establish an end-to-end-encrypted [Secure Channel](/secure-channel) session |
 | `/secure/call` | POST | Invoke a route through an established Secure Channel envelope |
+| `/pair/hello`, `/pair/code`, `/pair/confirm`, `/pair/unpair` | GET / POST | Older iPhone app's 6-digit pairing. Answers `410` with `update_required` once an iPhone has joined [Devices & Sync](/devices) |
+
+The LAN (Bonjour) pairing routes `GET /pair/challenge` and `POST /pair` are gone; Osaurus no longer advertises itself on the local network. New phones and Macs join through [Devices & Sync](/devices), and agents are shared with [invites](/identity).
 
 Path prefixes are normalized before handler matching: `/v1/…`, `/api/…`, and `/v1/api/…` resolve to the same registered route, so `/v1/chat/completions` and `/chat/completions` are equivalent.
 
@@ -164,7 +185,7 @@ curl http://127.0.0.1:1337/admin/config/plan \
 
 Apply uses the same body at `POST /admin/config/apply`. A high-risk response lists the risks and requires a second request with `"confirm_high_risk": true`. `prune` deletes unlisted entities only from sections declared in the document.
 
-Secrets are never exported and raw credentials are not accepted in documents. Use `env:` or `keychain:` references, or an interactive credential-sheet request. See [Declarative configuration](/configuration#declarative-configuration).
+Secrets are never exported and raw credentials are not accepted in documents. Use `env:`, `keychain:`, or `credential:KEY` (a shared key in [Vault](/vault)) references, or an interactive credential-sheet request. See [Declarative configuration](/configuration).
 
 ## Cloud media jobs
 
@@ -458,6 +479,89 @@ Manage a dispatched task by the id returned from `/dispatch`:
 - **`DELETE /tasks/{task_id}`** — cancel; returns `204 No Content`
 - **`POST /tasks/{task_id}/clarify`** with `{"response": "…"}` — answer a clarifying question the task is blocked on
 
+## Workflow runs
+
+A [workflow](/workflows) run started from outside the app can't wait for a person to fill in a form. When a run reaches a form step, the call that started it returns `awaiting_user` with the run id, a notification opens the run on the Mac, and the run finishes on its own once the form is answered. These routes let a script follow that run and answer the form itself. Every run is recorded in [Insights](/developer-tools) like any other.
+
+**Starting a run from outside the app:**
+
+- **Webhook automation** (simplest for scripts). In **Settings → Automations → Add Automation**, pick **Webhook**, set **Do** to **Run Workflow**, and map the workflow's inputs from the posted body. `POST /events/{token}` returns `202 {run_id, status, status_url}`; `GET /events/{token}/runs/{run_id}` adds `workflow_run_id` once the workflow has started. See [Automations](/automations).
+- **An agent.** A custom agent calls the workflows turned on for it (**Settings → Agents →** the agent **→ Abilities → Workflows**) as tools named `workflow_<name>`; the Orchestrator calls workflows marked **Osaurus can run this for you** with `run_workflow`.
+- **MCP.** Workflow tools need a chat agent bound, which only a [runtime's](/harness-runtimes) agent token provides. They are not listed on `/mcp/tools` for other callers.
+- **A teammate** runs a shared agent's workflows through the [hosted routes](#hosted-workflow-runs) below.
+
+Off this Mac, the run and form routes need the [Secure Channel](/secure-channel) and a master access key; agent-scoped and workspace keys get `403 owner_only`.
+
+### GET /workflows/runs/&#123;run_id&#125;
+
+The state of one run, in the shape a `run_workflow` tool call returns, plus the form it is waiting on:
+
+```json
+{
+  "status": "awaiting_user",
+  "run_status": "awaiting_user",
+  "run_id": "3F2A…",
+  "workflow_id": "9C41…",
+  "workflow_name": "Meeting Prep",
+  "output": null,
+  "pending_dialog": {
+    "id": "D7E0…",
+    "run_id": "3F2A…",
+    "workflow_id": "9C41…",
+    "workflow_name": "Meeting Prep",
+    "node_id": "confirm_attendees",
+    "title": "Who's coming?",
+    "message": "Check the attendee list before I draft the brief.",
+    "fields": [
+      {"key": "attendees", "label": "Attendees", "type": "long_text", "required": true}
+    ],
+    "prefill": {"attendees": "Sam, Priya"},
+    "current": true,
+    "created_at": "2026-11-12T18:04:11Z"
+  }
+}
+```
+
+| Field | Meaning |
+| ----- | ------- |
+| `status` | `running`, `awaiting_user`, `completed`, `failed`, `cancelled`, or `needs_setup` |
+| `run_status` | The run record's own status (same values) |
+| `output` | The workflow's result once `completed` |
+| `error` | Why it failed, when it did |
+| `reasons` | What is missing, when `needs_setup` |
+| `files_shown` | Filenames the run produced as attachments |
+| `pending_dialog` | Present only while a form is waiting |
+
+Field `type` is one of `text`, `long_text`, `number`, `bool`, `choice` (with `options`), `date`, `file`, `folder`, or `secret`. `prefill` never contains secret values. An unknown id returns `404 {"error":"run_not_found"}`.
+
+### GET /workflows/pending-dialogs
+
+Every waiting workflow form on this Mac, as `{"dialogs": [ … ]}` with the same objects as `pending_dialog` above. `current` is `false` for a form queued behind another one from the same workflow; answer the current one first. This route carries form content, so it needs the Secure Channel off this Mac even though it is a `GET`.
+
+### POST /workflows/runs/&#123;run_id&#125;/dialogs/&#123;node_id&#125;
+
+Answer the form with `{"values": {"attendees": "Sam, Priya, Lee"}}`, or dismiss it with `{"dismiss": true}`. `node_id` is the `node_id` from the pending form.
+
+| Status | Body | Meaning |
+| ------ | ---- | ------- |
+| `200` | `{"ok": true}` | Answered; the run continues |
+| `400` | `bad_request` | Neither `values` nor `dismiss: true` |
+| `404` | `dialog_not_pending` | No such form waiting on that run |
+| `409` | `dialog_queued` | Another form from this workflow is waiting first |
+| `422` | `invalid_answer` with `issues` | The values don't match the form (missing required field, wrong type) |
+
+### Hosted workflow runs {/* #hosted-workflow-runs */}
+
+Someone you've shared an agent with (a [workspace](/workspaces) member, an invite-link guest, or their agent) can start a workflow that agent offers. The workflow must be turned on for the agent and have **Teammates can run this** on. `GET /agents/{id}` lists these under `hosted_workflows` (`id`, `template_id`, `name`, `summary`, `inputs`). The run happens on the owner's Mac with the owner's keys, so each start asks the owner first.
+
+These routes need an access key over the Secure Channel. The owner gets `403 owner_runs_locally` and runs their own workflows from **Workflows** instead.
+
+- **`POST /agents/{id}/workflows/{workflow_id}/run`** with `{"input": {…}}` returns `202 {"run_id": "…", "status": "awaiting_owner"}`.
+- **`GET /agents/{id}/workflows/runs/{run_id}`** returns `{run_id, status, message?, result?}`. `status` is `awaiting_owner`, `refused` (declined, timed out, or couldn't start; `message` says why), `running`, `awaiting_user` (a form is waiting for the owner on their Mac), `completed`, `failed`, or `cancelled`. `result` is the same object a `run_workflow` call returns.
+- **`POST /agents/{id}/workflows/runs/{run_id}/cancel`** returns `{"ok": true}`.
+
+Each run belongs to the caller who started it; anyone else's id reads as `404 run_not_found`.
+
 ### POST /api/show
 
 Return Ollama-compatible model metadata. The response includes a `capabilities` array so clients can distinguish ordinary text completion from multimodal support:
@@ -571,7 +675,7 @@ Create a response using the Open Responses format. The same request shape works 
 | `tools` | array | No | Tool definitions for function calling |
 | `prompt_cache_key` | string | No | Stable conversation key. Used as the request's `session_id`, so every turn of one thread shares a prompt-cache chain, memory prefix, and tool state |
 
-The decoder accepts the input shapes [Codex CLI](/integrations#codex-cli) sends: `reasoning.effort` and an input `function_call`'s `status` are optional, and replayed `output_text` content parts are accepted.
+The decoder accepts the input shapes [Codex CLI](/integrations) sends: `reasoning.effort` and an input `function_call`'s `status` are optional, and replayed `output_text` content parts are accepted.
 
 **Response (Non-streaming):**
 
@@ -954,7 +1058,7 @@ Write access from outside the app otherwise goes through the [Sandbox](/sandbox)
 
 Read-only [Osaurus Router](/osaurus-router) credit balance for local tools such as status bars and scripts. Also available at `GET /v1/credits/balance`.
 
-Requires a **master** access key (`Authorization: Bearer <key>`), or **Allow local API access without a key** turned on under **Settings… → Credits** for a loopback request. Agent-scoped keys are refused, and requests with an `Origin` header (browsers) always need a key.
+Requires a **master** access key (`Authorization: Bearer <key>`), or **Allow local API access without a key** turned on under **Settings → Server** (the Osaurus Router section) for a loopback request. Agent-scoped keys are refused, and requests with an `Origin` header (browsers) always need a key.
 
 ```bash
 curl http://127.0.0.1:1337/v1/credits/balance -H "Authorization: Bearer $OSAURUS_KEY"
@@ -1181,7 +1285,7 @@ client = OpenAI(
 )
 ```
 
-For LAN, Relay, or any non-loopback caller, send an [`osk-v1` access key](/identity#access-keys) as a Bearer token:
+For a caller on your network (with the server exposed), through [Remote Access](/remote-access), or any other non-loopback caller, send an [`osk-v1` access key](/identity) as a Bearer token:
 
 ```bash
 curl http://your-mac.local:1337/v1/chat/completions \
@@ -1208,11 +1312,11 @@ client = anthropic.Anthropic(
 )
 ```
 
-Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Identity →](/identity)
+Access keys can be **master-scoped** (any agent) or **agent-scoped** (one specific agent), with optional expiration and revocation. [Osaurus ID →](/identity)
 
 ### Requiring a key from this Mac
 
-With **Server → Settings → Authentication → Require Access Key for Local Admin Routes** on, local callers need an access key too on `/sessions`, `/agents` (and everything under it), `/mcp/*`, `/admin/config/*`, and `/admin/import/*`, with or without `/v1`. Inference and model routes are unaffected. Requests with a browser `Origin` header get `403 browser_origin_refused` on those routes unless the origin is listed by name in **Allowed Origins (CORS)** (`*` doesn't count), and a listed origin still needs a key. Master keys behave as before; agent-scoped keys are confined as they are for remote callers. Siri and Shortcuts, and [runtime](/harness-runtimes) tokens on `/mcp/*`, keep working. [Security →](/security#local-access-key)
+With **Settings → Server → Server Settings → Authentication → Require Access Key for Local Admin Routes** on, local callers need an access key too on `/sessions` (and everything under it), `/agents` (and everything under it), `/conversations/*`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*`, with or without `/v1`. Inference and model routes are unaffected. Requests with a browser `Origin` header get `403 browser_origin_refused` on those routes unless the origin is listed by name in **Allowed Origins (CORS)** (`*` doesn't count), and a listed origin still needs a key. Master keys behave as before; agent-scoped keys are confined as they are for remote callers. Siri and Shortcuts, and [runtime](/harness-runtimes) tokens on `/mcp/*`, keep working. [Security →](/security)
 
 ### Pre-auth body-size limits
 
@@ -1220,8 +1324,9 @@ Osaurus rejects oversized request bodies *before* the auth gate runs, so an unau
 
 | Endpoint | Limit |
 |---|---|
-| `POST /pair` | 64 KiB |
-| Other public HTTP routes | 32 MiB |
+| `POST /pair-invite`, `POST /secure/session`, `POST /pair/code`, `POST /pair/confirm` | 64 KiB |
+| Other HTTP routes | 32 MiB |
+| `POST /events/{token}` (Webhook automations) | The automation's own limit: 256 KB by default, up to 10 MB |
 | Sandbox host bridge | 8 MiB |
 
 Both servers enforce the cap with a `Content-Length` pre-check at request head and a streaming guard at body chunks, so chunked clients and clients that lie about their declared length both hit `413 Payload Too Large`.
@@ -1253,7 +1358,7 @@ MCP tool errors use the MCP content envelope (`{"content":[…],"isError":true}`
 
 Built-in CORS support for browser-based applications:
 
-- **Allowed Origins:** loopback callers get `*`; other callers are checked against **Server → Settings → Connection → Allowed Origins (CORS)**. With the [local access key](/security#local-access-key) on, its protected routes don't get the automatic `*`.
+- **Allowed Origins:** loopback callers get `*`; other callers are checked against **Settings → Server → Server Settings → Connection → Allowed Origins (CORS)**. With the [local access key](/security) on, its protected routes don't get the automatic `*`.
 - **Allowed Methods:** `GET, POST, OPTIONS` for the chat/API routes (admin routes additionally accept `PUT`)
 - **Allowed Headers:** `Content-Type, Authorization`
 
@@ -1304,5 +1409,7 @@ curl -X POST http://127.0.0.1:1337/mcp/call \
 - [Tool Contract](/tool-contract) — envelope shape for every tool
 - [Memory](/memory) — what memory does for users
 - [Memory Internals](/memory-internals) — what `X-Osaurus-Agent-Id` and `/memory/ingest` do under the hood
-- [Identity](/identity) — minting and revoking `osk-v1` keys
+- [Osaurus ID](/identity) — minting and revoking `osk-v1` keys
+- [Workflows](/workflows) — what workflows are and how people run them
+- [Log in with Osaurus](/login-with-osaurus) — let people sign in to your site with their Osaurus ID
 - [Inference Runtime](/inference-runtime) — KV cache, batching, model leases

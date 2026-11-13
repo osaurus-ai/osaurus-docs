@@ -1,7 +1,7 @@
 ---
 title: Image & Video
 sidebar_label: Image & Video
-description: Create and edit pictures on your Mac for free and offline, or choose a paid cloud service when you want hosted images or short videos.
+description: Create and edit pictures, and make short videos, on your Mac for free and offline, or choose a paid cloud service when you want hosted images or videos.
 ---
 
 # Image & Video
@@ -10,7 +10,7 @@ Osaurus can make pictures from a short description, edit pictures you already ha
 
 ## Get started
 
-1. Open **Settings…** (`⌘ ,`) → **Images**, and choose the **Image Models** tab.
+1. Open **Settings** (the gear icon at the bottom of the strip on the left edge of the window, or `⌘ ,`) → **Local Models**, and choose the **Image** tab.
 2. Download a model. **Z-Image Turbo** is the best place to start.
 3. Open a chat and pick that model in the model picker.
 4. Describe the picture you want, like *"a watercolor dinosaur reading a book"*, and send it.
@@ -19,7 +19,7 @@ You'll see progress as the picture is made: the current step, time left, and tim
 
 ## Choosing a model
 
-The **Image Models** tab shows each model's download size and a link to its page on [Hugging Face](/glossary#hugging-face), the site where models are published.
+The **Image** tab in **Local Models** shows each model's download size and a link to its page on [Hugging Face](/glossary#hugging-face), the site where models are published.
 
 | Model | Good at |
 |---|---|
@@ -32,7 +32,9 @@ The **Image Models** tab shows each model's download size and a link to its page
 | **Ideogram 4** | Pictures with clear lettering and a stylized look |
 | **SeedVR2 3B** | Upscaling: makes a picture 2× or 4× bigger and sharper |
 
-You aren't limited to this list. The catalog also pulls in new models as they're published, and the **Import** button at the top of the Images screen lets you add another compatible model by pasting its name.
+You aren't limited to this list. The catalog also pulls in new models as they're published, including Wan 2.1 video models you can run on your Mac. **Add Model** at the top of **Local Models** lets you add another compatible model from Hugging Face by pasting its name.
+
+To choose which model Osaurus uses by default for new pictures, edits, and videos, open **Settings → Models → Model Defaults → Images & Video**.
 
 Image models are large and use a lot of memory while they work. Osaurus loads the model for each job and unloads it afterward, so it doesn't keep using your Mac's memory between pictures.
 
@@ -50,7 +52,7 @@ Controls a model doesn't use are hidden. After a picture finishes, the panel sho
 
 ### The Generate and Edit panel
 
-In **Settings… → Images → Image Models**, open **Generate** or **Edit** next to an installed model for more control:
+In **Settings → Local Models → Image**, open **Generate** or **Edit** next to an installed model for more control:
 
 - **Sampler** and **Scheduler** list the choices that model supports. **Bundle default** keeps its own behavior.
 - **Timestep shift** appears only on models that allow it. Leave it empty to keep the default.
@@ -67,7 +69,7 @@ With FLUX 3 Image Klein, choose **Default** in the size picker (or **Use source 
 
 ### Upscaling a picture
 
-1. In **Settings… → Images → Image Models**, click **Upscale** next to an installed **SeedVR2 3B** model.
+1. In **Settings → Local Models → Image**, click **Upscale** next to an installed **SeedVR2 3B** model.
 2. Choose a picture.
 3. Pick **Scale**: **2×** or **4×**. Optionally enter a seed.
 
@@ -77,24 +79,26 @@ The picture keeps its shape. You can cancel anytime; Osaurus finishes cleaning u
 
 An [agent](/glossary#agent) can make a picture (or a video) in the middle of a conversation, and the result appears right in the chat. This works whether the agent itself uses a local or a cloud model.
 
-1. Open **Settings… → Agents** and pick one of your agents.
+1. Open **Settings → Agents** and pick one of your agents.
 2. Go to **Abilities → Subagents**.
 3. Turn on the **Image** card, and choose which image model the agent should use. For videos, turn on the **Video** card.
 
-The [Orchestrator](/orchestrator) can't make pictures itself. To use it for pictures, add an image-enabled agent to its **Allowed subagents**, and it hands the job to that agent.
+The [Orchestrator](/orchestrator) can't make pictures itself. To ask for pictures from the Orchestrator chat, add an image-enabled agent in **Settings → Agents → Delegation → Allowed subagents**, and the Orchestrator hands the job to that agent.
 
-If your chat runs on a [local model](/glossary#local-model), Osaurus makes room for the image model first, so two large models don't compete for memory. It sets the chat model aside, makes the picture, then brings the chat model back and carries on. You can change this with the **Swap local models for subagents** setting; see [Subagents](/subagents#local-models-and-memory).
+Whether agents can start image and video jobs without asking is set in **Settings → Images & Video → Permissions** (**Image Jobs** and **Video Jobs**).
+
+If your chat runs on a [local model](/glossary#local-model), Osaurus makes room for the image model first, so two large models don't compete for memory. It sets the chat model aside, makes the picture, then brings the chat model back and carries on. You can change this with the **Swap Local Models for Subagents** setting; see [Subagents](/subagents#local-models-and-memory).
 
 ## Cloud images and videos
 
 Cloud options run on another company's servers, so your description leaves your Mac and you pay per use. They come from two places: **Venice**, if you've added it as a [provider](/glossary#provider), or **Osaurus Cloud**, which is paid for with [credits](/glossary#credits).
 
-- **Videos are mostly cloud.** Osaurus can make short videos from a description, or bring a still picture to life. On your Mac, video needs a Wan 2.1 video model you've imported yourself (see [Under the hood](#local-video)); the built-in catalog doesn't include one.
+- **Videos are mostly cloud.** Osaurus can make short videos from a description, or bring a still picture to life. To make videos on your Mac instead, download a Wan 2.1 video model from **Local Models → Image** (see [Under the hood](#local-video)). Local videos have no sound.
 - **You see the cost first.** Before anything is sent, Osaurus shows an [approval](/glossary#approval) card with the service, its privacy terms, and the estimated price.
 - **Nothing switches to the cloud on its own.** If you asked for a local model, the job stays on your Mac. Cloud is only used when you choose it.
 - **Videos keep going if you close the window.** A video job carries on even if you quit and reopen Osaurus. When it's done, Osaurus saves a copy with your other generated files right away, because the cloud copy is only kept briefly.
 
-You can see recent video jobs and change local and cloud video settings, including whether video jobs ask first, in **Settings… → Images → Defaults**.
+You can see recent video jobs, and choose whether video jobs ask first, in **Settings → Images & Video**. The default video models are in **Settings → Models → Model Defaults → Images & Video** (**Text-to-Video Model** and **Image-to-Video Model**).
 
 ## Troubleshooting
 
@@ -114,9 +118,13 @@ You can review every image job in [Insights](/glossary#insights), under the **Au
 
 ### Settings and model catalog
 
-**Settings… → Images** has two tabs. **Image Models** is the catalog. **Defaults** holds the default models, permissions, cloud video settings with recent jobs, and, under **Advanced**, the **Image model load policy**.
+Image settings live in three places:
 
-The catalog merges a curated set with a live listing of image bundles from the OsaurusAI Hugging Face org. **Import** stages any compatible (mflux-format) repo by its `org/repo` ID; pasting an image repo into the Local Models search also routes it here, never into the language-model list. Each installed model reports its capabilities (`generations`, `edits`, `upscale`), which the UI and API honor.
+- **Settings → Local Models → Image** is the catalog: download, **Generate**, **Edit**, **Upscale**, re-download, and delete.
+- **Settings → Models → Model Defaults → Images & Video** holds the **Image Generation Model**, **Edit Model**, **Text-to-Video Model**, **Image-to-Video Model**, and the **Image Model Load Policy**.
+- **Settings → Images & Video** holds the **Image Jobs** and **Video Jobs** permissions and the recent video jobs.
+
+The catalog merges a curated set with a live listing of image and Wan 2.1 video bundles from the OsaurusAI Hugging Face org. **Add Model** stages any compatible (mflux-format) repo by its `org/repo` ID; pasting an image repo into the Local Models search also routes it here, never into the language-model list. Each installed model reports its capabilities (`generations`, `edits`, `upscale`), which the UI and API honor.
 
 Family notes:
 
@@ -130,7 +138,7 @@ Cloud choices come from the connected provider or Router media catalog. Each ent
 
 Agents use the built-in `image` tool to generate a picture (up to 4 per call), or edit one with a local edit model by passing source image paths. Generated media renders automatically in the conversation, with a selector for batch results. Delegated jobs carry explicit size, steps, seed, sampler settings, adapters, and ordered reference paths through unchanged, and edits are validated before handoff to the image worker.
 
-When the chat runs on a local model, the shared **Swap local models for subagents** setting decides what happens. On (the default), Osaurus unloads the chat model, runs the image job, then reloads the chat model and continues. Off keeps the chat model loaded through the job. The **Image model load policy** only controls cleanup of the image model afterward.
+When the chat runs on a local model, the shared **Swap Local Models for Subagents** setting decides what happens. On (the default), Osaurus unloads the chat model, runs the image job, then reloads the chat model and continues. Off keeps the chat model loaded through the job. The **Image model load policy** only controls cleanup of the image model afterward.
 
 For a cloud target, the request includes an explicit backend (`remote_provider` for a configured Venice provider, or `osaurus_cloud`) and model. Osaurus validates the target's advertised constraints and always shows a billable approval prompt with backend, privacy, and estimated price before a remote image dispatch. There's no silent cloud fallback.
 
@@ -202,7 +210,7 @@ Remote targets may advertise `aspect_ratio`, `resolution`, `quality`, or other m
 - **No masked editing yet.** Edits apply to the whole image, guided by your instructions and edit strength.
 - **Output counts.** The `image` tool produces up to 4 images per call; remote HTTP generation accepts `n` from 1–4.
 - **Local stays local.** Cloud media is an explicit target with spend consent, never an automatic fallback for a missing local model.
-- **Video is mostly hosted.** Local video needs a Wan 2.1 bundle you import; it doesn't generate audio. Cloud output is transient, so Osaurus persists the artifact promptly after completion.
+- **Video is mostly hosted.** Local video needs a Wan 2.1 bundle from **Local Models → Image**; it doesn't generate audio. Cloud output is transient, so Osaurus persists the artifact promptly after completion.
 - **Agent image-to-video is provisional.** The `video` tool exposes `source_path`, but its quote phase does not consistently classify that source as image-to-video. Use the quoted HTTP flow for image-to-video until this is fixed.
 
 ---

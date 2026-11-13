@@ -1,14 +1,16 @@
 ---
 title: Identity Cryptography
 sidebar_label: Identity Cryptography
-description: secp256k1 master keys, deterministic agent key derivation, App Attest device assertion, the osk-v1 access-key spec, and the request-signing protocol.
+description: secp256k1 master keys, deterministic agent key derivation, App Attest device assertion, the osk-v1 access-key spec, agent invites, osl-v1 website logins, and the request-signing protocol.
 ---
 
 # Identity Cryptography
 
-The Identity system gives every participant — human, agent, device — a cryptographic address. All actions are signed and verifiable, enabling trust without a central authority at runtime.
+This page is for developers and security reviewers who want the exact cryptography behind an [Osaurus ID](/identity).
 
-This page is the spec reference. For the everyday view (creating access keys, recovery codes, revoking), see [Identity](/identity).
+The Osaurus ID system gives every participant — human, agent, device — a cryptographic address. All actions are signed and verifiable, enabling trust without a central authority at runtime.
+
+This page is the spec reference. For the everyday view (creating access keys, the recovery phrase, revoking), see [Osaurus ID](/identity).
 
 ## Theory and motivation
 
@@ -102,7 +104,7 @@ The device ID is a **device fact, not an identity fact**. It's attested independ
 
 Stored in iCloud Keychain with `kSecAttrAccessibleWhenUnlocked`. iCloud sync is attempted first; if unavailable, stored device-only with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`.
 
-A phone or second device can't yet receive the master through iCloud Keychain: that would require a shared Keychain access group, which needs a provisioning-profile entitlement the Developer ID build doesn't ship with. Until that lands, the **24-word recovery phrase** is the only way to bootstrap the same identity on a client with a different bundle ID. See [Mobile](./mobile.md) for how the iPhone app pairs instead.
+A phone or second device can't yet receive the master through iCloud Keychain: that would require a shared Keychain access group, which needs a provisioning-profile entitlement the Developer ID build doesn't ship with. Until that lands, the **24-word recovery phrase** is the only way to bootstrap the same identity on a client with a different bundle ID. See [Devices & Sync](/devices) for how an iPhone joins instead.
 
 ### Agent key
 
@@ -149,7 +151,7 @@ HMAC-SHA512(
     → same address derivation as master key
 ```
 
-It isn't an agent key and isn't stored on any agent. It exists so a phone paired to a Mac with no custom agents still has an address to pin, since the built-in Default agent has none; the pairing payload carries it under the built-in agent only in that case. Only `POST /secure/session` accepts it; the relay, Bonjour, access keys, and invites never see it. Its own domain prefix keeps it apart from every agent key at every index. Once read, its address is cached so handshakes for other addresses skip the Keychain; when the master key can't be read, handshakes get `503` rather than a pin-dropping `404`.
+It isn't an agent key and isn't stored on any agent. It exists so a phone paired to a Mac with no custom agents still has an address to pin, since the built-in Default agent has none; the pairing payload carries it under the built-in agent only in that case. Only `POST /secure/session` accepts it; the relay, access keys, and invites never see it. Its own domain prefix keeps it apart from every agent key at every index. Once read, its address is cached so handshakes for other addresses skip the Keychain; when the master key can't be read, handshakes get `503` rather than a pin-dropping `404`.
 
 Agent keys are **never persisted**. They are re-derived from the master key whenever a signature is needed, which requires biometric authentication to access the master key. The derived `agentAddress` is persisted on the `Agent` model so it can be displayed without triggering biometric prompts.
 
@@ -248,16 +250,16 @@ Fields are sorted alphabetically for canonical JSON encoding (ensuring consisten
 - **Master-scoped:** Signed by the master key. `iss` and `aud` are both the master address. Grants access to all agents.
 - **Agent-scoped:** Signed by a derived agent key. `iss` and `aud` are both the agent address. Grants access only to that specific agent.
 
-The `/pair` Bonjour flow always issues **agent-scoped** keys (signed along the approved agent's `AgentKeyPath`). Keys generated manually from the Settings UI depend on where you create them: **Settings… → Server → Overview → Access Keys** mints master-scoped keys, and an agent's **Access Keys** list in Identity mints agent-scoped keys.
+Agent invites redeemed on `POST /pair-invite` always issue **agent-scoped** keys (signed along the invited agent's `AgentKeyPath`). Keys generated manually from Settings depend on where you create them: **Settings → Server → Access Keys** mints master-scoped keys, and an agent's access-key list under **Settings → Osaurus ID → Agent Addresses** mints agent-scoped keys.
 
 ### Expiration options
 
 | Option | Duration |
 |---|---|
 | `30d` | 30 days |
-| `90d` | 90 days (default for `/pair`) |
+| `90d` | 90 days (default for invites and owner-device keys) |
 | `1y` | 1 year |
-| `never` | No expiration (only when the user opts in via the pairing dialog's "Remember this device permanently" toggle) |
+| `never` | No expiration (only when the user explicitly chooses it) |
 
 ### Validation
 
@@ -328,8 +330,8 @@ Revocation data is persisted in macOS Keychain (`kSecAttrAccessibleWhenUnlockedT
 The local restore path is a **24-word BIP39 mnemonic** that round-trips the 32-byte master key's entropy:
 
 - **Encode:** 256 bits of entropy + the high 8 bits of `SHA-256(entropy)` as checksum = 264 bits = 24 × 11-bit indices into the canonical English BIP39 wordlist (2048 words)
-- **View:** Settings… → Identity → **View recovery phrase** (the phrase is cached in the Keychain via `MasterMnemonicStore`, or derived on demand from the master key)
-- **Restore:** Settings… → Identity → **Restore from recovery phrase** — validates the checksum, re-installs the master key into the Keychain, and existing agents and access keys start working again
+- **View:** **Settings → Osaurus ID → Master Address → View recovery phrase** (the phrase is cached in the Keychain via `MasterMnemonicStore`, or derived on demand from the master key)
+- **Restore:** **Settings → Osaurus ID → Danger Zone → Restore From Recovery Phrase** — validates the checksum, re-installs the master key into the Keychain, and existing agents and access keys start working again
 
 ### What the phrase does and doesn't recover
 
@@ -344,7 +346,7 @@ The path lives in the agent JSON on disk (`~/.osaurus/agents/<id>.json`) and any
 
 ### Identity drift and scope repair
 
-The Identity view checks persisted derivatives against the current master and surfaces a banner when agent addresses or access keys reference a previous master. Each agent is checked against **its own** derivation (v1 or v2), so a legacy agent isn't flagged just because the v2 derivation at the same index differs.
+The Osaurus ID page checks persisted derivatives against the current master and surfaces a banner when agent addresses or access keys reference a previous master. Each agent is checked against **its own** derivation (v1 or v2), so a legacy agent isn't flagged just because the v2 derivation at the same index differs.
 
 If an older build re-saved a v2 agent without its `agentDeviceScope`, but the v2 derivation under *this* device's scope reproduces the stored address exactly, the scope is written back automatically — no address, index, or key changes — and the view reports "Restored the device scope for N agent address(es) saved by an older version. No keys were changed." A dropped scope diagnosed on a *different* device stays flagged, since nothing lossless can be done there.
 
@@ -372,20 +374,26 @@ External tools, MCP clients, and remote agents authenticate using `osk-v1` acces
 
 Access keys bridge the gap between hardware-bound internal identity and the need for third-party integrations that can't access the Secure Enclave.
 
-### Bonjour pairing
+### Agent invites (`POST /pair-invite`)
 
-`POST /pair` is an unauthenticated, signature-verified flow used by the in-app connector to onboard a new device against a Bonjour-discovered agent.
+Sharing one agent with another person or device goes through a signed, single-use `AgentInvite`, handed out as a deeplink and redeemed over the agent's [relay](/remote-access) tunnel:
 
-1. Connector fetches a **single-use challenge nonce** from `GET /pair/challenge` (rate-limited per IP)
-2. Connector signs `nonce:encPub` — the challenge bound to its ephemeral encryption public key — with its `connectorAddress` private key (domain prefix `Osaurus Signed Pairing`)
-3. The Osaurus instance verifies the signature, resolves the target agent, and shows an approval dialog naming both the connector and the agent
-4. On approval, the host mints an **agent-scoped** `osk-v1` key for the approved agent (signed along `agent.agentKeyPath`) with a **90-day expiration** by default. The user can opt in to a non-expiring key via the dialog's "Remember this device permanently" toggle
-5. The key is **HPKE-sealed** to the connector's ephemeral public key, and the response is signed by the host with the `Osaurus Signed Pairing Server` domain prefix so the connector can verify the host's identity. (A plaintext `apiKey` is only returned for legacy clients that omit `encPub`.)
-6. The response body containing the new key is sent on the wire but **never persisted to the request log** — `InsightsService` redacts both `apiKey` JSON values and `Bearer osk-…` headers as defense-in-depth across all logged bodies
+1. The owner's Mac pre-approves the invite at generation time and signs it with that **agent's own derived key** (domain prefix `Osaurus Signed Invite`). It names the agent's address (`addr`) and carries a nonce.
+2. The receiver's app posts the invite to `<relay url>/pair-invite` with a fresh X25519 `encPub`.
+3. The host recovers the signer, requires it to equal `addr`, checks the invite hasn't been used, consumes the nonce, and mints an **agent-scoped** `osk-v1` key for that agent with a 90-day default expiry.
+4. The key is **HPKE-sealed** (X25519 + HKDF-SHA256 + ChaCha20-Poly1305) to `encPub`, with the agent address and nonce bound into the HPKE `info`. The relay terminates TLS and is untrusted by design, so it never sees the key in plaintext.
 
-The iPhone app pairs differently, through **Settings… → Mobile**: a SPAKE2 (RFC 9382) exchange over secp256k1 keyed by the 6-digit code (`POST /pair/code`, then `POST /pair/confirm`), so the code never travels and a swapped share fails confirmation. The phone's key covers every agent on the Mac. [Mobile →](/mobile#under-the-hood)
+The route is unauthenticated, capped at 64 KiB, and rate-limited per source IP (`PairingRateLimiter`). The response body containing the key is sent on the wire but **never persisted to the request log**: `InsightsService.redactCredentials` scrubs `osk-v1` values and `Bearer osk-…` headers across every logged body.
 
-Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. The Settings… → Server pane labels them as **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."*
+### LAN pairing (retired)
+
+Osaurus no longer advertises agents over Bonjour (`_osaurus._tcp`), and the LAN `GET /pair/challenge` + `POST /pair` flow is gone: both routes return `404` (or `401` from the auth gate for a non-loopback caller). Your own Macs and iPhone reach each other through [Devices & Sync](/devices); other people use invites and [Workspaces](/workspaces). Keys the old flow minted stay valid until they expire (90 days) or are revoked.
+
+Pairings approved before the agent-scoping fix are master-scoped, never-expiring keys. **Settings → Server** labels them **Legacy** and explains: *"Pre-upgrade pairing — grants access to all agents and never expires."* Revoke them to tighten access.
+
+### Phone pairing (until Sync)
+
+An older iPhone app pairs through a 6-digit code: a SPAKE2 (RFC 9382) exchange over secp256k1 keyed by the code (`POST /pair/code`, then `POST /pair/confirm`), so the code never travels and a swapped share fails confirmation. The phone's key covers every agent on the Mac. These routes stay open for one release, under **Settings → Devices → Mobile**. Once an iPhone has joined the Sync account (`MobileConnectMigration.isRetired`), `/pair/hello`, `/pair/code`, `/pair/confirm`, and `/pair/unpair` answer `410` with `update_required`.
 
 ### Owner redeem (same identity, another device)
 
@@ -403,7 +411,7 @@ Both Osaurus HTTP servers reject oversized request bodies before the auth gate r
 
 | Endpoint | Limit | Configurable via |
 |---|---|---|
-| `POST /pair` (also `/pair-invite`, `/secure/session`) | 64 KiB | `ServerConfiguration.maxPairingBodyBytes` |
+| `POST /pair-invite`, `/secure/session`, `/pair/code`, `/pair/confirm` | 64 KiB | `ServerConfiguration.maxPairingBodyBytes` |
 | Other public HTTP routes | 32 MiB | `ServerConfiguration.maxRequestBodyBytes` |
 | Sandbox host bridge | 8 MiB | hard-coded in `HostAPIBridgeHandler` |
 
@@ -412,6 +420,17 @@ Both servers enforce the cap with a `Content-Length` pre-check at request head a
 ### Future: cross-instance communication
 
 The address-based design naturally extends to agent-to-agent communication across different Osaurus instances. Since every agent has a globally unique address and can sign messages, agents can verify each other's identity without a shared authority — only knowledge of the other agent's address is needed.
+
+## Log in with Osaurus (`osl-v1`)
+
+First-party websites (`https://store.osaurus.ai`, `https://osaurus.ai`, `https://www.osaurus.ai`) can sign someone in with their master address, with no Osaurus login server:
+
+1. The site opens `osaurus://auth/authorize?client_id=<origin>&redirect_uri=<url>&state=…&nonce=…`.
+2. Osaurus refuses origins not on its built-in allowlist, then shows a consent panel naming the origin. On **Continue**, it asks for Touch ID or the login password with a fresh `LAContext` and no reuse window.
+3. The master key signs an `osl-v1` assertion: base64url JSON with `typ`, `ver`, `iss` (the lowercase master address), `aud` (the origin), `redirect_uri`, `nonce`, `iat`, `exp` (`iat + 300`), `jti`, and optional `osaurus_id` and `dev`. The signature is EIP-191 `personal_sign` over `osaurus-login-v1.<payload>`, so any Ethereum library verifies it. The key is zeroed after signing.
+4. Osaurus opens `redirect_uri` in the default browser with `assertion` and `state` in the fragment. The site verifies the signature and claims and consumes the nonce once.
+
+The `osaurus-login-v1.` message prefix keeps logins disjoint from every other EIP-191 message the master key signs (`osaurus-workflow:`, `osaurus-credits:`, `osaurus-owner:redeem:`). Recent sign-ins are listed under **Settings → Osaurus ID → Sign In with Osaurus**. The full relying-party flow is on [Log in with Osaurus](/login-with-osaurus).
 
 ## Security properties
 
@@ -424,13 +443,16 @@ The address-based design naturally extends to agent-to-agent communication acros
 | Owner-device access | `owner_redeem` requires a fresh master signature over a single-use, device-bound nonce; keys are HPKE-sealed, 90-day, agent-scoped, and never issued for built-in agents |
 | Device keys hardware-bound | Secure Enclave P-256 via App Attest (`DCAppAttestService`) |
 | Anti-replay | The two-layer identity token carries a per-device monotonic counter (`cnt`); on access keys, `cnt` is recorded at creation for bulk revocation. Routine `osk-v1` Bearer auth does not use a per-request counter — replay protection over the network comes from the [Secure Channel](/secure-channel) sequence numbers |
-| Domain separation | `Osaurus Signed Message`, `Osaurus Signed Access`, `Osaurus Signed Pairing`, `Osaurus Signed Pairing Server`, `Osaurus Signed Invite`, and `Osaurus Secure Channel` prefixes prevent cross-protocol signature reuse |
+| Domain separation | `Osaurus Signed Message`, `Osaurus Signed Access`, `Osaurus Signed Invite`, and `Osaurus Secure Channel` prefixes prevent cross-protocol signature reuse; EIP-191 messages carry unique leading tags (`osaurus-login-v1.`, `osaurus-workflow:`, `osaurus-credits:`, `osaurus-owner:redeem:`) |
+| Website logins need user presence | A consent panel, then a fresh `LAContext.evaluatePolicy` (no reuse window), before the master key signs an origin-bound, single-use, 5-minute `osl-v1` assertion; only allowlisted first-party origins can ask |
 | Recovery phrase | 24-word BIP39 mnemonic of the master key; viewable behind biometrics, restorable on a new Mac |
 | Canonical encoding | Access key payloads use sorted-key JSON for deterministic signature verification |
 | Memory safety | Master key bytes are zeroed after use (`memset` / index-level zeroing) |
-| Pairings scoped to one agent | `/pair` mints agent-scoped keys (signed along the approved agent's key path), 90-day default expiry |
-| Issued credentials never logged | `/pair` success path logs a redacted body; `InsightsService.redactCredentials` scrubs `osk-v1` values and `Bearer` headers everywhere |
-| Pre-auth body-size limits | `/pair` capped at 64 KiB, other public routes at 32 MiB; rejected with `413` before the auth gate |
+| Invites scoped to one agent | `/pair-invite` mints agent-scoped keys (signed along the invited agent's key path), 90-day default expiry |
+| Minted keys sealed in transit | `/pair-invite` and `/pair/code` HPKE-seal the fresh `osk-v1` key to the connector's ephemeral public key |
+| Pairing endpoints rate-limited | `PairingRateLimiter` caps `/pair/code`, `/pair/confirm`, and `/pair-invite` per source IP, with a cooldown after a wrong code or denial; `/secure/session` has its own instance |
+| Issued credentials never logged | `/pair/code` and `/pair-invite` log redacted bodies; `InsightsService.redactCredentials` scrubs `osk-v1` values and `Bearer` headers everywhere |
+| Pre-auth body-size limits | Pairing and invite routes capped at 64 KiB, other routes at 32 MiB; rejected with `413` before the auth gate |
 
 ## File reference
 
@@ -438,8 +460,13 @@ The address-based design naturally extends to agent-to-agent communication acros
 |---|---|
 | `MasterKey.swift` | Generate, store, read, sign with the secp256k1 master key in iCloud Keychain |
 | `AgentKey.swift` | Deterministic child key derivation (HMAC-SHA512, v1 master-global and v2 device-scoped), `AgentKeyPath`, and signing for per-agent identities |
-| `MobileConnectIdentity.swift` | The Mac's connect identity for the paired phone (`osaurus-connect-v1`) |
-| `PairingSPAKE2.swift` | SPAKE2 pairing exchange with the iPhone app |
+| `Services/MobileConnect/MobileConnectIdentity.swift` | The Mac's connect identity for the paired phone (`osaurus-connect-v1`) |
+| `Services/MobileConnect/MobileConnectMigration.swift` | Retires the 6-digit phone pairing routes once an iPhone joins Sync |
+| `PairingSPAKE2.swift` | SPAKE2 pairing exchange with the older iPhone app |
+| `PairingRateLimiter.swift` | Per-source-IP rate limiting and denial cooldown for the unauthenticated pairing and invite routes |
+| `PairingKeyEnvelope.swift` | HPKE sealing of freshly minted keys to the connector's ephemeral public key |
+| `Models/Agent/AgentInvite.swift` | Signed, single-use agent invite redeemed on `/pair-invite` |
+| `Services/Auth/LoginWithOsaurus/` | Log in with Osaurus: request validation and origin allowlist, `osl-v1` assertion signing, the Touch ID gate, the consent panel, and sign-in history |
 | `IdentityHealthCheck.swift` | Classifies persisted derivatives as healthy / mismatched / recoverable-scope against the current master |
 | `OwnerDeviceAccessHost.swift` | `owner_redeem` on `/pair-invite`: challenge table, master-signature verification, built-in guard, key mint + HPKE seal, per-device key records |
 | `DeviceKey.swift` | App Attest key generation, attestation, assertion, and software fallback |
@@ -460,8 +487,9 @@ The address-based design naturally extends to agent-to-agent communication acros
 
 **Related:**
 
-- [Identity](/identity) — the everyday view
-- [Mobile](./mobile.md) — pairing the iPhone app
+- [Osaurus ID](/identity) — the everyday view
+- [Devices & Sync](/devices) — how your own Macs and iPhone join
+- [Log in with Osaurus](/login-with-osaurus) — the website sign-in flow
 - [Storage & Encryption](/storage) — how the storage DEK can optionally be derived from the master key
-- [Public Links](/relay) — uses the agent's signature to authenticate the tunnel
-- [HTTP API → Authentication](/api#authentication) — using `osk-v1` from clients
+- [Remote Access](/remote-access) — uses the agent's signature to authenticate the relay tunnel
+- [HTTP API](/api) — using `osk-v1` from clients

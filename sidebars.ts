@@ -19,6 +19,19 @@ const sidebars: SidebarsConfig = {
       items: [
         { type: "doc", id: "installation", label: "Installation" },
         { type: "doc", id: "quickstart", label: "Quick Start" },
+        { type: "doc", id: "upgrading", label: "Upgrading from Classic" },
+      ],
+    },
+    {
+      type: "category",
+      label: "Workflows",
+      collapsed: false,
+      items: [
+        { type: "doc", id: "workflows", label: "Workflows" },
+        { type: "doc", id: "workflows-build", label: "Build with the Architect" },
+        { type: "doc", id: "workflows-run", label: "Run a Workflow" },
+        { type: "doc", id: "workflows-share", label: "Share a Workflow" },
+        { type: "doc", id: "automations", label: "Automations" },
       ],
     },
     {
@@ -32,8 +45,10 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "agent-templates", label: "Agent Templates" },
         { type: "doc", id: "harness-runtimes", label: "Runtimes" },
         { type: "doc", id: "projects", label: "Projects" },
-        { type: "doc", id: "agent-loop", label: "Tasks" },
+        { type: "doc", id: "agent-loop", label: "Working in Chat" },
+        { type: "doc", id: "tasks", label: "Tasks" },
         { type: "doc", id: "subagents", label: "Subagents" },
+        { type: "doc", id: "agent-db", label: "Agent DB & Self-Scheduling" },
         { type: "doc", id: "image-generation", label: "Image & Video" },
         { type: "doc", id: "computer-use", label: "Computer Use" },
         { type: "doc", id: "apple-apps", label: "Apple Apps" },
@@ -43,7 +58,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "text-to-speech", label: "Text-to-Speech" },
         { type: "doc", id: "app-intents", label: "Shortcuts, Spotlight & Siri" },
         { type: "doc", id: "claude-plugins", label: "Claude Plugins" },
-        { type: "doc", id: "themes", label: "Themes" },
+        { type: "doc", id: "appearance", label: "Appearance" },
       ],
     },
     {
@@ -61,23 +76,13 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Automation",
-      collapsed: true,
-      items: [
-        { type: "doc", id: "schedules", label: "Schedules" },
-        { type: "doc", id: "watchers", label: "Watchers" },
-        { type: "doc", id: "agent-db", label: "Agent DB & Self-Scheduling" },
-      ],
-    },
-    {
-      type: "category",
       label: "Sharing & Access",
       collapsed: true,
       items: [
         { type: "doc", id: "workspaces", label: "Workspaces" },
-        { type: "doc", id: "mobile", label: "Mobile" },
-        { type: "doc", id: "identity", label: "Identity" },
-        { type: "doc", id: "relay", label: "Public Links" },
+        { type: "doc", id: "devices", label: "Devices & Sync" },
+        { type: "doc", id: "identity", label: "Osaurus ID" },
+        { type: "doc", id: "remote-access", label: "Remote Access" },
         { type: "doc", id: "secure-channel", label: "Secure Channel" },
         { type: "doc", id: "agent-channels", label: "Agent Channels" },
       ],
@@ -88,6 +93,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         { type: "doc", id: "security", label: "Security & Privacy" },
+        { type: "doc", id: "vault", label: "Vault" },
         { type: "doc", id: "privacy-filter", label: "Privacy Filter" },
         { type: "doc", id: "telemetry", label: "Telemetry" },
       ],
@@ -102,6 +108,7 @@ const sidebars: SidebarsConfig = {
         { type: "doc", id: "sdk-examples", label: "SDK Examples" },
         { type: "doc", id: "cli", label: "CLI" },
         { type: "doc", id: "integrations", label: "Integrations" },
+        { type: "doc", id: "login-with-osaurus", label: "Log in with Osaurus" },
         {
           type: "category",
           label: "Tools & Plugins",
@@ -142,7 +149,6 @@ const sidebars: SidebarsConfig = {
             { type: "doc", id: "memory-internals", label: "Memory Internals" },
             { type: "doc", id: "identity-internals", label: "Identity Cryptography" },
             { type: "doc", id: "inference-runtime", label: "Inference Runtime" },
-            { type: "doc", id: "watcher-internals", label: "Watcher Internals" },
             { type: "doc", id: "developer-tools", label: "Developer Tools" },
             { type: "doc", id: "developer", label: "Building from Source" },
           ],

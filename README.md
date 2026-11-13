@@ -101,14 +101,15 @@ Set `CHROME_PATH` if Chrome isn't in `/Applications`. Edit the HTML, re-render, 
 
 ## Writing for everyone
 
-Most readers aren't developers. Write user-facing pages (Getting Started through Privacy & Trust) so a Mac user with no technical background can follow them.
+Most readers aren't developers. Write user-facing pages (Getting Started, Workflows, and everything through Privacy & Trust) so a Mac user with no technical background can follow them. Before calling a page done, read its top aloud as if to a friend who has never used Osaurus, and replace any word they'd ask about.
 
 - **Open with the point.** The first two or three sentences say what the feature is, why you'd use it, and what you need.
-- **Steps happen in the app.** Number them, and use the exact labels the app shows (**Settings… → Agents**). Keep curl, YAML, JSON, tool names, and file paths out of the main flow.
+- **Steps happen in the app.** Number them, and use the exact labels the app shows (**Settings → Agents**). Settings opens inside the main window (the gear at the bottom of the navigation rail, or ⌘,), so write paths as **Settings → …**, never "Settings…". Keep curl, YAML, JSON, tool names, and file paths out of the main flow.
 - **Explain jargon on first use.** Link the term to the [Glossary](docs/glossary.md), like `[Sandbox](/glossary#sandbox)`, or add a short phrase in parentheses. If a term isn't in the glossary yet, add it.
 - **Short sentences, written to "you".** Prefer "Osaurus asks before sending" to "outbound dispatch is gated on approval".
 - **Put technical detail last.** End the page with a horizontal rule and an `## Under the hood` section for API calls, configuration, tool names, storage paths, and internals.
-- **Use one name per thing:** Orchestrator (not "default agent"), Working Folder (not "trusted folder"; Schedules' **Working Directory** is the one exception), Insights for the screen and activity log for what it records, Osaurus Router for the service and Osaurus Cloud for the picker label, Public Links for the feature and relay for the mechanism.
+- **Use one name per thing:** Orchestrator (not "default agent"), Working Folder (not "trusted folder"), Insights for the screen and activity log for what it records, Osaurus Router for the service and Osaurus Cloud for the picker label, Remote Access for the feature and relay for the mechanism, Automations (not Schedules or Watchers), Vault (not Keys), Devices & Sync (not Mobile), Osaurus ID (not Identity), and Architect for the workflow builder.
+- **Lead with workflows where they help.** Workflows are the main way Osaurus saves people time. When a page describes a repeat task, link to [Workflows](docs/workflows.md), and when it describes sharing, link to [Share a Workflow](docs/workflows-share.md).
 
 Page shape:
 

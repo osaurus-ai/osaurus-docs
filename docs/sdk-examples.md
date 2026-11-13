@@ -1,21 +1,23 @@
 ---
 title: SDK Examples
 sidebar_label: SDK Examples
-description: Code examples for using Osaurus from Python, JavaScript, Swift, Rust, Go, Ruby — plus Anthropic SDK, Open Responses, and the agent header.
+description: Code examples for using Osaurus from Python, JavaScript, Swift, Rust, Go, Ruby — plus Anthropic SDK, Open Responses, the agent header, and running a workflow from a script.
 ---
 
 # SDK Examples
 
+This page is for developers who want copy-and-paste code for calling Osaurus from their own apps and scripts.
+
 Osaurus is OpenAI-, Anthropic-, Open Responses-, and Ollama-compatible at the same port. Pick whichever your stack already uses; this page has working snippets for the common ones.
 
-For local clients, any value works as the API key. For LAN, Relay, or any non-loopback caller, use an [`osk-v1` access key](/identity#access-keys) — the snippets below show both forms.
+For local clients, any value works as the API key. For callers on your network, through [Remote Access](/remote-access), or any other non-loopback caller, use an [`osk-v1` access key](/identity) — the snippets below show both forms.
 
 ## Quick Setup
 
 Before running any examples:
 
 1. **Start Osaurus**: `osaurus serve` or use the UI
-2. **Download a model**: **Settings…** (`⌘ ,`) → **Local Models**, or `osaurus pull <model>`
+2. **Download a model**: **Settings → Local Models** (`⌘ ,` opens Settings), or `osaurus pull <model>`
 3. **Note your URL**: Default is `http://127.0.0.1:1337`
 4. **Check liveness**: `curl http://127.0.0.1:1337/health`
 
@@ -37,7 +39,7 @@ from openai import OpenAI
 # Initialize client
 client = OpenAI(
     base_url="http://127.0.0.1:1337/v1",
-    api_key="osaurus"  # any value works for loopback; use an osk-v1 key for LAN/Relay
+    api_key="osaurus"  # any value works for loopback; use an osk-v1 key for remote callers
 )
 
 # Simple completion
@@ -275,7 +277,7 @@ message = client.messages.create(
 print(message.content[0].text)
 ```
 
-Upstream overview copy labels `/anthropic/v1/messages` canonical, but the pinned local handler does not normalize an `/anthropic` prefix. Keep the root `base_url` shown above until that route registration changes. See the [HTTP API route note](/api#compatible-apis).
+Upstream overview copy labels `/anthropic/v1/messages` canonical, but the pinned local handler does not normalize an `/anthropic` prefix. Keep the root `base_url` shown above until that route registration changes. See the [HTTP API route note](/api).
 
 Streaming and tool use are fully supported. The same model name namespace as `/v1/chat/completions` applies — you can target `foundation`, any local model, or any cloud model you've configured.
 
@@ -363,7 +365,7 @@ Distillation flushes immediately at the end of the batch, so the next chat can r
 
 ### Structured JSON output (local models)
 
-Constrain a local model's reply to a JSON Schema. The model must be in a non-reasoning mode, and the request can't also carry tools. [Supported schemas →](/api#structured-output)
+Constrain a local model's reply to a JSON Schema. The model must be in a non-reasoning mode, and the request can't also carry tools. [Supported schemas →](/api)
 
 ```python
 import json
@@ -436,9 +438,83 @@ print(state)
 
 Cancel with `DELETE /tasks/{id}`; if the task asks a clarifying question, answer it with `POST /tasks/{id}/clarify` and `{"response": "…"}`. [API details →](/api)
 
-### Using an `osk-v1` access key (LAN / Relay)
+### Run a workflow and answer its form
 
-Mint a key from **Settings… → Server → Overview → Access Keys** and pass it as the API key string:
+A script can start a saved [workflow](/workflows), follow the run, and fill in a form the workflow stops for. The simplest way to start one from outside the app is a Webhook [automation](/automations):
+
+1. Open **Settings → Automations → Add Automation** and pick **Webhook**.
+2. Set **Do** to **Run Workflow**, pick the workflow, and bind its **Inputs** to fields of the posted body (for example *Body: meeting*). Leave verification on *HMAC-SHA256 signature*.
+3. Save, then copy the **Webhook URL** and the secret from the automation's **Webhook URL** card.
+
+The script posts to the webhook, waits for the automation to report the workflow run it started, then polls that run. When the run comes back `awaiting_user`, it answers the waiting form and keeps polling until the run ends.
+
+```python
+import hashlib, hmac, json, time, requests
+
+BASE = "http://127.0.0.1:1337"
+WEBHOOK_URL = f"{BASE}/events/YOUR_TOKEN"   # from the Webhook URL card
+SECRET = b"YOUR_WEBHOOK_SECRET"
+
+# 1. Start the run. The body is what the automation's Inputs read from.
+body = json.dumps({"meeting": "Design review, Thursday 10:00"}).encode()
+signature = "sha256=" + hmac.new(SECRET, body, hashlib.sha256).hexdigest()
+fired = requests.post(
+    WEBHOOK_URL,
+    data=body,
+    headers={"Content-Type": "application/json", "X-Osaurus-Signature": signature},
+)
+fired.raise_for_status()                      # 202 {run_id, status, status_url}
+status_url = BASE + fired.json()["status_url"]
+
+# 2. Wait for the automation to start the workflow.
+workflow_run_id = None
+while workflow_run_id is None:
+    automation_run = requests.get(status_url).json()
+    workflow_run_id = automation_run.get("workflow_run_id")
+    if workflow_run_id is None:
+        if automation_run["status"] not in ("received", "queued", "running"):
+            raise SystemExit(f"Automation did not start the workflow: {automation_run}")
+        time.sleep(1)
+
+# 3. Follow the workflow run and answer its form when it asks.
+run_url = f"{BASE}/workflows/runs/{workflow_run_id}"
+while True:
+    run = requests.get(run_url).json()
+    form = run.get("pending_dialog")
+    if run["status"] == "awaiting_user" and form:
+        print(form["title"], "-", form["message"])
+        values = {}
+        for field in form["fields"]:
+            default = form["prefill"].get(field["key"], "")
+            values[field["key"]] = input(f"{field['label']} [{default}]: ") or default
+        answer = requests.post(
+            f"{run_url}/dialogs/{form['node_id']}", json={"values": values}
+        )
+        if answer.status_code == 422:         # the answer didn't fit the form
+            print(answer.json()["issues"])
+            continue
+        answer.raise_for_status()             # 409 means another form is first
+    elif run["status"] in ("running", "awaiting_user"):
+        time.sleep(2)
+    else:
+        break
+
+print(run["status"])
+print(json.dumps(run.get("output") or run.get("error"), indent=2))
+```
+
+A few notes:
+
+- Send values in the field's type: `true` or `false` for `bool`, a number for `number` (a numeric string also works), and one of `options` for `choice`. To skip the form, post `{"dismiss": true}` instead.
+- `prefill` never includes secret values, so a `secret` field always needs a fresh answer.
+- These routes answer only this Mac's owner. From another machine they need a master access key and the [Secure Channel](/secure-channel), so run a script like this on the Mac itself.
+- The same form also appears on the Mac (in the run page and a notification). Whichever answer comes first wins; the other gets `404 dialog_not_pending`.
+
+[Workflow run routes →](/api)
+
+### Using an `osk-v1` access key (network / Remote Access)
+
+Mint a key from **Settings → Server → Access Keys** and pass it as the API key string:
 
 ```python
 client = OpenAI(
@@ -456,7 +532,7 @@ client = anthropic.Anthropic(
 )
 ```
 
-The same key is needed from this Mac for `/agents`, `/sessions`, `/mcp/*`, and `/admin/config/*` when **Require Access Key for Local Admin Routes** is on. [Security →](/security#local-access-key)
+The same key is needed from this Mac for `/agents`, `/sessions`, `/conversations/*`, `/mcp/*`, `/admin/config/*`, and `/admin/import/*` when **Require Access Key for Local Admin Routes** is on. [Security →](/security)
 
 ## JavaScript/TypeScript Examples
 
@@ -1105,4 +1181,6 @@ class RateLimitedClient {
 - [Integrations](/integrations) — framework-specific guides
 - [Memory](/memory) — what your AI remembers
 - [Memory Internals](/memory-internals) — what `X-Osaurus-Agent-Id` does
-- [Identity](/identity) — minting and revoking `osk-v1` keys
+- [Osaurus ID](/identity) — minting and revoking `osk-v1` keys
+- [Workflows](/workflows) — building and running workflows
+- [Log in with Osaurus](/login-with-osaurus) — sign people in to your site with their Osaurus ID
