@@ -370,7 +370,7 @@ hr {
 }
 
 .navbar__logo {
-  height: 32px;
+  height: 28px;
   margin-right: 0;
 }
 
@@ -1131,7 +1131,7 @@ footer .footer__links > .col.footer__col {
 }
 
 .footer__logo {
-  height: 28px;
+  height: 32px;
   width: auto;
   margin: 0;
 }

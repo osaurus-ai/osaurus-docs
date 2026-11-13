@@ -24,7 +24,7 @@ const osaurusPrismTheme: PrismTheme = {
 const config: Config = {
   title: "Osaurus Docs",
   tagline: "Own your AI — a local-first agent harness for Apple Silicon",
-  favicon: "img/favicon-64.png",
+  favicon: "img/osaurus-favicon-64.png",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -151,7 +151,7 @@ const config: Config = {
     })),
     {
       tagName: "link",
-      attributes: { rel: "apple-touch-icon", href: "/img/apple-touch-icon.png" },
+      attributes: { rel: "apple-touch-icon", href: "/img/osaurus-apple-touch-icon.png" },
     },
     {
       tagName: "meta",
@@ -236,9 +236,9 @@ const config: Config = {
       title: "",
       logo: {
         alt: "Osaurus",
-        src: "img/osaurus-wordmark.svg",
-        width: 115,
-        height: 32,
+        src: "img/osaurus-wordmark-v2.svg",
+        width: 133,
+        height: 28,
       },
       items: [
         {
@@ -300,10 +300,10 @@ const config: Config = {
       style: "dark",
       logo: {
         alt: "Osaurus",
-        src: "img/osaurus-wordmark-white.svg",
+        src: "img/osaurus-wordmark-v2-white.svg",
         href: "https://osaurus.ai",
-        width: 101,
-        height: 28,
+        width: 152,
+        height: 32,
       },
       links: [
         {

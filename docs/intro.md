@@ -7,7 +7,7 @@ hide_title: true
 ---
 
 <div className="docs-hero">
-  <img className="docs-hero__mark" width="64" height="64" alt="" src="/img/osaurus-logo.svg" />
+  <img className="docs-hero__mark" width="64" height="64" alt="" src="/img/osaurus-mark.svg" />
   <span className="eyebrow">Osaurus documentation</span>
   <h1 className="docs-hero__title">Own your AI.</h1>
   <p className="docs-hero__lede">Agents that remember, run real code, and stay reachable — on your Mac, offline, and open source.</p>
