@@ -1,87 +1,109 @@
 ---
 title: Quick Start on Windows
 sidebar_label: Quick Start
-description: First launch of Osaurus for Windows — create your first assistant, give it a model, start chatting, and find your way around Settings.
+description: First launch of Osaurus for Windows. Answer a few questions, review the plan, meet your team of agents, and find your way around Settings.
 ---
 
 # Quick Start on Windows
 
-The first time you open Osaurus, a short setup creates your first assistant (Osaurus calls them Dinos, or [agents](/glossary#agent)) and gives it an AI model. It takes a minute, and you can change every choice later.
+The first time you open Osaurus, a short setup asks five quick questions and builds a team of [agents](/glossary#agent) around what you do. It takes about two minutes, every question can be skipped, and nothing is set up until you've seen the whole plan and said yes.
 
 ## First launch
 
-Setup has three steps.
+### Before the questions
 
-1. **Welcome.** Click **Get started**. The **Share anonymous usage data to help improve Osaurus** box is checked; uncheck it if you'd rather not. It never includes your chats, prompts, files, or keys, and you can change it later in **Settings → Data & privacy**.
-2. **Your first Dino.** Pick what it should be great at: **Everyday helper**, **Research & writing**, or **Coding & development**. Give it a name and a look if you like, then click **Create your Dino**.
-3. **A brain for your Dino.** Choose the [model](/glossary#model) it runs on:
-   - **Osaurus Cloud**: hosted models billed to your Osaurus account, with nothing to download and no key. Click **Use Osaurus Cloud**. Osaurus creates an [account](/glossary#osaurus-id) for you if you don't have one yet.
-   - **Run on this PC**: a free, private model that works offline. Offered when your graphics card has about 12 GB of memory. Click **Use this PC**; you can start chatting while the rest of the model downloads.
-   - **Your own provider**: sign in with ChatGPT or Grok, paste an API key for OpenAI, Anthropic, or Gemini, or use Claude Code if it's installed. Choose **More** for the full list.
+The first screen introduces Osaurus. Click **Let's begin**, or **Skip, I'll look around** (see [Skipping setup](#skipping-setup)).
 
-   Then click **Continue to Osaurus**. Or click **Set up later** and add a model from **Settings** whenever you're ready.
+- The **Share anonymous usage data to help improve Osaurus** box is checked. It covers which steps people finish and what they pick, never what you type. Uncheck it if you'd rather not; you can change it later in **Settings → Privacy → Data**.
+- On a PC that can run it, Osaurus starts downloading a small model, Raptor 0.7 4B, in the background, so it can read your answers on this PC. On a metered connection it asks first, with **Get it**. Click **Stop** if you don't want it. Setup never waits for it.
+
+### The five questions
+
+Use **Back** to change an earlier answer, and **Skip setup** at the top right to stop before the plan is applied.
+
+1. **What should I call you?** Type your first name and press Enter. It stays on this PC.
+2. **What fills most of your week?** Pick up to three areas; each one brings a teammate (an agent for that kind of work). The number keys pick them too. Nothing fits? Describe it under **Something else?** and click **Suggest** for teammates made from your words.
+3. **Where do you keep your work?** Click **Choose a folder…** to point Osaurus at it, or **Not now**. Osaurus looks at file names and types only, and opens nothing. **Keep it as a project** (on by default) keeps chats about that folder together in one [project](/windows/projects).
+4. **Anything you do on repeat?** Osaurus suggests routines it can run on a schedule, or when something changes in your folder. None is picked for you: each says what it may do without asking, so tick only the ones you want. You can pause any of them later in **Settings → Automations**.
+5. **Where should the thinking happen?** Choose the [model](/glossary#model) your team runs on:
+   - **Only on this PC** (Most private): nothing you write leaves this computer. One download, then it works offline. Offered when your graphics card has 12 GB of memory or more; Osaurus says which model your PC can run and how fast.
+   - **Osaurus Cloud** (No download): runs on Osaurus's servers, so it's quick on any PC. Pay as you go, with your balance shown in each chat. Names, numbers and addresses it spots are swapped out before anything is sent.
+   - **My ChatGPT or Claude plan** (Already paying?): sign in with the plan you already pay for, with the same swapping. Claude needs the Claude Code app on this PC.
+
+   Osaurus preselects what fits your PC. Click **See the plan**. (**Decide later** works like skipping setup: see [Skipping setup](#skipping-setup).)
+
+### The plan
+
+**Here's what I'd set up for you** lists your team and everything else setup will do: the routines you ticked, your folder or project, and the model. Each line has a switch, so you can leave anything out. Before the plan, each routine you ticked is shown once more, in full, with **Confirm** or **Leave out**.
+
+- **Show the exact changes** shows the exact settings Osaurus will apply. Nothing has changed yet.
+- **Set it up** applies the plan.
+
+Osaurus then makes your team, books the routines and gets the model ready: it downloads the local model, connects to Osaurus Cloud (creating an [Osaurus account](/glossary#osaurus-id) on this PC to hold your balance), or asks you to **Sign in with ChatGPT** or **Use Claude Code**. When it's done, click **Meet your team**, or **Continue anyway** to go in while a download or sign-in finishes. If you described something setup couldn't turn into a teammate or routine, it waits in a new chat with Osaurus, unsent.
 
 :::tip[Back up your recovery phrase]
-If setup created an account for you, back up its [recovery phrase](/glossary#recovery-phrase) in **Settings → Account**. It's the only way to move your account, and its credits, to another PC.
+If setup created an Osaurus account for you, back up its [recovery phrase](/glossary#recovery-phrase) in **Settings → Account → Show recovery phrase**. It's the only way to move your account, and its credits, to another PC.
 :::
 
-## Chat
+### Skipping setup
 
-The window has your agents down the left side and their conversations as tabs along the top.
+**Skip, I'll look around**, **Skip setup** and **Decide later** forget your answers and ask just one thing: where the thinking should happen, so your first chat has a model that can answer. Click **Set it up** to use that choice, or **Decide later** (or skip again) to go straight in with nothing set up. You can add a model later in **Settings → Models**.
 
-- **Send** with Enter; Shift+Enter starts a new line.
-- **Switch the model** with the model chip in the message box. **Manage** in the picker opens your models.
-- **Start a new conversation** with Ctrl+T, or the **+** at the end of the tabs.
-- **Find an old conversation** with Ctrl+H.
+To go through setup again later, open **Settings → General → Behavior** and click **Run setup again**. You see every change before anything is applied.
 
-### Let an agent work on your files
+## Your first chat
 
-1. Click **+** in the message box and choose **Attach workspace folder…**.
-2. Pick a folder. The agent can now read the files in it and, with your OK, change them or run commands there.
+After setup you land in the main window. Your agents are listed down the left side, with their recent chats under them. **Osaurus** is the built-in agent, the [Orchestrator](/glossary#orchestrator): it sets things up and hands work to the right teammate.
 
-When an agent wants to change a file or run a command, it asks first:
+- Type in the message box and press **Enter** to send; **Shift+Enter** starts a new line.
+- Press **Ctrl+N** for a new chat with the agent you're on.
+- Press **Ctrl+K** to search every chat.
 
-- **Allow once** (Enter) lets this one action through.
-- **Always allow** remembers your answer for this file, folder, command, or tool. You can take it back in **Settings → Behavior**.
-- **Deny** (Esc) refuses. Type a note first to tell the agent what to do instead.
-
-Osaurus records the changes agents make to your files, so you can undo them. If it can't record a change, it tells you before the action runs.
+[Chatting in Osaurus](/windows/chat) covers the window in full: picking a model, attaching files and folders, answering approvals, and the panel beside each chat.
 
 ## Settings
 
-Click **Settings** at the bottom of the agent sidebar. Settings open as a tab named **Control center** that you can close like any other, and **Ctrl+F** searches them. This is the Windows counterpart of the Mac's **Settings…** window, and its sections are grouped like this:
+Click **Settings** at the bottom of the sidebar. Settings opens in the main window: pick a section on the left, then a page from the bar at the top. **Search settings** (Ctrl+F) finds any setting by name, and **Back to chat** returns to your conversation.
 
-| Group | Sections |
+| Section | Pages |
 |---|---|
-| App | Appearance, Behavior, Notifications, Data & privacy, Privacy filter |
-| Intelligence | Providers, Models, Orchestrator, Agents, Memory |
-| Capabilities | Skills, MCP servers, Commands, Sandbox, Browser |
-| Automation | Tasks, Watchers, Schedules |
-| Connectivity | Connections, Mobile, Account, Workspaces, Channels, Web search |
-| Diagnostics | Insights |
+| General | Appearance, Behavior, Notifications, Commands |
+| Privacy | Data, Privacy filter |
+| Models | Providers, Models, Images, Voice |
+| Agents | Agents, Orchestrator, Architect, Configurator, Memory, Knowledge, History |
+| Tools | Skills, MCP servers, Sandbox, Browser, Web search |
+| Automations | Tasks, Watchers, Schedules, Channels |
+| Devices | Connections, Mobile, Sync, Workspaces |
+| Account | Account |
+| Insights | Insights |
+
+**About**, at the foot of the list, shows your version and every release's notes.
 
 A few places to start:
 
-- **Models**: download [local models](/windows/models). The **Catalog** tab shows what fits your PC, with a badge on each: **Runs well**, **Tight fit**, **GPU + RAM** (part of the model runs from system memory, more slowly), or **Too large**.
-- **Providers**: add cloud models: sign in with ChatGPT, Grok, or OpenRouter; paste an API key for OpenAI, Anthropic, Gemini, Azure OpenAI, DeepSeek, or Venice AI; use Claude Code; or connect Ollama or any OpenAI-compatible endpoint.
-- **Agents**: create more [agents](/windows/agents) for different jobs. The [Orchestrator](/windows/agents#the-orchestrator), Osaurus's built-in agent, can also set Osaurus up for you: ask it to add a provider, download a model, or create an agent.
+- **Settings → Models → Models**: download [local models](/windows/models). The catalog shows what fits your PC.
+- **Settings → Models → Providers**: add cloud models from other providers.
+- **Settings → Agents → Agents**: create more [agents](/windows/agents) for different jobs. Or ask Osaurus in a chat: it can add a provider, download a model, or create an agent for you, and you approve each change first.
 
 ## Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
-| Ctrl+T or Ctrl+N | New conversation |
+| Ctrl+N or Ctrl+T | New chat with the current agent |
 | Ctrl+Shift+N | New window |
-| Ctrl+W | Close tab |
-| Ctrl+Tab / Ctrl+Shift+Tab | Next / previous tab |
-| Ctrl+1 … Ctrl+9 | Go to a tab |
+| Ctrl+K (or Ctrl+H, Ctrl+E) | Search chats |
+| Ctrl+Tab / Ctrl+Shift+Tab | Switch between recent chats |
 | Ctrl+Alt+Up / Ctrl+Alt+Down | Previous / next agent |
-| Ctrl+B | Show or hide the agent sidebar |
-| Ctrl+H | Conversation history |
+| Ctrl+B | Narrow or widen the sidebar |
 | Ctrl+Shift+B | This agent's browser |
+| Ctrl+Shift+W | Workflows |
+| Ctrl+Shift+Space | Dictate into the message box (when the microphone button shows; see [Voice](/windows/voice)) |
+| Ctrl+F (in Settings) | Search settings |
 
 ## Next
 
+- Learn the main window: [Chatting in Osaurus](/windows/chat).
+- Turn a task you repeat into a [workflow](/windows/workflows).
 - Connect other apps to Osaurus's local server: see the [HTTP API](/api). The server runs on `http://127.0.0.1:1337`.
 - Use Osaurus from a terminal: see [CLI on Windows](/windows/cli).
 - See what's different from the Mac app: [Windows and Mac](/windows/mac-differences).
