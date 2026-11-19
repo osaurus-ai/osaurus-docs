@@ -62,9 +62,11 @@ The first comparison finds drift since the last review. The second identifies be
 
 The Windows app is a separate reimplementation, so its pages live apart from the Mac's: `windows/`, served under `/windows` by a second docs instance (`id: "windows"`) with its own sidebar in `sidebars-windows.ts`. A Mac page that a Windows reader might land on (Installation, CLI) carries a short "On Windows?" tip pointing across; otherwise the Mac pages stay Mac-only, and the refresh above never needs to touch `windows/`.
 
-`windows-baseline.json` records the Windows release the pages describe: the release branch and commit in `osaurus-ai/winsaurus`, and the features that release withholds. Document only what ships: a withheld feature gets its page the release it ships in, and the "Not in this release yet" list on `windows/mac-differences.md` loses its line the same day. When a new Windows release is cut, check every page under `windows/` against it, run `npm run typecheck` and `npm run build`, then advance the baseline.
+`windows-baseline.json` records the Windows release the pages describe: the release tag and commit in `osaurus-ai/winsaurus`, and the features that release withholds (the `WITHHOLD` list in its `release.yml`). Document only what ships: a withheld feature gets its page the release it ships in. The app's own release notes (`src/Osaurus.App/Assets/whats-new.json`) are a good map of what changed; check each claim against the source at the tag. When a new Windows release is cut, check every page under `windows/` against it, run `npm run typecheck` and `npm run build`, then advance the baseline.
 
-Windows pages follow the same writing rules as the Mac pages. Use the Windows app's own labels (**Settings** in the agent sidebar opens Control Center; there is no **Settings…** window), Windows paths (`%LOCALAPPDATA%\osaurus`), and PowerShell for terminal examples.
+The Windows app links to `/windows/cli` and `/windows/intro` (a redirect to `/windows`), so keep those working. Rename a Windows page only with a redirect in `docusaurus.config.ts`.
+
+Windows pages follow the same writing rules as the Mac pages. Use the Windows app's own labels: **Settings** at the bottom of the sidebar opens Settings inside the main window, in nine sections, so write paths as **Settings → Section → Page** (**Settings → Tools → Sandbox**). Use Windows paths (`%LOCALAPPDATA%\osaurus`) and PowerShell for terminal examples.
 
 ## Project layout
 

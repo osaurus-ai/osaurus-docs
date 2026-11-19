@@ -6,9 +6,11 @@ description: Invite your team to a workspace in Osaurus for Windows, share agent
 
 # Workspaces on Windows
 
-A workspace lets your team chat with agents you share. A shared agent keeps running on your PC; teammates use it from their own Osaurus, on Windows or a Mac. Workspaces work as [Workspaces](/workspaces) describes, with the differences below. They're in **Settings → Workspaces**.
+A workspace lets your team chat with agents you share. A shared agent keeps running on your PC; teammates use it from their own Osaurus, on Windows or a Mac. Workspaces work as [Workspaces](/workspaces) describes, with the differences below. They're in **Settings → Devices → Workspaces**.
 
-You need an Osaurus [account](/windows/account) and **Osaurus Cloud** turned on in **Settings → Providers**; the page tells you if either is missing.
+You need an Osaurus [account](/windows/account) and **Osaurus Cloud** turned on in **Settings → Models → Providers**; the page tells you if either is missing, with **Open Account** or **Open Providers**.
+
+A workspace is for sharing agents with other people. To keep one job's chats, files, and memory together on your own PC, use a [project](/windows/projects) instead.
 
 ## Create or join
 
@@ -26,14 +28,14 @@ On the **Shared agents** tab, click **Share an agent**. Choose the agent, how it
 
 Sharing makes the agent reachable through the Osaurus relay. If remote access is off, Osaurus asks first (**Turn on and share**).
 
-Teammates' agents appear on the same tab: click **Connect**, then **Chat**. A shared agent works only while its owner's PC is on and Osaurus is running. Your agents can also [delegate](/windows/agents#handing-work-to-other-agents) to teammates' agents.
+Teammates' agents appear on the same tab: click **Connect**, then **Chat**. Once connected, they're also in your sidebar under the workspace's name. A shared agent works only while its owner's PC is on and Osaurus is running. Your agents can also [delegate](/windows/agents#handing-work-to-other-agents) to teammates' agents.
 
 ## The workspace pool
 
 A workspace has its own credits, shown on its **Overview** tab.
 
-- **Add credits…** buys credits for the pool ($5 to $500). Bought credits never expire.
-- **Auto-reload…** tops the pool up when it falls below an amount, with a monthly cap ($200 by default).
+- **Add credits…** buys credits for the pool ($5 to $500): choose an amount and click **Continue to checkout**, which finishes in your browser. Pool top-ups carry no fee, and bought credits never expire.
+- **Auto-reload…** charges the card saved on your workspace subscription when the pool falls below an amount, with a monthly cap ($200 by default).
 - **Pool activity** shows who used credits and for what.
 
 A shared agent's Osaurus Cloud usage is billed to you unless you turn on **Bill the workspace pool** for it on the **Shared agents** tab.

@@ -136,6 +136,9 @@ const config: Config = {
           { from: "/schedules", to: "/automations" },
           { from: "/watchers", to: "/automations" },
           { from: "/watcher-internals", to: "/automations" },
+          // The Windows app's About page links /windows/intro; the Windows overview is served at /windows.
+          { from: "/windows/intro", to: "/windows" },
+          { from: "/windows/mobile", to: "/windows/devices" },
         ],
       },
     ],

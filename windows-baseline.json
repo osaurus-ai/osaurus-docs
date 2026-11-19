@@ -1,12 +1,11 @@
 {
   "repo": "osaurus-ai/winsaurus",
-  "documented_branch": "release/0.1.9-beta",
-  "documented_commit": "f05e9bed0f451cf4e5317c5a79ae4f6ced03bd9e",
-  "documented_release": "0.1.9",
-  "published_release": "0.1.8",
-  "withheld_features": ["workflows", "media", "voice"],
-  "verified_date": "2026-11-03",
-  "reviewed_date": "2026-11-03",
+  "documented_tag": "1.0.4",
+  "documented_commit": "81f0fc69a1ef4f42c19879087ac2a08fc097ccb2",
+  "documented_release": "1.0.4",
+  "withheld_features": [],
+  "verified_date": "2026-11-17",
+  "reviewed_date": "2026-11-17",
   "scope": "Everything under windows/.",
-  "notes": "Pages describe the Microsoft Store release on the 0.1.9 beta line. 0.1.8 is the version on the Store today; the osaurus command arrives in 0.1.9, and the CLI page says so. Features withheld from this release are not documented; a page is added the day its feature ships. Advance only after every page under windows/ has been checked against the new release."
+  "notes": "Osaurus for Windows 1.0 (out of beta), documented at the 1.0.4 release tag. release.yml withholds nothing. Foundry Local is switched off in the source (FoundryFeature.Enabled = false) and is not documented. Reconciled from 0.1.9 (f05e9bed): new pages for Chat (the 1.0 main window), Workflows (overview, build with the Architect, run), Projects, Knowledge, Images & Video, Voice, and Coding plans (GitHub Copilot, Antigravity, your own Pi-protocol runtime); iPhone became Devices & Sync (windows/devices, redirect from /windows/mobile); Schedules & Watchers became Automations with Tasks; every Settings path uses the nine-section layout. The app links to /windows/cli and /windows/intro (redirected to /windows). Advance only after every page under windows/ has been checked against the new release."
 }

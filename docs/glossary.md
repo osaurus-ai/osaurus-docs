@@ -94,7 +94,7 @@ When one agent hands a job to another agent and waits for the answer. The agent 
 
 ### Devices {/* #devices */}
 
-Your Macs and iPhone linked together so your chats sync between them, end-to-end encrypted, with no account to create. Set it up in **Settings → Devices**. See [Devices & Sync](/devices).
+Your Macs and iPhone linked together so your chats sync between them, end-to-end encrypted, with no account to create. Set it up in **Settings → Devices**. See [Devices & Sync](/devices), or [Devices & Sync on Windows](/windows/devices).
 
 ### Draft {/* #draft */}
 
@@ -120,6 +120,10 @@ macOS's built-in disk encryption. With it on, everything on your Mac — includi
 
 A macOS privacy setting that lets an app read protected data, such as your Messages history. Only some Osaurus features need it.
 
+### GGUF {/* #gguf */}
+
+The file format for local models on Windows, the same one LM Studio and Ollama use. A GGUF model comes in several builds that trade size for quality ([quantization](#quantization)). See [Models on Windows](/windows/models).
+
 ### Helpers {/* #helpers */}
 
 Four built-in assistants the [Orchestrator](#orchestrator) can call on for quick jobs: **Research** (web search with sources), **Files** (your Working Folder), **Browser** (websites, including ones you're signed in to), and **Code** (running code safely). See [Orchestrator](/orchestrator).
@@ -130,7 +134,7 @@ A website where AI models are published. Osaurus downloads most local models fro
 
 ### Insights {/* #insights */}
 
-The screen in **Settings → Developer Tools → Insights** where you can review the [activity log](#activity-log): what ran, what left your Mac, and what it cost. Workflow runs have their own tab.
+The screen in **Settings → Developer Tools → Insights** where you can review the [activity log](#activity-log): what ran, what left your Mac, and what it cost. Workflow runs have their own tab. On Windows it's **Settings → Insights**; see [Your Data](/windows/data-and-privacy).
 
 ### Installed workflow {/* #installed-workflow */}
 
@@ -149,6 +153,10 @@ macOS's secure password storage. Osaurus keeps its most sensitive keys there, in
 Folders of your own documents that an agent is allowed to search when answering. Unlike [memory](#memory), you choose exactly what goes in. See [Knowledge](/knowledge).
 
 ## L–O
+
+### llama.cpp {/* #llama-cpp */}
+
+The open-source engine Osaurus for Windows uses to run local models, on your graphics card or processor. See [Models on Windows](/windows/models).
 
 ### Local model {/* #local-model */}
 
@@ -238,7 +246,7 @@ Shrinking a model so it uses less memory and disk space, written like "4-bit" or
 
 ### Recovery phrase {/* #recovery-phrase */}
 
-24 words that back up your [Osaurus ID](#osaurus-id). Anyone with them can restore it, so keep them somewhere safe and private. Find yours in **Settings → Osaurus ID**.
+24 words that back up your [Osaurus ID](#osaurus-id). Anyone with them can restore it, so keep them somewhere safe and private. Find yours in **Settings → Osaurus ID** (on Windows, **Settings → Account → Account**).
 
 ### Relay {/* #relay */}
 

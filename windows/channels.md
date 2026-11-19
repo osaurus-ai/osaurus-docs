@@ -6,13 +6,13 @@ description: Connect Discord, Slack, Telegram, n8n, or your own HTTP service to 
 
 # Agent Channels on Windows
 
-Channels connect your agents to chat apps and services. An agent can answer messages people send there, and post to places you allow. Channels work as [Agent Channels](/agent-channels) describes on the Mac, with the differences below. They're in **Settings → Channels**.
+Channels connect your agents to chat apps and services. An agent can answer messages people send there, and post to places you allow. Channels work as [Agent Channels](/agent-channels) describes on the Mac, with the differences below. They're in **Settings → Automations → Channels**.
 
 ## Channels on Windows
 
 | Channel | How it connects |
 |---|---|
-| **Discord** | A bot you create; Osaurus checks for new messages every few seconds |
+| **Discord** | A bot you create; Osaurus checks for new messages every three seconds |
 | **Slack** | A Slack app over Socket Mode |
 | **Telegram** | A bot you create with @BotFather |
 | **n8n** | n8n sends messages in and gets replies back |
@@ -39,7 +39,7 @@ Under **Where can Osaurus listen and post?** (on Telegram, **…listen and reply
 Under **Replies**:
 
 1. Turn on **Send incoming messages to an agent** and choose the **Agent that answers**.
-2. **When should it respond?** Only when @mentioned (the default; on Telegram, a reply to the bot counts too), or **Every message in the channels above**.
+2. **When should it respond?** **Only when @mentioned (recommended)** (on Telegram, a reply to the bot counts too), or **Every message in the channels above**.
 3. **Reply automatically** posts its replies in the channel. Off, replies stay in Osaurus for you to read.
 
 **Routing rules** send messages to different agents: a message starting with a name (`sales: …`) picks that rule first, then a rule for the channel, then the agent above. Agents answering a channel can't use their MCP tools unless you turn on **Let the answering agent use its MCP tools**.
@@ -48,11 +48,11 @@ Use **Test connection** to check it; **Recent activity** shows what came in and 
 
 ## n8n
 
-1. Name the connection, then choose **Where does n8n run?**: **This PC**, **Docker Desktop on this PC**, or **Another computer on my network**.
+1. Name the connection, then choose **Where does n8n run?**: **This PC**, **Docker Desktop on this PC**, or **Another computer on my network**. (**Somewhere on the internet** is listed, but Windows can't pair with it yet.)
 2. Choose **Which agent answers?** (or **Decide later**), and how replies get back: n8n waits for the reply, or Osaurus also pushes it to an n8n webhook.
 3. Click **Create connection**, then **Pair with n8n**. Use **Show pairing code** for the Osaurus node, or copy the addresses and secret for n8n's HTTP Request nodes.
 
-For **Another computer on my network**, Osaurus must listen on your network first: set the address in **Settings → Connections → Network access** and restart Osaurus. Then turn on **Allow plaintext HTTP from other machines** in the n8n editor, unless n8n reaches Osaurus over an encrypted connection. An n8n on the internet can't be paired with Windows yet.
+For **Another computer on my network**, Osaurus must listen on your network first: set the address under **Network access** in **Settings → Devices → Connections** and restart Osaurus (see [Apps & Devices](/windows/connections#open-osaurus-to-your-network)). Then turn on **Allow plaintext HTTP from other machines** in the n8n editor, unless n8n reaches Osaurus over an encrypted connection. An n8n on the internet can't be paired with Windows yet.
 
 ## Custom HTTP
 
@@ -73,11 +73,11 @@ Each destination is limited to 10 messages an hour, 30 seconds apart, by default
 
 The agent's **Chat** tab lists the channels it can post to.
 
-**The Outbox** holds messages waiting for you (**Review**, then send or **Discard**) and a 30-day history. **Activity & audit** shows everything that came in and went out, with **Copy redacted export**.
+The **Outbox** tab holds messages waiting for you (**Review**, then send or **Discard**) and a 30-day history. **Activity & audit** shows everything that came in and went out, with **Copy redacted export**.
 
 ## The master switch
 
-**Allow agents to send messages**, at the top of **Connections**, pauses all sending everywhere when off; agents can still read. It's on by default.
+**Allow agents to send messages**, at the top of the **Connections** tab once you've added a channel, pauses all sending everywhere when off; agents can still read. It's on by default.
 
 ## Different from the Mac
 
